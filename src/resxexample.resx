@@ -1,0 +1,18 @@
+<root>
+    <data name="Arm-Button" 
+        xml:space="preserve">
+        <value>Arm</value>
+    </data>
+    <data name="CoordinatesLabel" 
+        xml:space="preserve">
+        <value>Enter coordinates</value>
+    </data>
+    <data name="launchButton" 
+        xml:space="preserve">
+        <value>Launch</value>
+    </data>
+    <data name="title" 
+        xml:space="preserve">
+        <value>nuke launch controls</value>
+    </data>
+</root>
