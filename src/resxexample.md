@@ -1,1 +1,6 @@
-Key | Value<br>---|---<br>Arm-Button|Arm<br>CoordinatesLabel|Enter coordinates<br>launchButton|Launch<br>title|nuke launch controls<br>
+Key | Value
+---|----
+Arm-Button|Arm
+CoordinatesLabel|Enter coordinates
+launchButton|Launch
+title|nuke launch controls
