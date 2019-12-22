@@ -6,4 +6,11 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
-- Initial release
+
+
+## [1.0.0] - 21-Dec-2019
+
+Initial release of ResXpress 
+
+### Added
+- ResXpress: Preview Resx Command
