@@ -1,4 +1,4 @@
-<img src="images\logo.png" alt="Logo" width="250" height="250">
+<img src="images/logo.png" alt="Logo" width="250" height="250">
 
 # ResXpress
 ResXpress extension handles opening of `.resx` files in Visual Studio code.
@@ -8,7 +8,7 @@ ResXpress extension handles opening of `.resx` files in Visual Studio code.
 - Command **ResXpress: Preview Resx**  
   It will preview resx as a markdown table.  
 
-  ![Screenshot](images\screenshot.gif "Preview Resx")
+  ![Screenshot](images/screenshot.gif "Preview Resx")  
 
 ## Requirements
 
@@ -30,3 +30,8 @@ None as of now
 
 Initial release of ResXpress
 
+### 1.0.1
+Webpack bundling added
+
+### 1.0.2
+Extension logo added
