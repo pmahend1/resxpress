@@ -14,3 +14,16 @@ Initial release of ResXpress
 
 ### Added
 - ResXpress: Preview Resx Command
+
+## [1.0.1] - 21-Dec-2019
+
+### Added
+- webpack bundling added
+
+### Updated
+- ReadMe updated
+
+## [1.0.2] - 21-Dec-2019
+
+### Added
+- Icon for the extension

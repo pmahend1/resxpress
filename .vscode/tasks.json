@@ -16,7 +16,10 @@
 				"isDefault": true
 			}
 		},
-	
-		
+		{
+			"type": "npm",
+			"script": "webpack",
+			"problemMatcher": "$tsc-watch",
+		}
 	]
 }
