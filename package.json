@@ -25,7 +25,13 @@
         }],
         "configuration": {
             "title": "ResXpress"
-        }
+        },
+        "languages": [{
+            "id": "xml",
+            "extensions": [
+                ".resx"
+            ]
+        }]
     },
     "scripts": {
         "vscode:prepublish": "webpack --mode production",
