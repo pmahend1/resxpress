@@ -7,7 +7,7 @@
     "repository": {
         "url": "https://github.com/pmahend1/resxpress.git"
     },
-    "version": "1.0.2",
+    "version": "1.0.3",
     "engines": {
         "vscode": "^1.40.0"
     },
@@ -19,19 +19,23 @@
     ],
     "main": "./dist/extension",
     "contributes": {
-        "commands": [{
-            "command": "resxpress.resxpreview",
-            "title": "ResXpress: Preview Resx"
-        }],
+        "commands": [
+            {
+                "command": "resxpress.resxpreview",
+                "title": "ResXpress: Preview Resx"
+            }
+        ],
         "configuration": {
             "title": "ResXpress"
         },
-        "languages": [{
-            "id": "xml",
-            "extensions": [
-                ".resx"
-            ]
-        }]
+        "languages": [
+            {
+                "id": "xml",
+                "extensions": [
+                    ".resx"
+                ]
+            }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "webpack --mode production",
