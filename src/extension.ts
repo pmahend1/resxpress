@@ -32,13 +32,17 @@ export async function viewResx() {
 	if (currentfilename) {
 		var filename_noext = currentfilename.substring(0, currentfilename.lastIndexOf('.'));
 		var ResxParser = require('resx-parser');
-		var parser = new ResxParser();
+
+		var options = {
+				convertIdCase : ''
+		  };
+		var parser = new ResxParser(options);
 		var res = parser.parseResxFile(currentfilename, async (err: any, result: any) => {
 			if (err) {
 				return console.log(err);
 			} else {
-				console.log(result);
-				console.log(filename_noext);
+				//console.log("Parsed Resx Content\n",result);
+				//console.log(filename_noext);
 				await displayJson(filename_noext, result);
 
 			}
@@ -51,10 +55,14 @@ export async function viewResx() {
 
 
 			let fileContent = 'Key | Value' + '\n';
-			fileContent += '---|----' + '\n';
+			fileContent += '--- | ---' + '\n';
 
 			for (const property in jsondata) {
-				fileContent += property + "|" + jsondata[property] + '\n';
+				console.log( property +  " : " + jsondata[property]);
+				
+				
+
+				fileContent += "```" + property + "```" + " | " + "```" + jsondata[property] +"```" +'\n';
 			}
 
 			await fspromises.writeFile(mdfile, fileContent);
