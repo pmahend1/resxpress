@@ -19,19 +19,23 @@
     ],
     "main": "./dist/extension",
     "contributes": {
-        "commands": [{
-            "command": "resxpress.resxpreview",
-            "title": "ResXpress: Preview Resx"
-        }],
+        "commands": [
+            {
+                "command": "resxpress.resxpreview",
+                "title": "ResXpress: Preview Resx"
+            }
+        ],
         "configuration": {
             "title": "ResXpress"
         },
-        "languages": [{
-            "id": "xml",
-            "extensions": [
-                ".resx"
-            ]
-        }]
+        "languages": [
+            {
+                "id": "xml",
+                "extensions": [
+                    ".resx"
+                ]
+            }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "webpack --mode production",
