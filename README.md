@@ -25,18 +25,4 @@ None as of now
 
 ## Release Notes
 
-
-### 1.0.0
-
-Initial release of ResXpress
-
-### 1.0.1
-Webpack bundling added
-
-### 1.0.2
-Extension logo added
-
-## References
-
-Logo created from LogoMakr.com
-logomakr.com/4JKO3M
+[ChangeLog](.\CHANGELOG.md)
