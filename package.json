@@ -7,7 +7,7 @@
     "repository": {
         "url": "https://github.com/pmahend1/resxpress.git"
     },
-    "version": "1.0.2",
+    "version": "1.0.4",
     "engines": {
         "vscode": "^1.40.0"
     },
