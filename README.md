@@ -8,7 +8,12 @@ ResXpress extension handles opening of `.resx` files in Visual Studio code.
 - Command **ResXpress: Preview Resx**  
   It will preview resx as a markdown table.  
 
-  ![Screenshot](https://raw.githubusercontent.com/pmahend1/resxpress/master/images/screenshot.gif "Preview Resx")  
+  ![Screenshot1](https://raw.githubusercontent.com/pmahend1/resxpress/master/images/preview.gif "Preview Resx")  
+
+- Command **ResXpress: Sort By Keys**  
+  It will preview resx as a markdown table.  
+
+  ![Screenshot2](https://raw.githubusercontent.com/pmahend1/resxpress/master/images/sortByKeys.gif "Sort By Keys")  
 
 ## Requirements
 
@@ -26,17 +31,7 @@ None as of now
 ## Release Notes
 
 
-### 1.0.0
 
-Initial release of ResXpress
-
-### 1.0.1
-Webpack bundling added
-
-### 1.0.2
-Extension logo added
-
-## References
 
 Logo created from LogoMakr.com
 logomakr.com/4JKO3M

@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
-import { promises as fspromises, copyFile } from "fs";
-import { resolve } from "dns";
+
+import { promises as fsPromises, copyFile } from "fs";
+import { stringify } from "querystring";
 
 export function activate(context: vscode.ExtensionContext) {
 	let readResx = vscode.commands.registerCommand("resxpress.resxpreview",
@@ -22,7 +23,7 @@ export function deactivate() { }
 
 export async function sortByKeys() {
 	let unordered:any = await parseResx();
-	console.log(unordered);
+
 	var ordered: any={};
 	if(unordered instanceof Object)
 	{
@@ -32,7 +33,36 @@ export async function sortByKeys() {
 			ordered[key] = unordered[key];
 		});
 
-	console.log(JSON.stringify(ordered));
+
+	var XMLWriter = require('xml-writer');
+	var xw = new XMLWriter(true);
+	xw.startDocument();
+	xw.startElement('root');
+	Object.keys(ordered).forEach(function (key: string){
+		xw.startElement('data');
+		xw.writeAttribute('name', key).writeAttribute('xml:space', "preserve");
+		xw.startElement('value').text(ordered[key]);
+		xw.endElement();
+		xw.endElement();
+	});
+	xw.endElement();
+	xw.endDocument();
+
+	let editor = vscode.window.activeTextEditor;
+	if (editor) {
+		let document = editor.document;
+		
+		var start = new vscode.Position(0,0);
+		var end = new vscode.Position(document.lineCount, 100);
+
+
+		var ranger = new vscode.Range(start, end);
+		editor.edit(editBuilder => {
+			editBuilder.replace(ranger, xw+'');
+		});
+	}
+	
+
 	}
 	
 }
@@ -43,7 +73,7 @@ function parseResx() {
 	if (currentFileName) 
 	{
 		var ResxParser = require("resx-parser");
-		var options = {convertIdCase: ""};
+		var options = {convertIdCase: ''};
 		var parser = new ResxParser(options);
 
 
@@ -77,7 +107,7 @@ export async function viewResx() {
 			0,
 			currentFileName.lastIndexOf(".")
 		);
-		var result = parseResx();
+		var result = await parseResx();
 		if (result) {
 			if (!(result instanceof Error)) {
 				await displayJson(fileNameNoExt, result);
@@ -90,11 +120,10 @@ async function displayJson(filename: any, jsonData: any) {
 	let mdFile = filename + ".md";
 
 	let fileContent = "Key | Value" + "\n";
-	fileContent += "--- | ---" + "\n";
+	fileContent += "--- | --- " + "\n";
 
 	for (const property in jsonData) {
-		console.log(property + " : " + jsonData[property]);
-
+		
 		fileContent +=
 			"```" +
 			property +
@@ -106,12 +135,13 @@ async function displayJson(filename: any, jsonData: any) {
 			"\n";
 	}
 
-	await fspromises.writeFile(mdFile, fileContent);
+	await fsPromises.writeFile(mdFile, fileContent);
 
 	let uri = vscode.Uri.file(mdFile);
 
 	await vscode.commands.executeCommand("vscode.open", uri);
 	await vscode.commands.executeCommand("markdown.showPreview");
+	await vscode.commands.executeCommand("markdown.preview.refresh");
 	await vscode.commands.executeCommand("workbench.action.previousEditor");
 	await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
 }

@@ -61,6 +61,7 @@
         "webpack-cli": "^3.3.10"
     },
     "dependencies": {
-        "resx-parser": "^1.0.1"
+        "resx-parser": "^1.0.1",
+        "xml-writer": "^1.7.0"
     }
 }
