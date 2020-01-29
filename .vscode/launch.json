@@ -31,8 +31,8 @@
 			"outFiles": [
 				"${workspaceFolder}/out/test/**/*.js"
 			],
-			//"preLaunchTask": "npm: test-compile"
-			 "preLaunchTask": "${defaultBuildTask}"
+			"preLaunchTask": "npm: test-compile"
+			 //"preLaunchTask": "${defaultBuildTask}"
 		}
 	]
 }
