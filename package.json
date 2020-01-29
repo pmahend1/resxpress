@@ -15,27 +15,29 @@
         "Other"
     ],
     "activationEvents": [
-        "onCommand:resxpress.resxpreview"
+        "onCommand:resxpress.resxpreview",
+        "onCommand:resxpress.sortbykeys"
     ],
     "main": "./out/extension.js",
     "contributes": {
-        "commands": [
-            {
+        "commands": [{
                 "command": "resxpress.resxpreview",
                 "title": "ResXpress: Preview Resx"
+            },
+            {
+                "command": "resxpress.sortbykeys",
+                "title": "ResXpress: Sort By Keys"
             }
         ],
         "configuration": {
             "title": "ResXpress"
         },
-        "languages": [
-            {
-                "id": "xml",
-                "extensions": [
-                    ".resx"
-                ]
-            }
-        ]
+        "languages": [{
+            "id": "xml",
+            "extensions": [
+                ".resx"
+            ]
+        }]
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
