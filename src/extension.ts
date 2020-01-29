@@ -23,7 +23,7 @@ export function deactivate() { }
 export async function sortByKeys() {
 	let unordered:any = await parseResx();
 	console.log(unordered);
-	var ordered: any;
+	var ordered: any={};
 	if(unordered instanceof Object)
 	{
 		Object.keys(unordered)
@@ -38,7 +38,7 @@ export async function sortByKeys() {
 }
 
 function parseResx() {
-	let jsObj= new Promise((res, rej)=> { return rej(new Error(''));});
+	let jsObj= new Promise((res, rej)=> { return rej;});
 	var currentFileName = vscode.window.activeTextEditor?.document.fileName;
 	if (currentFileName) 
 	{
