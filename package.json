@@ -15,33 +15,36 @@
         "Other"
     ],
     "activationEvents": [
-        "onCommand:resxpress.resxpreview"
+        "onCommand:resxpress.resxpreview",
+        "onCommand:resxpress.sortbykeys"
     ],
-    "main": "./dist/extension",
+    "main": "./out/extension.js",
     "contributes": {
-        "commands": [
-            {
+        "commands": [{
                 "command": "resxpress.resxpreview",
                 "title": "ResXpress: Preview Resx"
+            },
+            {
+                "command": "resxpress.sortbykeys",
+                "title": "ResXpress: Sort By Keys"
             }
         ],
         "configuration": {
             "title": "ResXpress"
         },
-        "languages": [
-            {
-                "id": "xml",
-                "extensions": [
-                    ".resx"
-                ]
-            }
-        ]
+        "languages": [{
+            "id": "xml",
+            "extensions": [
+                ".resx"
+            ]
+        }]
     },
     "scripts": {
-        "vscode:prepublish": "webpack --mode production",
-        "webpack": "webpack --mode development",
-        "webpack-dev": "webpack --mode development --watch",
-        "test-compile": "tsc -p ./"
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile",
+        "test": "node ./out/test/runTest.js"
     },
     "devDependencies": {
         "@types/glob": "^7.1.1",
@@ -58,6 +61,7 @@
         "webpack-cli": "^3.3.10"
     },
     "dependencies": {
-        "resx-parser": "^1.0.1"
+        "resx-parser": "^1.0.1",
+        "xml-writer": "^1.7.0"
     }
 }
