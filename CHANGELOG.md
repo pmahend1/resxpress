@@ -9,6 +9,14 @@ All notable changes to the "resxpress" extension will be documented in this file
 
 ---
 
+## 1.0.5 - 26-Jan-2019
+
+### Added
+
+- fixed camel-casing issue in markdown preview.
+
+---
+
 ## 1.0.4 - 23-Jan-2019
 
 ### Added
@@ -21,7 +29,7 @@ All notable changes to the "resxpress" extension will be documented in this file
 
 ### Added
 
-- Icon for the extension
+- Icon for the extension.
 
 ---
 

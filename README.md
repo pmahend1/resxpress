@@ -30,8 +30,4 @@ None as of now
 
 ## Release Notes
 
-
-
-
-Logo created from LogoMakr.com
-logomakr.com/4JKO3M
+[ChangeLog](CHANGELOG.md)
