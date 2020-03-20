@@ -9,7 +9,7 @@
     },
     "version": "2.1.0",
     "engines": {
-        "vscode": "^1.41.0"
+        "vscode": "^1.43.0"
     },
     "categories": [
         "Other"
@@ -20,8 +20,7 @@
     ],
     "main": "./out/extension.js",
     "contributes": {
-        "commands": [
-            {
+        "commands": [{
                 "command": "resxpress.resxpreview",
                 "title": "ResXpress: Preview Resx"
             },
@@ -33,14 +32,12 @@
         "configuration": {
             "title": "ResXpress"
         },
-        "languages": [
-            {
-                "id": "xml",
-                "extensions": [
-                    ".resx"
-                ]
-            }
-        ]
+        "languages": [{
+            "id": "xml",
+            "extensions": [
+                ".resx"
+            ]
+        }]
     },
     "scripts": {
         "vscode:prepublish": "webpack --mode production",
