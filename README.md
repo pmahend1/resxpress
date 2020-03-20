@@ -1,7 +1,8 @@
 <img src="https://raw.githubusercontent.com/pmahend1/resxpress/master/images/logo.png" alt="Logo" width="250" height="250">
 
 # ResXpress
-ResXpress extension handles opening of `.resx` files in Visual Studio code.
+
+ResXpress extension handles `.resx` files in Visual Studio code.
 
 ## Features
 
@@ -18,7 +19,7 @@ ResXpress extension handles opening of `.resx` files in Visual Studio code.
 ## Requirements
 
 - Built in markdown support
-- VS code 1.40+
+- VS code 1.41+
 
 ## Extension Settings
 

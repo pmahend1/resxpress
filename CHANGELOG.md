@@ -5,11 +5,19 @@ All notable changes to the "resxpress" extension will be documented in this file
 
 ## [Unreleased]
 
-- Sort keys alphabetically
+- Format
 
 ---
 
-## 1.0.5 - 26-Jan-2019
+## 2.0.3 - 29-Jan-2020
+
+### Added 
+
+- Command **Sort By Keys**
+
+---
+
+## 1.0.5 - 26-Jan-2020
 
 ### Added
 
@@ -17,7 +25,7 @@ All notable changes to the "resxpress" extension will be documented in this file
 
 ---
 
-## 1.0.4 - 23-Jan-2019
+## 1.0.4 - 23-Jan-2020
 
 ### Added
 
