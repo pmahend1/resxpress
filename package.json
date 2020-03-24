@@ -18,9 +18,10 @@
         "onCommand:resxpress.resxpreview",
         "onCommand:resxpress.sortbykeys"
     ],
-    "main": "./out/extension.js",
+    "main": "./dist/extension",
     "contributes": {
-        "commands": [{
+        "commands": [
+            {
                 "command": "resxpress.resxpreview",
                 "title": "ResXpress: Preview Resx"
             },
@@ -32,12 +33,14 @@
         "configuration": {
             "title": "ResXpress"
         },
-        "languages": [{
-            "id": "xml",
-            "extensions": [
-                ".resx"
-            ]
-        }]
+        "languages": [
+            {
+                "id": "xml",
+                "extensions": [
+                    ".resx"
+                ]
+            }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "webpack --mode production",
@@ -48,11 +51,11 @@
     "devDependencies": {
         "@types/glob": "^7.1.1",
         "@types/mocha": "^7.0.2",
-        "@types/node": "^13.9.2",
+        "@types/node": "^13.9.3",
         "@types/vscode": "^1.43.0",
         "glob": "^7.1.6",
         "mocha": "^7.1.1",
-        "ts-loader": "^6.2.1",
+        "ts-loader": "^6.2.2",
         "tslint": "^6.1.0",
         "typescript": "^3.8.3",
         "vscode-test": "^1.3.0",
@@ -61,6 +64,7 @@
     },
     "dependencies": {
         "acorn": "^7.1.1",
+        "npm-check-updates": "^4.0.5",
         "resx-parser": "^1.0.1",
         "xml-writer": "^1.7.0"
     }

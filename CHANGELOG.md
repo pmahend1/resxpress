@@ -7,7 +7,7 @@ All notable changes to the "resxpress" extension will be documented in this file
 - Format
 
 ---
-## 2.2.0 - 20-Mar-2020
+## 2.2.3 - 203-Mar-2020
 
 ### Updated
 
