@@ -1,3 +1,4 @@
+///
 {
     "name": "resxpress",
     "displayName": "ResXpress",
@@ -7,9 +8,9 @@
     "repository": {
         "url": "https://github.com/pmahend1/resxpress.git"
     },
-    "version": "2.2.2",
+    "version": "2.0.3",
     "engines": {
-        "vscode": "^1.43.0"
+        "vscode": "^1.41.0"
     },
     "categories": [
         "Other"
@@ -39,12 +40,24 @@
             ]
         }]
     },
+    // WebPack for bundlign - Release mode 
+
+    // "scripts": {
+    //     "vscode:prepublish": "npm run compile",
+    //     "compile": "tsc -p ./",
+    //     "watch": "tsc -watch -p ./",
+    //     "pretest": "npm run compile",
+    //     "test": "node ./out/test/runTest.js"
+    // },
+
+    // Development for debug
     "scripts": {
         "vscode:prepublish": "webpack --mode production",
         "webpack": "webpack --mode development",
         "webpack-dev": "webpack --mode development --watch",
         "test-compile": "tsc -p ./"
     },
+
     "devDependencies": {
         "@types/glob": "^7.1.1",
         "@types/mocha": "^7.0.2",

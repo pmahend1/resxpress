@@ -2,16 +2,22 @@
 
 All notable changes to the "resxpress" extension will be documented in this file.
 
-
 ## [Unreleased]
 
 - Format
 
 ---
+## 2.2.0 - 20-Mar-2020
+
+### Updated
+
+- npm package updates
+
+---
 
 ## 2.0.3 - 29-Jan-2020
 
-### Added 
+### Added
 
 - Command **Sort By Keys**
 
