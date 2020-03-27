@@ -3,11 +3,14 @@ import * as vscode from "vscode";
 import { promises as fsPromises, copyFile } from "fs";
 import { stringify } from "querystring";
 
-export function activate(context: vscode.ExtensionContext) {
-	let readResx = vscode.commands.registerCommand("resxpress.resxpreview",
-												async () => {
-													await viewResx();
-												}
+export function activate(context: vscode.ExtensionContext)
+{
+	let readResx = vscode.commands.registerCommand(
+		"resxpress.resxpreview",
+		async () =>
+		{
+			await viewResx();
+		}
 	);
 
 	let sortByKeysCommand = vscode.commands.registerCommand(
@@ -21,118 +24,137 @@ export function activate(context: vscode.ExtensionContext) {
 // this method is called when your extension is deactivated
 export function deactivate() { }
 
-export async function sortByKeys() {
-	let unordered:any = await parseResx();
+export async function sortByKeys()
+{
+	let unordered: any = await parseResx();
 
-	var ordered: any={};
-	if(unordered instanceof Object)
+	var ordered: any = {};
+	if (unordered instanceof Object)
 	{
 		Object.keys(unordered)
-		.sort()
-		.forEach(function (key: string) {
-			ordered[key] = unordered[key];
+			.sort()
+			.forEach(function (key: string)
+			{
+				ordered[key] = unordered[key];
+			});
+
+		var XMLWriter = require("xml-writer");
+		var xw = new XMLWriter(true);
+		xw.startDocument();
+		xw.startElement("root");
+		Object.keys(ordered).forEach(function (key: string)
+		{
+			xw.startElement("data");
+			xw.writeAttribute("name", key).writeAttribute("xml:space", "preserve");
+			xw.startElement("value").text(ordered[key]);
+			xw.endElement();
+			xw.endElement();
 		});
-
-
-	var XMLWriter = require('xml-writer');
-	var xw = new XMLWriter(true);
-	xw.startDocument();
-	xw.startElement('root');
-	Object.keys(ordered).forEach(function (key: string){
-		xw.startElement('data');
-		xw.writeAttribute('name', key).writeAttribute('xml:space', "preserve");
-		xw.startElement('value').text(ordered[key]);
 		xw.endElement();
-		xw.endElement();
-	});
-	xw.endElement();
-	xw.endDocument();
+		xw.endDocument();
 
-	let editor = vscode.window.activeTextEditor;
-	if (editor) {
-		let document = editor.document;
-		
-		var start = new vscode.Position(0,0);
-		var end = new vscode.Position(document.lineCount, 100);
+		let editor = vscode.window.activeTextEditor;
+		if (editor)
+		{
+			let document = editor.document;
 
+			var start = new vscode.Position(0, 0);
+			var end = new vscode.Position(document.lineCount, 100);
 
-		var ranger = new vscode.Range(start, end);
-		editor.edit(editBuilder => {
-			editBuilder.replace(ranger, xw+'');
-		});
+			var ranger = new vscode.Range(start, end);
+			editor.edit(editBuilder =>
+			{
+				editBuilder.replace(ranger, xw + "");
+			});
+		}
 	}
-	
-
-	}
-	
 }
 
-function parseResx() {
-	let jsObj= new Promise((res, rej)=> { return rej;});
+function parseResx()
+{
+	let jsObj = new Promise((res, rej) =>
+	{
+		return rej;
+	});
 	var currentFileName = vscode.window.activeTextEditor?.document.fileName;
-	if (currentFileName) 
+	if (currentFileName)
 	{
 		var ResxParser = require("resx-parser");
-		var options = {convertIdCase: ''};
+		var options = { convertIdCase: "" };
 		var parser = new ResxParser(options);
 
-
-		 jsObj = new Promise((resolve, reject) => {
-			parser.parseResxFile(currentFileName, (err: Error, result: any) =>  {
-				if (err) {
-					 return reject(err);
-				} else {
+		jsObj = new Promise((resolve, reject) =>
+		{
+			parser.parseResxFile(currentFileName, (err: Error, result: any) =>
+			{
+				if (err)
+				{
+					return reject(err);
+				} else
+				{
 					return resolve(result);
 				}
-			
-		});});
-	
-	
+			});
+		});
 	}
 
 	return jsObj;
 }
 
-export async function viewResx() {
+export async function viewResx()
+{
 	const path = require("path");
 
 	var currentFileName = vscode.window.activeTextEditor?.document.fileName;
 	var ext = path.parse(currentFileName).ext;
-	if (ext !== ".resx") {
+	if (ext !== ".resx")
+	{
 		await vscode.window.showErrorMessage("Not a Resx file.");
 		return;
 	}
-	if (currentFileName) {
+	if (currentFileName)
+	{
 		var fileNameNoExt = currentFileName.substring(
 			0,
 			currentFileName.lastIndexOf(".")
 		);
 		var result = await parseResx();
-		if (result) {
-			if (!(result instanceof Error)) {
+		if (result)
+		{
+			if (!(result instanceof Error))
+			{
 				await displayJson(fileNameNoExt, result);
 			}
 		}
 	}
 }
 
-async function displayJson(filename: any, jsonData: any) {
+async function displayJson(filename: any, jsonData: any)
+{
 	let mdFile = filename + ".md";
 
 	let fileContent = "Key | Value" + "\n";
 	fileContent += "--- | --- " + "\n";
 
-	for (const property in jsonData) {
+	for (const property in jsonData)
+	{
+	
+
+		const regexM = /[\\`*_{}[\]()#+.!|-]/g;
+		//clean up key
+		var propertyString = property;
 		
-		fileContent +=
-			"```" +
-			property +
-			"```" +
-			" | " +
-			"```" +
-			jsonData[property] +
-			"```" +
-			"\n";
+		propertyString = property.replace(regexM, "\\$&");
+		propertyString = propertyString.replace(/\r?\n/g, "<br/>");
+
+		var valueString = jsonData[property];
+
+		//clean up value
+		valueString = valueString.replace(regexM, "\\$&");
+		valueString = valueString.replace(/\r?\n/g, "<br/>");
+		
+		fileContent += propertyString  + " | " +  valueString + "\n";
+
 	}
 
 	await fsPromises.writeFile(mdFile, fileContent);
