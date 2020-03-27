@@ -7,7 +7,13 @@ All notable changes to the "resxpress" extension will be documented in this file
 - Format
 
 ---
-## 2.2.3 - 203-Mar-2020
+## 2.3.0 - 26-Mar-2020
+
+### Added
+- Character escaping for displaying special characters newline characters in Markdown
+
+---
+## 2.2.3 - 23-Mar-2020
 
 ### Updated
 
