@@ -1,7 +1,7 @@
 {
     "name": "resxpress",
     "displayName": "ResXpress",
-    "description": "Resources Express for resx files",
+    "description": "Preview and sort Resx files",
     "publisher": "PrateekMahendrakar",
     "icon": "images/logo.png",
     "repository": {
