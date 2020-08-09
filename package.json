@@ -1,13 +1,13 @@
 {
     "name": "resxpress",
     "displayName": "ResXpress",
-    "description": "Resources Express for resx files",
+    "description": "Preview and sort Resx files",
     "publisher": "PrateekMahendrakar",
     "icon": "images/logo.png",
     "repository": {
         "url": "https://github.com/pmahend1/resxpress.git"
     },
-    "version": "2.2.3",
+    "version": "2.3.1",
     "engines": {
         "vscode": "^1.43.0"
     },
@@ -20,7 +20,8 @@
     ],
     "main": "./dist/extension",
     "contributes": {
-        "commands": [{
+        "commands": [
+            {
                 "command": "resxpress.resxpreview",
                 "title": "ResXpress: Preview Resx"
             },
@@ -32,12 +33,14 @@
         "configuration": {
             "title": "ResXpress"
         },
-        "languages": [{
-            "id": "xml",
-            "extensions": [
-                ".resx"
-            ]
-        }]
+        "languages": [
+            {
+                "id": "xml",
+                "extensions": [
+                    ".resx"
+                ]
+            }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "webpack --mode production",
@@ -62,6 +65,7 @@
     "dependencies": {
         "acorn": "^7.4.0",
         "npm-check-updates": "^7.0.3",
+
         "resx-parser": "^1.0.1",
         "xml-writer": "^1.7.0"
     }
