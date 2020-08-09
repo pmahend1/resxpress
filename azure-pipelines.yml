@@ -35,8 +35,8 @@ steps:
   # Acquire the `vsce` tool and use it to package
   - script: |
       sudo npm install -g vsce
-      vsce package
-    displayName: Create VSIX
+      vsce package --yarn
+    displayName: Create VSIX through yarn
 
   # For releasable builds, we'll want the branch
   # Expects that a 'version.txt' has been laid down by a previous step
