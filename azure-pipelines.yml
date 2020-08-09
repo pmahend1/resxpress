@@ -60,5 +60,5 @@ steps:
   - task: PublishPipelineArtifact@1
     displayName: Publish VSIX
     inputs:
-      artifact: git-mob-vs-code
+      artifact: resxpress-vs-code
       targetPath: $(Build.ArtifactStagingDirectory)
