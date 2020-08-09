@@ -65,7 +65,6 @@
     "dependencies": {
         "acorn": "^7.4.0",
         "npm-check-updates": "^7.0.3",
-
         "resx-parser": "^1.0.1",
         "xml-writer": "^1.7.0"
     }
