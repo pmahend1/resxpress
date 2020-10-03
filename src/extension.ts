@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 
-import { promises as fsPromises, copyFile } from "fs";
-import { stringify } from "querystring";
+import { promises as fsPromises } from "fs";
 
 export function activate(context: vscode.ExtensionContext)
 {
@@ -138,12 +137,11 @@ async function displayJson(filename: any, jsonData: any)
 
 	for (const property in jsonData)
 	{
-	
 
 		const regexM = /[\\`*_{}[\]()#+.!|-]/g;
 		//clean up key
 		var propertyString = property;
-		
+
 		propertyString = property.replace(regexM, "\\$&");
 		propertyString = propertyString.replace(/\r?\n/g, "<br/>");
 
@@ -152,8 +150,8 @@ async function displayJson(filename: any, jsonData: any)
 		//clean up value
 		valueString = valueString.replace(regexM, "\\$&");
 		valueString = valueString.replace(/\r?\n/g, "<br/>");
-		
-		fileContent += propertyString  + " | " +  valueString + "\n";
+
+		fileContent += propertyString + " | " + valueString + "\n";
 
 	}
 

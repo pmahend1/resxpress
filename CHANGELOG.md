@@ -1,12 +1,19 @@
 # Change Log
 
-All notable changes to the "resxpress" extension will be documented in this file.
+All notable changes to the **ResxPress** extension will be documented in this file.
 
-## [Unreleased]
+## 2.6.1 - 2-Oct-2020
 
-- Format
+Added badges.
 
 ---
+
+## 2.6.0 - 9-Aug-2020
+
+Updated packages
+
+---
+
 ## 2.3.0 - 26-Mar-2020
 
 ### Added
