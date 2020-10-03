@@ -9,8 +9,7 @@ on:
   workflow_dispatch:
 
 
-- name: GitHub Action for vsce
-  uses: lannonbr/vsce-action@2.0.0
+name: GitHub Action for vsce
 
 jobs:
   deploy:
