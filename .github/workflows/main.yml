@@ -1,24 +1,27 @@
-# This is a basic workflow to help you get started with Actions
+name: Deploy CI
+
 on:
   push:
     branches:
       - master
-  pull_request:
-      branches:
-      - master
   workflow_dispatch:
-
-
-name: GitHub Action for vsce
+    branches:
+      - master
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
-      - run: yarn
-      - uses: lannonbr/vsce-action@master
-        with:
-          args: "publish --pat $VSCE_TOKEN"
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: install vsce
+        run: npm install -g vsce
+
+      - name: yarn
+        run: yarn
+
+      - name: VSCE publish
+        run: vsce publish --yarn -p $env:VSCE_PAT
         env:
-          VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
+          VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
