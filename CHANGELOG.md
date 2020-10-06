@@ -2,6 +2,10 @@
 
 All notable changes to the **ResxPress** extension will be documented in this file.
 
+## 2.7.1 - 6-Oct-2020
+
+Added badges.
+
 ## 2.6.1 - 2-Oct-2020
 
 Added badges.
