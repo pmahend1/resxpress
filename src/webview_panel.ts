@@ -10,11 +10,15 @@ class PreviewEditPanel {
 	private readonly _extensionUri: vscode.Uri;
 	public _content :string;
 	private _disposables: vscode.Disposable[] = [];
+	private static _title:string = "Resx Preview";
 
-	public static createOrShow(extensionUri: vscode.Uri, content:string) {
+	public static createOrShow(extensionUri: vscode.Uri, title :string, content:string) {
+
 		const column = vscode.window.activeTextEditor
 			? vscode.window.activeTextEditor.viewColumn
 			: undefined;
+
+		this._title = title;
 
 		// If we already have a panel, show it.
 		if (PreviewEditPanel.currentPanel) {
@@ -121,7 +125,7 @@ class PreviewEditPanel {
 	}
 
 	private _updateKeyValues(webview: vscode.Webview, content :string) {
-		this._panel.title = 'Preview';
+		this._panel.title = PreviewEditPanel._title + " Preview";
 		this._panel.webview.html = this._getHtmlForWebview(webview, content);
 	}
 
@@ -140,22 +144,33 @@ class PreviewEditPanel {
 			<head>
 				<meta charset="UTF-8">
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-				<title>Preview</title>
+				<title>${PreviewEditPanel._title}</title>
 				<style>
-					table {
-					font-family: consolas, sans-serif;
-					border-collapse: collapse;
-					width: 75%;
+					table 
+					{
+						border-collapse: collapse;
+						width: 75%;
 					}
 
-					td, th {
-					border: 1px solid #00a8e0;
-					text-align: center;
-					padding: 8px;
+					th 
+					{
+						position: sticky;
+						background-color: var(--vscode-editor-background);
+						border: 1px solid;
+						text-align: center;
+						padding: 8px;
 					}
 
-					tr:nth-child(even) {
-					background-color: #686868;
+					td 
+					{
+						padding: 8px;
+						border: 1px solid;
+
+					}
+
+					tr:nth-child(even) 
+					{
+						background-color: var(--vscode-sideBar-background);
 					}
 				</style>
 			</head>
@@ -166,8 +181,8 @@ class PreviewEditPanel {
 			  <th>Value</th>
 			  <th>Comment</th>
 			</tr>
-			`+content+
-			`</table>
+			${content}
+			</table>
 			<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
 			</html>`;
