@@ -22,7 +22,7 @@ export function activate(context: vscode.ExtensionContext)
 	context.subscriptions.push(readResx);
 	context.subscriptions.push(sortByKeysCommand);
 	context.subscriptions.push(
-		vscode.commands.registerCommand('resxpress.newpreview',async () =>
+		vscode.commands.registerCommand('resxpress.newpreview', async () =>
 		{
 			await newPreview();
 		})
@@ -74,8 +74,14 @@ export async function sortByKeys()
 		{
 			xw.startElement("data");
 			xw.writeAttribute("name", key).writeAttribute("xml:space", "preserve");
-			xw.startElement("value").text(ordered[key]);
+			xw.startElement("value").text(ordered[key]['value']);
 			xw.endElement();
+			if (ordered[key]['comment'])
+			{
+				xw.startElement("comment").text(ordered[key]['comment']);
+				xw.endElement();
+			}
+			
 			xw.endElement();
 		});
 		xw.endElement();
@@ -87,12 +93,13 @@ export async function sortByKeys()
 			let document = editor.document;
 
 			var start = new vscode.Position(0, 0);
-			var end = new vscode.Position(document.lineCount, 100);
+			var lastButOne = document.lineAt(document.lineCount - 1);
+			var end = new vscode.Position(document.lineCount, lastButOne.range.end.character);
 
 			var ranger = new vscode.Range(start, end);
 			editor.edit(editBuilder =>
 			{
-				editBuilder.replace(ranger, xw + "");
+				editBuilder.replace(ranger, xw.toString());
 			});
 		}
 	}
@@ -108,7 +115,16 @@ function parseResx()
 	if (currentFileName)
 	{
 		var ResxParser = require("resx-parser");
-		var options = { convertIdCase: "" };
+		var options = {
+			fnTransformValue: function (id: any, value: any, comment: any)
+			{
+				return {
+					value: value,
+					comment: comment
+				};
+			}
+		};
+		//var options = { convertIdCase: "" };
 		var parser = new ResxParser(options);
 
 		jsObj = new Promise((resolve, reject) =>
@@ -167,8 +183,8 @@ async function displayJson(filename: any, jsonData: any)
 {
 	let mdFile = filename + ".md";
 
-	let fileContent = "Key | Value" + "\n";
-	fileContent += "--- | --- " + "\n";
+	let fileContent = "| Key | Value | Comment |" + "\n";
+	fileContent += "| --- | --- | --- |" + "\n";
 
 	for (const property in jsonData)
 	{
@@ -180,13 +196,15 @@ async function displayJson(filename: any, jsonData: any)
 		propertyString = property.replace(regexM, "\\$&");
 		propertyString = propertyString.replace(/\r?\n/g, "<br/>");
 
-		var valueString = jsonData[property];
-
+		var valueString = jsonData[property]['value'];
+		var commentString = jsonData[property]['comment'];
 		//clean up value
 		valueString = valueString.replace(regexM, "\\$&");
 		valueString = valueString.replace(/\r?\n/g, "<br/>");
+		commentString = commentString.replace(regexM, "\\$&");
+		commentString = commentString.replace(/\r?\n/g, "<br/>");
 
-		fileContent += propertyString + " | " + valueString + "\n";
+		fileContent += "|" + propertyString + " | " + valueString + " | " + commentString + "|\n";
 
 	}
 
@@ -210,8 +228,8 @@ async function displayJsonInHtml(jsonData: any)
 	{
 		_content += `<tr>
 		<td>${property}</td>
-		<td>${jsonData[property]}</td>
-		<td>nothing</td>
+		<td>${jsonData[property]['value']}</td>
+		<td>${jsonData[property]['comment']}</td>
 	</tr>`;
 
 	}
