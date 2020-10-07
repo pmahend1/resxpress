@@ -1,9 +1,12 @@
 import * as vscode from "vscode";
 
 import { promises as fsPromises } from "fs";
+import { PreviewEditPanel } from "./webview_panel";
+let currentContext: vscode.ExtensionContext;
 
 export function activate(context: vscode.ExtensionContext)
 {
+	currentContext = context;
 	let readResx = vscode.commands.registerCommand(
 		"resxpress.resxpreview",
 		async () =>
@@ -18,6 +21,32 @@ export function activate(context: vscode.ExtensionContext)
 	);
 	context.subscriptions.push(readResx);
 	context.subscriptions.push(sortByKeysCommand);
+	context.subscriptions.push(
+		vscode.commands.registerCommand('resxpress.newpreview',async () =>
+		{
+			await newPreview();
+		})
+	);
+
+	// context.subscriptions.push(
+	// 	vscode.commands.registerCommand('catCoding.doRefactor', () => {
+	// 		if (PreviewEditPanel.currentPanel) {
+	// 			PreviewEditPanel.currentPanel.doRefactor();
+	// 		}
+	// 	})
+	// );
+
+	if (vscode.window.registerWebviewPanelSerializer)
+	{
+		// Make sure we register a serializer in activation event
+		vscode.window.registerWebviewPanelSerializer(PreviewEditPanel.viewType, {
+			async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any)
+			{
+				console.log(`Got state: ${state}`);
+				PreviewEditPanel.revive(webviewPanel, context.extensionUri, '');
+			}
+		});
+	}
 }
 
 // this method is called when your extension is deactivated
@@ -128,6 +157,12 @@ export async function viewResx()
 	}
 }
 
+async function newPreview()
+{
+	var json = await parseResx();
+	await displayJsonInHtml(json);
+
+}
 async function displayJson(filename: any, jsonData: any)
 {
 	let mdFile = filename + ".md";
@@ -164,4 +199,22 @@ async function displayJson(filename: any, jsonData: any)
 	await vscode.commands.executeCommand("markdown.preview.refresh");
 	await vscode.commands.executeCommand("workbench.action.previousEditor");
 	await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
+}
+
+
+async function displayJsonInHtml(jsonData: any)
+{
+
+	var _content = '';
+	for (const property in jsonData)
+	{
+		_content += `<tr>
+		<td>${property}</td>
+		<td>${jsonData[property]}</td>
+		<td>nothing</td>
+	</tr>`;
+
+	}
+	PreviewEditPanel.createOrShow(currentContext.extensionUri, _content);
+
 }

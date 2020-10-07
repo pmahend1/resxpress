@@ -17,9 +17,10 @@
     ],
     "activationEvents": [
         "onCommand:resxpress.resxpreview",
-        "onCommand:resxpress.sortbykeys"
+        "onCommand:resxpress.sortbykeys",
+        "onCommand:resxpress.newpreview"
     ],
-    "main": "./dist/extension",
+    "main": "./out/extension.js",
     "contributes": {
         "commands": [
             {
@@ -29,6 +30,10 @@
             {
                 "command": "resxpress.sortbykeys",
                 "title": "ResXpress: Sort By Keys"
+            },
+            {
+                "command": "resxpress.newpreview",
+                "title": "ResXpress: New Preview"
             }
         ],
         "configuration": {
@@ -44,6 +49,9 @@
         ]
     },
     "scripts": {
+        "compile": "tsc -p ./",
+        "lint": "eslint src --ext ts",
+        "watch": "tsc -watch -p ./",
         "vscode:prepublish": "webpack --mode production",
         "webpack": "webpack --mode development",
         "webpack-dev": "webpack --mode development --watch",
