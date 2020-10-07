@@ -21,30 +21,21 @@ export function activate(context: vscode.ExtensionContext)
 	);
 	context.subscriptions.push(readResx);
 	context.subscriptions.push(sortByKeysCommand);
-	context.subscriptions.push(
-		vscode.commands.registerCommand('resxpress.newpreview', async () =>
-		{
-			await newPreview();
-		})
-	);
+	context.subscriptions.push(vscode.commands.registerCommand("resxpress.newpreview",async () => await newPreview()));
 
-	// context.subscriptions.push(
-	// 	vscode.commands.registerCommand('catCoding.doRefactor', () => {
-	// 		if (PreviewEditPanel.currentPanel) {
-	// 			PreviewEditPanel.currentPanel.doRefactor();
-	// 		}
-	// 	})
-	// );
 
 	if (vscode.window.registerWebviewPanelSerializer)
 	{
 		// Make sure we register a serializer in activation event
 		vscode.window.registerWebviewPanelSerializer(PreviewEditPanel.viewType, {
-			async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any)
+			async deserializeWebviewPanel(
+				webviewPanel: vscode.WebviewPanel,
+				state: any
+			)
 			{
 				console.log(`Got state: ${state}`);
-				PreviewEditPanel.revive(webviewPanel, context.extensionUri, '');
-			}
+				PreviewEditPanel.revive(webviewPanel, context.extensionUri, "");
+			},
 		});
 	}
 }
@@ -74,14 +65,14 @@ export async function sortByKeys()
 		{
 			xw.startElement("data");
 			xw.writeAttribute("name", key).writeAttribute("xml:space", "preserve");
-			xw.startElement("value").text(ordered[key]['value']);
+			xw.startElement("value").text(ordered[key]["value"]);
 			xw.endElement();
-			if (ordered[key]['comment'])
+			if (ordered[key]["comment"])
 			{
-				xw.startElement("comment").text(ordered[key]['comment']);
+				xw.startElement("comment").text(ordered[key]["comment"]);
 				xw.endElement();
 			}
-			
+
 			xw.endElement();
 		});
 		xw.endElement();
@@ -91,13 +82,16 @@ export async function sortByKeys()
 		if (editor)
 		{
 			let document = editor.document;
-
-			var start = new vscode.Position(0, 0);
 			var lastButOne = document.lineAt(document.lineCount - 1);
-			var end = new vscode.Position(document.lineCount, lastButOne.range.end.character);
 
-			var ranger = new vscode.Range(start, end);
-			editor.edit(editBuilder =>
+			var ranger = new vscode.Range(
+				0,
+				0,
+				document.lineCount,
+				lastButOne.range.end.character
+			);
+
+			editor.edit((editBuilder) =>
 			{
 				editBuilder.replace(ranger, xw.toString());
 			});
@@ -120,9 +114,9 @@ function parseResx()
 			{
 				return {
 					value: value,
-					comment: comment
+					comment: comment,
 				};
-			}
+			},
 		};
 		//var options = { convertIdCase: "" };
 		var parser = new ResxParser(options);
@@ -177,7 +171,6 @@ async function newPreview()
 {
 	var json = await parseResx();
 	await displayJsonInHtml(json);
-
 }
 async function displayJson(filename: any, jsonData: any)
 {
@@ -188,7 +181,6 @@ async function displayJson(filename: any, jsonData: any)
 
 	for (const property in jsonData)
 	{
-
 		const regexM = /[\\`*_{}[\]()#+.!|-]/g;
 		//clean up key
 		var propertyString = property;
@@ -196,16 +188,22 @@ async function displayJson(filename: any, jsonData: any)
 		propertyString = property.replace(regexM, "\\$&");
 		propertyString = propertyString.replace(/\r?\n/g, "<br/>");
 
-		var valueString = jsonData[property]['value'];
-		var commentString = jsonData[property]['comment'];
+		var valueString = jsonData[property]["value"];
+		var commentString = jsonData[property]["comment"];
 		//clean up value
 		valueString = valueString.replace(regexM, "\\$&");
 		valueString = valueString.replace(/\r?\n/g, "<br/>");
 		commentString = commentString.replace(regexM, "\\$&");
 		commentString = commentString.replace(/\r?\n/g, "<br/>");
 
-		fileContent += "|" + propertyString + " | " + valueString + " | " + commentString + "|\n";
-
+		fileContent +=
+			"|" +
+			propertyString +
+			" | " +
+			valueString +
+			" | " +
+			commentString +
+			"|\n";
 	}
 
 	await fsPromises.writeFile(mdFile, fileContent);
@@ -219,20 +217,16 @@ async function displayJson(filename: any, jsonData: any)
 	await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
 }
 
-
 async function displayJsonInHtml(jsonData: any)
 {
-
-	var _content = '';
+	var _content = "";
 	for (const property in jsonData)
 	{
 		_content += `<tr>
 		<td>${property}</td>
-		<td>${jsonData[property]['value']}</td>
-		<td>${jsonData[property]['comment']}</td>
+		<td>${jsonData[property]["value"]}</td>
+		<td>${jsonData[property]["comment"]}</td>
 	</tr>`;
-
 	}
 	PreviewEditPanel.createOrShow(currentContext.extensionUri, _content);
-
 }
