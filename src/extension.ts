@@ -1,29 +1,68 @@
 import * as vscode from "vscode";
 
 import { promises as fsPromises } from "fs";
+import { PreviewEditPanel } from "./webview_panel";
+import * as path from "path";
+var xmlWriter = require("xml-writer");
+var resxParser = require("resx-parser");
+
+let currentContext: vscode.ExtensionContext;
 
 export function activate(context: vscode.ExtensionContext)
 {
-	let readResx = vscode.commands.registerCommand(
+
+	currentContext = context;
+
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand(
 		"resxpress.resxpreview",
 		async () =>
 		{
-			await viewResx();
+			vscode.window.withProgress({
+				location: vscode.ProgressLocation.Notification,
+				cancellable: false,
+				title: "ResXpress"
+			}, async (p) =>
+			{
+				p.report({ message: "Showing Preview" });
+				await displayAsMarkdown();
+			});
 		}
-	);
+	));
 
-	let sortByKeysCommand = vscode.commands.registerCommand(
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand(
 		"resxpress.sortbykeys",
-		async () => await sortByKeys()
-	);
-	context.subscriptions.push(readResx);
-	context.subscriptions.push(sortByKeysCommand);
+		async () =>
+		{
+			vscode.window.withProgress({
+				location: vscode.ProgressLocation.Notification,
+				cancellable: false,
+				title: "ResXpress"
+			}, async (p) =>
+			{
+				p.report({ message: "Showing Preview" });
+				await sortByKeys();
+			});
+		}
+	));
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand("resxpress.newpreview",
+		async () =>
+		{
+			vscode.window.withProgress({
+				location: vscode.ProgressLocation.Notification,
+				cancellable: false,
+				title: "ResXpress"
+			}, async (p) =>
+			{
+				p.report({ message: "Showing Preview" });
+				await newPreview();
+			});
+		}));
 }
 
 // this method is called when your extension is deactivated
 export function deactivate() { }
 
-export async function sortByKeys()
+async function sortByKeys()
 {
 	let unordered: any = await parseResx();
 
@@ -37,33 +76,43 @@ export async function sortByKeys()
 				ordered[key] = unordered[key];
 			});
 
-		var XMLWriter = require("xml-writer");
-		var xw = new XMLWriter(true);
+		var xw = new xmlWriter(true);
 		xw.startDocument();
 		xw.startElement("root");
 		Object.keys(ordered).forEach(function (key: string)
 		{
 			xw.startElement("data");
 			xw.writeAttribute("name", key).writeAttribute("xml:space", "preserve");
-			xw.startElement("value").text(ordered[key]);
+			xw.startElement("value").text(ordered[key]["value"]);
 			xw.endElement();
+			if (ordered[key]["comment"])
+			{
+				xw.startElement("comment").text(ordered[key]["comment"]);
+				xw.endElement();
+			}
+
 			xw.endElement();
 		});
 		xw.endElement();
 		xw.endDocument();
 
 		let editor = vscode.window.activeTextEditor;
+
 		if (editor)
 		{
 			let document = editor.document;
+			var lastButOne = document.lineAt(document.lineCount - 1);
 
-			var start = new vscode.Position(0, 0);
-			var end = new vscode.Position(document.lineCount, 100);
+			var ranger = new vscode.Range(
+				0,
+				0,
+				document.lineCount,
+				lastButOne.range.end.character
+			);
 
-			var ranger = new vscode.Range(start, end);
-			editor.edit(editBuilder =>
+			editor.edit((editBuilder) =>
 			{
-				editBuilder.replace(ranger, xw + "");
+				editBuilder.replace(ranger, xw.toString());
 			});
 		}
 	}
@@ -71,97 +120,154 @@ export async function sortByKeys()
 
 function parseResx()
 {
-	let jsObj = new Promise((res, rej) =>
+	try
 	{
-		return rej;
-	});
-	var currentFileName = vscode.window.activeTextEditor?.document.fileName;
-	if (currentFileName)
-	{
-		var ResxParser = require("resx-parser");
-		var options = { convertIdCase: "" };
-		var parser = new ResxParser(options);
-
-		jsObj = new Promise((resolve, reject) =>
+		var currentFileName = vscode.window.activeTextEditor?.document.fileName;
+		if (currentFileName)
 		{
-			parser.parseResxFile(currentFileName, (err: Error, result: any) =>
+
+			var options = {
+				fnTransformValue: function (id: any, value: any, comment: any)
+				{
+					return {
+						value: value,
+						comment: comment,
+					};
+				},
+			};
+
+			var parser = new resxParser(options);
+
+			var jsObj = new Promise((resolve, reject) =>
 			{
-				if (err)
+				parser.parseResxFile(currentFileName, (err: Error, result: any) =>
 				{
-					return reject(err);
-				} else
-				{
-					return resolve(result);
-				}
+					if (err)
+					{
+						return reject(err);
+					} else
+					{
+						return resolve(result);
+					}
+				});
 			});
-		});
+			return jsObj;
+		}
+	} catch (error)
+	{
+		console.error(error);
+		vscode.window.showErrorMessage(error.message);
 	}
-
-	return jsObj;
 }
 
-export async function viewResx()
-{
-	const path = require("path");
 
+async function newPreview()
+{
+	var json = await parseResx();
 	var currentFileName = vscode.window.activeTextEditor?.document.fileName;
-	var ext = path.parse(currentFileName).ext;
-	if (ext !== ".resx")
-	{
-		await vscode.window.showErrorMessage("Not a Resx file.");
-		return;
-	}
 	if (currentFileName)
 	{
-		var fileNameNoExt = currentFileName.substring(
-			0,
-			currentFileName.lastIndexOf(".")
-		);
-		var result = await parseResx();
-		if (result)
+		await displayJsonInHtml(json, currentFileName);
+	}
+
+}
+
+async function displayAsMarkdown()
+{
+	try
+	{
+		var pathObj = path.parse(vscode.window.activeTextEditor?.document.fileName ?? '');
+		if (pathObj)
 		{
-			if (!(result instanceof Error))
+			if (pathObj.ext !== ".resx")
 			{
-				await displayJson(fileNameNoExt, result);
+				await vscode.window.showErrorMessage("Not a Resx file.");
+				return;
 			}
+			const jsonData: any = await parseResx();
+			if (!(jsonData instanceof Error))
+			{
+
+				var currentFileName = vscode.window.activeTextEditor?.document.fileName;
+				if (currentFileName)
+				{
+					var fileNameNoExt = vscode.window.activeTextEditor?.document.fileName.substring(
+						0,
+						currentFileName.lastIndexOf(".")
+					);
+					let mdFile = fileNameNoExt + ".md";
+
+					let fileContent = `### ${pathObj.name} Preview\n\n| Key | Value | Comment |\n`;
+					fileContent += "| --- | --- | --- |" + "\n";
+
+					for (const property of Object.keys(jsonData))
+					{
+						const regexM = /[\\`*_{}[\]()#+.!|-]/g;
+						//clean up key
+						var propertyString = property;
+
+						propertyString = property.replace(regexM, "\\$&");
+						propertyString = propertyString.replace(/\r?\n/g, "<br/>");
+
+						var valueString = jsonData[property]["value"];
+						var commentString = jsonData[property]["comment"];
+						//clean up value
+						valueString = valueString.replace(regexM, "\\$&");
+						valueString = valueString.replace(/\r?\n/g, "<br/>");
+						commentString = commentString.replace(regexM, "\\$&");
+						commentString = commentString.replace(/\r?\n/g, "<br/>");
+
+						fileContent += `| ${propertyString} | ${valueString} | ${commentString} |\n`;
+					}
+
+					await fsPromises.writeFile(mdFile, fileContent);
+
+					let uri = vscode.Uri.file(mdFile);
+
+					await vscode.commands.executeCommand("vscode.open", uri);
+					await vscode.commands.executeCommand("markdown.showPreview");
+					await vscode.commands.executeCommand("markdown.preview.refresh");
+					await vscode.commands.executeCommand("workbench.action.previousEditor");
+					await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
+				}
+
+
+			} else
+			{
+				vscode.window.showErrorMessage("Error parsing resx data");
+			}
+		} else
+		{
+			vscode.window.showErrorMessage("Error finding path of the file");
 		}
+	} catch (error)
+	{
+		console.error(error);
+		vscode.window.showErrorMessage(error.message);
 	}
 }
 
-async function displayJson(filename: any, jsonData: any)
+async function displayJsonInHtml(jsonData: any, filename: string)
 {
-	let mdFile = filename + ".md";
-
-	let fileContent = "Key | Value" + "\n";
-	fileContent += "--- | --- " + "\n";
-
-	for (const property in jsonData)
+	try
 	{
+		var _content = "";
+		for (const property of Object.keys(jsonData))
+		{
+			_content += `<tr>
+				<td>${property}</td>
+				<td>${jsonData[property]["value"]}</td>
+				<td>${jsonData[property]["comment"]}</td>
+			</tr>`;
+		}
+		var pathObj = path.parse(filename);
+		var title = pathObj.name + pathObj.ext;
 
-		const regexM = /[\\`*_{}[\]()#+.!|-]/g;
-		//clean up key
-		var propertyString = property;
-
-		propertyString = property.replace(regexM, "\\$&");
-		propertyString = propertyString.replace(/\r?\n/g, "<br/>");
-
-		var valueString = jsonData[property];
-
-		//clean up value
-		valueString = valueString.replace(regexM, "\\$&");
-		valueString = valueString.replace(/\r?\n/g, "<br/>");
-
-		fileContent += propertyString + " | " + valueString + "\n";
-
+		PreviewEditPanel.createOrShow(currentContext.extensionUri, title, _content);
+	} catch (error)
+	{
+		vscode.window.showErrorMessage(error.message);
+		console.error(error);
 	}
 
-	await fsPromises.writeFile(mdFile, fileContent);
-
-	let uri = vscode.Uri.file(mdFile);
-
-	await vscode.commands.executeCommand("vscode.open", uri);
-	await vscode.commands.executeCommand("markdown.showPreview");
-	await vscode.commands.executeCommand("markdown.preview.refresh");
-	await vscode.commands.executeCommand("workbench.action.previousEditor");
-	await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
 }

@@ -8,7 +8,7 @@
     "repository": {
         "url": "https://github.com/pmahend1/resxpress.git"
     },
-    "version": "2.7.1",
+    "version": "3.0.0",
     "engines": {
         "vscode": "^1.47.0"
     },
@@ -17,18 +17,24 @@
     ],
     "activationEvents": [
         "onCommand:resxpress.resxpreview",
-        "onCommand:resxpress.sortbykeys"
+        "onCommand:resxpress.sortbykeys",
+        "onCommand:resxpress.newpreview",
+        "onLanguage:resx"
     ],
-    "main": "./dist/extension",
+    "main": "./out/extension.js",
     "contributes": {
         "commands": [
             {
                 "command": "resxpress.resxpreview",
-                "title": "ResXpress: Preview Resx"
+                "title": "ResXpress: Markdown Preview"
             },
             {
                 "command": "resxpress.sortbykeys",
                 "title": "ResXpress: Sort By Keys"
+            },
+            {
+                "command": "resxpress.newpreview",
+                "title": "ResXpress: Web Preview"
             }
         ],
         "configuration": {
@@ -36,7 +42,7 @@
         },
         "languages": [
             {
-                "id": "xml",
+                "id": "resx",
                 "extensions": [
                     ".resx"
                 ]
@@ -44,6 +50,9 @@
         ]
     },
     "scripts": {
+        "compile": "tsc -p ./",
+        "lint": "eslint src --ext ts",
+        "watch": "tsc -watch -p ./",
         "vscode:prepublish": "webpack --mode production",
         "webpack": "webpack --mode development",
         "webpack-dev": "webpack --mode development --watch",

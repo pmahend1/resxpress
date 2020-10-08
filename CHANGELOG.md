@@ -2,6 +2,13 @@
 
 All notable changes to the **ResxPress** extension will be documented in this file.
 
+## 3.0.0 - 7-Oct-2020
+
+Added `resxpress.newpreview` command.
+Added support for displaying resx comments.
+
+---
+
 ## 2.7.1 - 6-Oct-2020
 
 Added badges.
