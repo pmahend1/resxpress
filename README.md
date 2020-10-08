@@ -1,3 +1,7 @@
+# ResXpress
+
+A Visual Studio Code extension for awesome preview and reorganizing resx files by keys.
+
 <img src="./images/logo.png" alt="Logo" width="250" height="250">
 
 [![License](https://img.shields.io/github/license/pmahend1/resxpress?style=flat-square&label=License)](https://choosealicense.com/licenses/mit/)
@@ -8,25 +12,29 @@
 
 ![Trending-Weekly](https://vsmarketplacebadge.apphb.com/trending-weekly/PrateekMahendrakar.resxpress.svg?labelColor=red&logo=tinder&logoColor=white&label=Trending%20Weekly)  ![Trending-Monthly](https://vsmarketplacebadge.apphb.com/trending-monthly/PrateekMahendrakar.resxpress.svg?labelColor=red&logo=tinder&logoColor=white&label=Trending%20Monthly)
 
-[<img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" width=150 height=40>](https://www.buymeacoffee.com/pmahend1)  
+[<img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" width="150" height="40">](https://www.buymeacoffee.com/pmahend1)  
 
 ---
 
-# ResXpress
-
-ResXpress extension handles `.resx` files in Visual Studio code.
-
 ## Features
 
-- Command **ResXpress: Preview Resx**  
-  It will preview resx as a markdown table.  
+### ResXpress: Markdown Preview
 
-  ![Screenshot1](./images/preview.gif "Preview Resx")  
+   Preview resx file as Markdown table.
 
-- Command **ResXpress: Sort By Keys**  
-  It will preview resx as a markdown table.  
+  ![Screenshot1](./images/preview.gif)  
 
-  ![Screenshot2](./images/sortByKeys.gif "Sort By Keys")  
+### ResXpress: Sort By Keys
+
+Reorganize file by sorting by Keys.
+
+  ![Screenshot2](./images/sortByKeys.gif)  
+
+### ResXpress: Web Preview
+
+Preview resx file as a nice Webview table.
+  
+  ![Screenshot3](./images/webPreview.gif)
 
 ## Requirements
 
@@ -35,13 +43,12 @@ ResXpress extension handles `.resx` files in Visual Studio code.
 
 ## Extension Settings
 
-None as of now
+None as of now.
 
 ## Known Issues
 
-None as of now 
+None as of now.
 
 ## Release Notes
 
 [ChangeLog](./CHANGELOG.md)
-

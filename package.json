@@ -18,14 +18,15 @@
     "activationEvents": [
         "onCommand:resxpress.resxpreview",
         "onCommand:resxpress.sortbykeys",
-        "onCommand:resxpress.newpreview"
+        "onCommand:resxpress.newpreview",
+        "onLanguage:resx"
     ],
     "main": "./out/extension.js",
     "contributes": {
         "commands": [
             {
                 "command": "resxpress.resxpreview",
-                "title": "ResXpress: Preview Resx"
+                "title": "ResXpress: Markdown Preview"
             },
             {
                 "command": "resxpress.sortbykeys",
@@ -33,7 +34,7 @@
             },
             {
                 "command": "resxpress.newpreview",
-                "title": "ResXpress: New Preview"
+                "title": "ResXpress: Web Preview"
             }
         ],
         "configuration": {
@@ -41,7 +42,7 @@
         },
         "languages": [
             {
-                "id": "xml",
+                "id": "resx",
                 "extensions": [
                     ".resx"
                 ]
