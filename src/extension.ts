@@ -3,10 +3,8 @@ import * as vscode from "vscode";
 import { promises as fsPromises } from "fs";
 import { PreviewEditPanel } from "./webview_panel";
 import * as path from "path";
-var xmlWriter = require("xml-writer");
 import * as xmljs from "xml-js";
-import { formatWithOptions } from "util";
-import { cpuUsage } from "process";
+
 
 let currentContext: vscode.ExtensionContext;
 
@@ -48,7 +46,7 @@ export function activate(context: vscode.ExtensionContext)
 					},
 					async (p) =>
 					{
-						p.report({ message: "Showing Preview" });
+						p.report({ message: "Sorting by keys" });
 						await sortByKeys();
 					}
 				);
@@ -68,7 +66,7 @@ export function activate(context: vscode.ExtensionContext)
 					},
 					async (p) =>
 					{
-						p.report({ message: "Showing Preview" });
+						p.report({ message: "Showing Web Preview" });
 						await newPreview();
 					}
 				);
@@ -150,6 +148,22 @@ function sortKeyValuesResx(revere?: boolean)
 	}
 }
 
+
+function getDataJs() : any[]{
+	var text = vscode.window.activeTextEditor?.document?.getText() ?? "";
+	var jsObj:any = xmljs.xml2js(text, {compact:true});
+	var dataList = new Array();
+	// jsObj.elements[0].elements.forEach((x: any) =>
+	// {
+	// 	if (x.name === "data")
+	// 	{
+	// 		dataList.push(x);
+	// 	}
+	// });
+
+	console.log(jsObj);
+	return jsObj.root.data;
+}
 async function newPreview()
 {
 	var text = vscode.window.activeTextEditor?.document?.getText() ?? "";
@@ -174,6 +188,8 @@ async function newPreview()
 	}
 }
 
+
+// Markdown Preview
 async function displayAsMarkdown()
 {
 	try
@@ -188,7 +204,7 @@ async function displayAsMarkdown()
 				await vscode.window.showErrorMessage("Not a Resx file.");
 				return;
 			}
-			const jsonData: any = await sortKeyValuesResx();
+			const jsonData: any[] = getDataJs();
 			if (!(jsonData instanceof Error))
 			{
 				var currentFileName = vscode.window.activeTextEditor?.document.fileName;
@@ -203,18 +219,19 @@ async function displayAsMarkdown()
 					let fileContent = `### ${pathObj.name} Preview\n\n| Key | Value | Comment |\n`;
 					fileContent += "| --- | --- | --- |" + "\n";
 
-					for (const property of Object.keys(jsonData))
+					for (const jsObj of jsonData)
 					{
 						const regexM = /[\\`*_{}[\]()#+.!|-]/g;
 						//clean up key
+						var property =  jsObj._attributes.name;
 						var propertyString = property;
 
 						propertyString = property.replace(regexM, "\\$&");
-						propertyString = propertyString.replace(/\r?\n/g, "<br/>");
+						propertyString = property.replace(/\r?\n/g, "<br/>");
 
-						var valueString = jsonData[property]["value"];
-						var commentString = jsonData[property]["comment"];
-						//clean up value
+						var valueString = jsObj.value?._text;
+						var commentString = jsObj.comment?._text ?? "";
+
 						valueString = valueString.replace(regexM, "\\$&");
 						valueString = valueString.replace(/\r?\n/g, "<br/>");
 						commentString = commentString.replace(regexM, "\\$&");
