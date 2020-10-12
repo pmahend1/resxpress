@@ -4,6 +4,7 @@ import { promises as fsPromises } from "fs";
 import { PreviewEditPanel } from "./webview_panel";
 import * as path from "path";
 import * as xmljs from "xml-js";
+import { ResxEditorProvider } from "./resxEditor";
 
 
 let currentContext: vscode.ExtensionContext;
@@ -73,6 +74,8 @@ export function activate(context: vscode.ExtensionContext)
 			}
 		)
 	);
+
+	context.subscriptions.push(ResxEditorProvider.register(context));
 }
 
 // this method is called when your extension is deactivated
@@ -152,16 +155,6 @@ function sortKeyValuesResx(revere?: boolean)
 function getDataJs() : any[]{
 	var text = vscode.window.activeTextEditor?.document?.getText() ?? "";
 	var jsObj:any = xmljs.xml2js(text, {compact:true});
-	var dataList = new Array();
-	// jsObj.elements[0].elements.forEach((x: any) =>
-	// {
-	// 	if (x.name === "data")
-	// 	{
-	// 		dataList.push(x);
-	// 	}
-	// });
-
-	console.log(jsObj);
 	return jsObj.root.data;
 }
 async function newPreview()
