@@ -54,7 +54,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
             webviewPanel.webview.postMessage({
                 type: 'update',
 
-                text: x,
+                text: JSON.stringify(xmljs.xml2js(document.getText(), )),
             });
 
         }
@@ -89,13 +89,13 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
                 case 'update':
                     this.updateTextDocument(document, e.text);
                     return;
-                case 'add':
-                    this.addNewKeyValue(document);
-                    return;
+                // case 'add':
+                //     this.addNewKeyValue(document);
+                //     return;
 
-                case 'delete':
-                    this.deleteKeyValue(document, e.id);
-                    return;
+                // case 'delete':
+                //     this.deleteKeyValue(document, e.id);
+                //     return;
             }
         });
 

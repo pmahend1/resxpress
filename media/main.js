@@ -1,5 +1,6 @@
 // @ts-check
 
+
 // Script run within the webview itself.
 (function ()
 {
@@ -9,13 +10,13 @@
 
 	var table =  /** @type {HTMLElement} */ (document.querySelector(".tbl"));
 
-	const addButtonContainer = document.getElementById('addbutton');
-	addButtonContainer.addEventListener('click', () =>
-	{
-		vscode.postMessage({
-			type: 'add'
-		});
-	})
+	// const addButtonContainer = document.getElementById('addbutton');
+	// addButtonContainer.addEventListener('click', () =>
+	// {
+	// 	vscode.postMessage({
+	// 		type: 'add'
+	// 	});
+	// })
 
 	const errorContainer = document.createElement('div');
 	document.body.appendChild(errorContainer);
@@ -66,40 +67,45 @@
 			json: JSON.stringify(obj)
 		});
 	}
-	document.querySelector(".addButton").addEventListener('click', () =>
-	{
-		const element = document.createElement('tr');
-		table.appendChild(element);
+	var add = document.getElementById("addButton");
 
-		const name = document.createElement('td');
-		const __name = document.createElement('input');
-		__name.oninput = inputEvent;
-		name.appendChild(__name);
-		__name.value = '';
-		const value = document.createElement('td');
-		const _value = document.createElement('input');
-		value.appendChild(_value);
-		_value.value = '';
-		_value.oninput = inputEvent;
-		const comment = document.createElement('td');
-		const _comment = document.createElement('input');
-		comment.appendChild(_comment);
-		_comment.value = '';
-		_comment.oninput = inputEvent;
-		const drop = document.createElement('td');
-		drop.innerHTML = '&times;';
-		drop.onclick = () => deleteEvent(element);
-		element.append(name, value, comment, drop);
-		name.focus();
-		element.scrollIntoView();
-		// var row = table.insertRow();
-		// var cell1 = row.insertCell(0);
-		// var cell2 = row.insertCell(1);
-		// var cell3 = row.insertCell(2);
-		// cell1.innerHTML = '<input type="text" />';
-		// cell2.innerHTML = '<input type="text" />';
-		// cell3.innerHTML = '<input type="text" />';
-	});
+	if(add){
+		add.addEventListener('click', () =>
+		{
+			const element = document.createElement('tr');
+			table.appendChild(element);
+	
+			const name = document.createElement('td');
+			const __name = document.createElement('input');
+			__name.oninput = inputEvent;
+			name.appendChild(__name);
+			__name.value = '';
+			const value = document.createElement('td');
+			const _value = document.createElement('input');
+			value.appendChild(_value);
+			_value.value = '';
+			_value.oninput = inputEvent;
+			const comment = document.createElement('td');
+			const _comment = document.createElement('input');
+			comment.appendChild(_comment);
+			_comment.value = '';
+			_comment.oninput = inputEvent;
+			const drop = document.createElement('td');
+			drop.innerHTML = '&times;';
+			drop.onclick = () => deleteEvent(element);
+			element.append(name, value, comment, drop);
+			name.focus();
+			element.scrollIntoView();
+			// var row = table.insertRow();
+			// var cell1 = row.insertCell(0);
+			// var cell2 = row.insertCell(1);
+			// var cell3 = row.insertCell(2);
+			// cell1.innerHTML = '<input type="text" />';
+			// cell2.innerHTML = '<input type="text" />';
+			// cell3.innerHTML = '<input type="text" />';
+		});
+	}
+	
 	function updateContent(/** @type {string} */ text)
 	{
 
@@ -107,6 +113,7 @@
 		try
 		{
 			json = JSON.parse(text);
+			//console.log(json);
 		} catch {
 			table.style.display = 'none';
 			errorContainer.innerText = 'Error: Document is not valid resx';
@@ -143,7 +150,7 @@
 			drop.innerHTML = '&times;';
 			drop.onclick = () => deleteEvent(element);
 			element.append(name, value, comment, drop);
-			table.appendChild(addButtonContainer);
+			//table.appendChild(addButtonContainer);
 		}
 	}
 	window.addEventListener('message', event =>
