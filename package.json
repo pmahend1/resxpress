@@ -87,6 +87,7 @@
         "xml-js": "^1.6.11"
     },
     "dependencies": {
+        "@fortawesome/fontawesome-free": "^5.15.1",
         "xml-writer": "^1.7.0"
     }
 }

@@ -8,15 +8,8 @@
 	const vscode = acquireVsCodeApi();
 
 
-	var table =  /** @type {HTMLElement} */ (document.querySelector(".tbl"));
+	var table =  /** @type {HTMLTableElement} */ (document.getElementById("tbb"));
 
-	// const addButtonContainer = document.getElementById('addbutton');
-	// addButtonContainer.addEventListener('click', () =>
-	// {
-	// 	vscode.postMessage({
-	// 		type: 'add'
-	// 	});
-	// })
 
 	const errorContainer = document.createElement('div');
 	document.body.appendChild(errorContainer);
@@ -32,10 +25,10 @@
 			let inputs = rule.querySelectorAll('input');
 			if (inputs[0].value && inputs[1].value)
 			{
-				obj[inputs[0].value] = {
-					value: inputs[1].value,
-					comment: inputs[2].value
-				}
+				
+				obj["key"] = inputs[0].value;
+				obj["value"] =   inputs[1].value;
+				obj["comment"] =  inputs[2]?.value??"";
 			}
 		}
 		vscode.setState({ text: JSON.stringify(obj) });
@@ -55,15 +48,15 @@
 			let inputs = rule.querySelectorAll('input');
 			if (inputs[0].value && inputs[1].value)
 			{
-				obj[inputs[0].value] = {
-					value: inputs[1].value,
-					comment: inputs[2].value
-				}
+				
+				obj["key"] = inputs[0].value;
+				obj["value"] =   inputs[1].value;
+				obj["comment"] =  inputs[2]?.value??"";
 			}
 		}
 		vscode.setState({ text: JSON.stringify(obj) });
 		vscode.postMessage({
-			type: 'update',
+			type: 'delete',
 			json: JSON.stringify(obj)
 		});
 	}
@@ -72,37 +65,44 @@
 	if(add){
 		add.addEventListener('click', () =>
 		{
-			const element = document.createElement('tr');
-			table.appendChild(element);
+			// const element = document.createElement('tr');
+			// table.appendChild(element);
 	
-			const name = document.createElement('td');
-			const __name = document.createElement('input');
-			__name.oninput = inputEvent;
-			name.appendChild(__name);
-			__name.value = '';
-			const value = document.createElement('td');
-			const _value = document.createElement('input');
-			value.appendChild(_value);
-			_value.value = '';
-			_value.oninput = inputEvent;
-			const comment = document.createElement('td');
-			const _comment = document.createElement('input');
-			comment.appendChild(_comment);
-			_comment.value = '';
-			_comment.oninput = inputEvent;
-			const drop = document.createElement('td');
-			drop.innerHTML = '&times;';
-			drop.onclick = () => deleteEvent(element);
-			element.append(name, value, comment, drop);
-			name.focus();
-			element.scrollIntoView();
-			// var row = table.insertRow();
-			// var cell1 = row.insertCell(0);
-			// var cell2 = row.insertCell(1);
-			// var cell3 = row.insertCell(2);
-			// cell1.innerHTML = '<input type="text" />';
-			// cell2.innerHTML = '<input type="text" />';
-			// cell3.innerHTML = '<input type="text" />';
+			// const name = document.createElement('td');
+			// const __name = document.createElement('input');
+			// __name.oninput = inputEvent;
+			// name.appendChild(__name);
+			// __name.value = '';
+			// const value = document.createElement('td');
+			// const _value = document.createElement('input');
+			// value.appendChild(_value);
+			// _value.value = '';
+			// _value.oninput = inputEvent;
+			// const comment = document.createElement('td');
+			// const _comment = document.createElement('input');
+			// comment.appendChild(_comment);
+			// _comment.value = '';
+			// _comment.oninput = inputEvent;
+			// const drop = document.createElement('td');
+			// drop.innerHTML = '&times;';
+			// drop.onclick = () => deleteEvent(element);
+			// element.append(name, value, comment, drop);
+			// name.focus();
+			// element.scrollIntoView();
+			var row = table.insertRow();
+			var cell0 = row.insertCell(0);
+			var cell1 = row.insertCell(1);
+			var cell2 = row.insertCell(2);
+			var cell3 = row.insertCell(3);
+			cell0.innerHTML = '<input type="text" />';
+			cell1.innerHTML = '<input type="text" />';
+			cell2.innerHTML = '<input type="text" />';
+			cell3.innerHTML = `<p align="center">X</p>`;
+
+			cell0.oninput = inputEvent;
+			cell1.oninput = inputEvent;
+			cell2.oninput = inputEvent;
+			cell3.onclick = () => deleteEvent(row);
 		});
 	}
 	
@@ -113,7 +113,7 @@
 		try
 		{
 			json = JSON.parse(text);
-			//console.log(json);
+			console.log("data json is :" +json);
 		} catch {
 			table.style.display = 'none';
 			errorContainer.innerText = 'Error: Document is not valid resx';
@@ -125,33 +125,22 @@
 
 		// Render the scratches
 		table.innerHTML = '';
-		for (const _name in json || [])
-		{
-			let rule = json[_name];
-			const element = document.createElement('tr');
-			table.appendChild(element);
 
-			const name = document.createElement('td');
-			const __name = document.createElement('input');
-			__name.oninput = inputEvent;
-			name.appendChild(__name);
-			__name.value = _name;
-			const value = document.createElement('td');
-			const _value = document.createElement('input');
-			value.appendChild(_value);
-			_value.value = rule.value || '';
-			_value.oninput = inputEvent;
-			const comment = document.createElement('td');
-			const _comment = document.createElement('input');
-			comment.appendChild(_comment);
-			_comment.value = rule.comment || '';
-			_comment.oninput = inputEvent;
-			const drop = document.createElement('td');
-			drop.innerHTML = '&times;';
-			drop.onclick = () => deleteEvent(element);
-			element.append(name, value, comment, drop);
-			//table.appendChild(addButtonContainer);
+		for (const node of json || []){
+			var row = table.insertRow();
+			var cell0 = row.insertCell(0);
+			var cell1 = row.insertCell(1);
+			var cell2 = row.insertCell(2);
+			var cell3 = row.insertCell(3);
+
+			cell0.innerHTML = `<input type="text" value="${node?._attributes?.name ?? ""}"/>`;
+			cell1.innerHTML = `<input type="text" value="${node?.value?._text ?? ""}"/>`;
+			cell2.innerHTML = `<input type="text" value="${node?.comment?._text?? ""}"/>`;
+			cell3.innerHTML = `<p align="center">X</p>`; //
+
+			cell3.onclick = () => deleteEvent(row);
 		}
+	
 	}
 	window.addEventListener('message', event =>
 	{

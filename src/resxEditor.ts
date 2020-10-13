@@ -45,27 +45,19 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
         webviewPanel.webview.options = {
             enableScripts: true,
         };
-      
+
         webviewPanel.webview.html = this.getHtmlForWebview(webviewPanel.webview);
-        var x:any = this.updateContent(document);
+
         function updateWebview()
         {
-            
+
+            var jsonText = JSON.stringify(getDataJs(document.getText()));
             webviewPanel.webview.postMessage({
                 type: 'update',
-
-                text: JSON.stringify(xmljs.xml2js(document.getText(), )),
+                text: jsonText
             });
 
         }
-
-        // Hook up event handlers so that we can synchronize the webview with the text document.
-        //
-        // The text document acts as our model, so we have to sync change in the document to our
-        // editor and sync changes in the editor back to the document.
-        // 
-        // Remember that a single text document can also be shared between multiple custom
-        // editors (this happens for example when you split a custom editor)
 
         const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(e =>
         {
@@ -87,15 +79,15 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
             switch (e.type)
             {
                 case 'update':
-                    this.updateTextDocument(document, e.text);
+                    this.updateTextDocument(document, e.json);
                     return;
-                // case 'add':
-                //     this.addNewKeyValue(document);
-                //     return;
+                case 'add':
+                    this.addNewKeyValue(document, e.json);
+                    return;
 
-                // case 'delete':
-                //     this.deleteKeyValue(document, e.id);
-                //     return;
+                case 'delete':
+                    this.deleteKeyValue(document, e.json);
+                    return;
             }
         });
 
@@ -108,46 +100,36 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
      */
     private getHtmlForWebview(webview: vscode.Webview): string
     {
-        // Local path to script and css for the webview
-        const scriptUri = webview.asWebviewUri(vscode.Uri.file(
-            path.join(this.context.extensionPath, 'media','main.js')
-        ));
-        const styleUri = webview.asWebviewUri(vscode.Uri.file(
-            path.join(this.context.extensionPath, 'media', 'main.css')
-        ));
 
+        const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'media', 'main.js')));
+        const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'media', 'main.css')));
 
-        // Use a nonce to whitelist which scripts can be run
         const nonce = getNonce();
-        // <link href="${styleUri}" rel="stylesheet" />
+
         return `<!DOCTYPE html>
         <html lang="en">
           <head>
             <meta charset="UTF-8" />
-            <meta
-              http-equiv="Content-Security-Policy"
-              content="default-src 'none'; img-src ${webview.cspSource}; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';"/>
+            <meta http-equiv="Content-Security-Policy"
+                  content="default-src 'none'; img-src ${webview.cspSource}; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';"/>
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <link rel="stylesheet" href="${styleUri}" />
-            <script src="${styleUri}"></script>
-            <title>ResxFileName</title>
-            
+            <link href="${styleUri}" rel="stylesheet" />
+
+            <title>ResxFileName</title>          
           </head>
-        
           <body>
-            <button class="button button2" id="addButton" class="addButton">Add New</button>
-            <table id="tbl" class="tbl">
-              <tr>
+            <button class="button button2" 
+                    id="addButton">Add New Resource</button>
+            <table id="tbl">
+              <thead>
                 <th>Key</th>
                 <th>Value</th>
                 <th>Comment</th>
-              </tr>
-              <tbody>
-              ${this.content}
+                <th> </th>
+              </thead>
+              <tbody id="tbb">
               </tbody>
-             
             </table>
-        
             <script nonce="${nonce}" src="${scriptUri}"></script>
           </body>
         </html>
@@ -155,121 +137,81 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
     }
 
     /**
-     * Add a new scratch to the current document.
+     * Add a new key value back to text editor 
      */
-    private addNewKeyValue(document: vscode.TextDocument)
+    private addNewKeyValue(document: vscode.TextDocument, json: any)
     {
-        const json = this.updateContent(document);
-        //const character = ResxEditorProvider.scratchCharacters[Math.floor(Math.random() * ResxEditorProvider.scratchCharacters.length)];
-        // json.scratches = [
-        //     ...(Array.isArray(json.scratches) ? json.scratches : []),
-        //     {
-        //         id: getNonce(),
-        //         text: character,
-        //         created: Date.now(),
-        //     }
-        // ];
-
-        //get new key value comment
-        //append to document
-        var newKVC = {
-            keyObj: {
-                value: "key_",
-                xml_space: "preserve"
-            },
-            valueObj: {
-                value: "value",
-                comment: "comment"
-            }
+        var newObj = JSON.parse(json);
+        var sendableObj = {
+            _attributes: {
+                name: newObj.key,
+                'xml:space': "preserve"
+            }, value: { _text: newObj?.value },
+            comment: { _text: newObj?.comment }
         };
-        return this.updateTextDocument(document, newKVC);
+        var currentData = getDataJs(document.getText());
+
+        var pos = currentData.map(function (e) { return e?._attributes?.name; }).indexOf(sendableObj._attributes.name);
+
+        
+        currentData.push(sendableObj);
+        return this.updateTextDocument(document, JSON.stringify(currentData));
     }
 
     /**
      * Delete an existing scratch from a document.
      */
-    private deleteKeyValue(document: vscode.TextDocument, id: string)
+    private deleteKeyValue(document: vscode.TextDocument, json: any)
     {
-        // const json = this.getDocumentAsJson(document);
-        // if (!Array.isArray(json.scratches))
-        // {
-        //     return;
-        // }
 
-        // json.scratches = json.scratches.filter((note: any) => note.id !== id);
-        var newKVC = {
-            keyObj: {
-                value: "key_",
-                xml_space: "preserve"
-            },
-            valueObj: {
-                value: "value",
-                comment: "comment"
-            }
+
+        var deletedJsObj = JSON.parse(json);
+
+        var sendableObj = {
+            _attributes: {
+                name: deletedJsObj.key,
+                'xml:space': "preserve"
+            }, value: { _text: deletedJsObj?.value },
+            comment: { _text: deletedJsObj?.comment }
         };
-        return this.updateTextDocument(document, newKVC);
+
+        var currentData = getDataJs(document.getText());
+
+        var pos = currentData.map(function (e) { return e?._attributes?.name; }).indexOf(sendableObj._attributes.name);
+
+        currentData.splice(pos, 1);
+        return this.updateTextDocument(document, JSON.stringify(currentData));
+
     }
 
-    /**
-     * Try to get a current document as json text.
-     */
-    public updateContent(document: vscode.TextDocument): any
+
+    private updateTextDocument(document: vscode.TextDocument, dataListJson: any)
     {
-        const text = document.getText();
-        if (text.trim().length === 0)
-        {
-            return "";
-        }
-        this.content ='';
-        var jsonData = getDataJs(document.getText());
-        try
-        {
-           
-            for (const jsObj of jsonData)
-            {
-
-                var property = jsObj._attributes.name;
-
-                var valueString = jsObj.value?._text;
-                var commentString = jsObj.comment?._text ?? "";
-                this.content += `<tr>
-                <td><input value="${property}" type="text" /></td>
-                <td><input value="${valueString}" type="text" /></td>
-                <td><input value="${commentString}" type="text" /></td>
-              </tr>
-              `;
-
-               
-            }
-            return this.content;
-
-        } catch {
-            throw new Error('Could not get document as json. Content is not valid json');
-        }
-    }
-
-    /**
-     * Write out the json to a given document.
-     */
-    private updateTextDocument(document: vscode.TextDocument, json: any)
-    {
+        var dataList = JSON.parse(dataListJson);
         const edit = new vscode.WorkspaceEdit();
-      // this.updateContent(document);
 
-        var resx = xmljs.js2xml(json);
+        var currentJs: any = xmljs.xml2js(document.getText(), { compact: true });
+        currentJs.root.data = dataList;
+
+
+
+        var resx = xmljs.js2xml(currentJs, { spaces: 4, compact: true });
+        console.log("Updated resx" + resx);
         edit.replace(
             document.uri,
             new vscode.Range(0, 0, document.lineCount, 0),
             resx);
+
 
         return vscode.workspace.applyEdit(edit);
     }
 
 
 }
-function getDataJs(text:string): any[]
+function getDataJs(text: string): any[]
 {
     var jsObj: any = xmljs.xml2js(text, { compact: true });
-    console.log(jsObj);
-    return jsObj.root.data;
+
+    var dataList = jsObj.root.data;
+    return dataList;
 }
