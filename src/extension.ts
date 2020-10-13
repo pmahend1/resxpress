@@ -143,7 +143,8 @@ function sortKeyValuesResx(revere?: boolean)
 		var xml = xmljs.js2xml(jsObj, { spaces: 4 });
 
 		return xml;
-	} catch (error: any)
+	} 
+	catch (error: any)
 	{
 		console.error(error);
 
