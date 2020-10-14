@@ -22,35 +22,89 @@
 		let idstr = this.id;
 		console.log('input event for id = ' + idstr);
 		var index = idstr.split('.')[0];
-
 		console.log('index is :' + index);
-		var editingObj = currentResxJS[index];
-
-		const key =  /** @type {HTMLInputElement} */ (document.getElementById(`${index}.key`));
-		const value = /** @type {HTMLInputElement} */ (document.getElementById(`${index}.value`));
-		const comment =  /** @type {HTMLInputElement} */ (document.getElementById(`${index}.comment`));
-
-		if (key.value && value.value)//
+		if (index >= currentResxJS.length)
 		{
-			editingObj._attributes.name = key.value ?? "";
-			editingObj.value._text = value.value ?? "";
-			editingObj.comment._text = comment.value ?? "";
+			console.log('This is the new shit' +index + ' ' + currentResxJS.length);
+			// This is the new shit
+			// Stand up and admit
+			// Do we get it? "Yeah!"
+			// Do we want it? "Yeah!"
+			// This is the new shit
 
-			currentResxJS[index] = editingObj;
+			var newObj = { _attributes: { name: '', 'xml:space': 'preserve' }, value: { _text: '' }};
+			const key =  /** @type {HTMLInputElement} */ (document.getElementById(`${index}.key`));
+			const value = /** @type {HTMLInputElement} */ (document.getElementById(`${index}.value`));
+			const comment =  /** @type {HTMLInputElement} */ (document.getElementById(`${index}.comment`));
+
+
+			console.log('if check');
+			if (key?.value && value?.value)
+			{
+				newObj._attributes.name = key?.value ?? "";
+				newObj.value._text = value?.value ?? "";
+				if(comment?.value){
+					newObj.comment = {_text : comment?.value};
+				}
+
+				console.log('newObj set');
+				currentResxJS.push(newObj);
+
+				console.log('Input event : ' + JSON.stringify(newObj));
+
+				errorContainer.innerText = '';
+				errorContainer.style.display = '';
+
+				vscode.setState({ text: JSON.stringify(newObj) });
+				vscode.postMessage({
+					type: 'add',
+					json: JSON.stringify(newObj)
+				});
+
+			} else
+			{
+				errorContainer.innerText = 'Need both key and value';
+				errorContainer.style.display = '';
+				return;
+			}
 
 		} else
 		{
-			alert('Key or Value can not be empty');
-			return;
+			//old shit
+			var editingObj = currentResxJS[index];
+
+			const key =  /** @type {HTMLInputElement} */ (document.getElementById(`${index}.key`));
+			const value = /** @type {HTMLInputElement} */ (document.getElementById(`${index}.value`));
+			const comment =  /** @type {HTMLInputElement} */ (document.getElementById(`${index}.comment`));
+
+			if (key.value && value.value)//
+			{
+				editingObj._attributes.name = key.value ?? "";
+				editingObj.value._text = value.value ?? "";
+				editingObj.comment._text = comment.value ?? "";
+				if(comment?.value){
+					editingObj.comment = {_text : comment?.value};
+				}
+
+				currentResxJS[index] = editingObj;
+
+			} else
+			{
+				errorContainer.innerText = 'Error: Document is not valid resx';
+				errorContainer.style.display = '';
+				return;
+			}
+
+
+			console.log('Input event : ' + JSON.stringify(currentResxJS));
+			vscode.setState({ text: JSON.stringify(currentResxJS) });
+			vscode.postMessage({
+				type: 'update',
+				json: JSON.stringify(currentResxJS)
+			});
 		}
 
 
-		console.log('Input event : ' + JSON.stringify(currentResxJS));
-		vscode.setState({ text: JSON.stringify(currentResxJS) });
-		vscode.postMessage({
-			type: 'update',
-			json: JSON.stringify(currentResxJS)
-		});
 	};
 
 	function deleteEvent()
@@ -60,17 +114,31 @@
 		console.log('id to be deleted = ' + idstr);
 		var index = idstr.split('.')[0];
 
-		var deleteableObj = currentResxJS[index];
+		if (currentResxJS.length > index)
+		{
+			var deleteableObj = currentResxJS[index];
 
-		//x=td -> tr -> tbody-> table
-		var row = /** @type {HTMLTableElement} */ this.parentNode;//.parentNode.parentNode;
-		row.parentNode.removeChild(row);
+			//x=td -> tr -> tbody-> table
+			var row = /** @type {HTMLTableElement} */ this.parentNode;
+			row.parentNode.removeChild(row);
 
-		vscode.setState({ text: JSON.stringify(deleteableObj) });
-		vscode.postMessage({
-			type: 'delete',
-			json: JSON.stringify(deleteableObj)
-		});
+			vscode.setState({ text: JSON.stringify(deleteableObj) });
+			vscode.postMessage({
+				type: 'delete',
+				json: JSON.stringify(deleteableObj)
+			});
+
+		} else
+		{
+			// This is the new shit
+			// Stand up and admit
+			// Do we get it? "No!"
+			// Do we want it? "No!"
+			// This is the new shit
+			var row = /** @type {HTMLTableElement} */ this.parentNode;
+			row.parentNode.removeChild(row);
+		}
+
 
 	}
 	var add = document.getElementById("addButton");
@@ -82,11 +150,12 @@
 			//create tr
 			const tr = document.createElement("tr");
 
-
+			var index = (currentResxJS.length > 0) ? currentResxJS.length+ 1 : 0;
 
 			//create key td
 			const key = document.createElement("td");
 			const keyInput = /** @type {HTMLInputElement} */ document.createElement('input');
+			keyInput.id = `${index}.key`;
 			keyInput.type = 'text';
 			keyInput.value = "";
 
@@ -97,6 +166,7 @@
 			//create value td
 			const value = document.createElement("td");
 			const valueInput = /** @type {HTMLInputElement} */document.createElement('input');
+			valueInput.id = `${index}.value`;
 			valueInput.value = ""
 			valueInput.type = 'text';
 
@@ -105,7 +175,9 @@
 
 			//create comment td
 			const comment = document.createElement("td");
+
 			const commentInput = document.createElement('input');
+			commentInput.id = `${index}.comment`;
 			commentInput.type = 'text';
 			commentInput.value = "";
 
@@ -119,8 +191,8 @@
 			p.innerHTML = "X";
 			p.setAttribute("style", "align:center");
 			x.appendChild(p);
-			//x.onclick = () => deleteEvent(tr);
-			// add key value comment tds to tr
+
+			x.addEventListener('click', deleteEvent, false);
 			tr.append(key, value, comment, x);
 
 			//add tr to table 
@@ -132,79 +204,93 @@
 
 	function updateContent(/** @type {string} */ text)
 	{
-
-		let json;
-		try
+		if (text)
 		{
-			currentResxJS = json = JSON.parse(text);
-			console.log("data json is :" + text);
-		} catch {
+			let json;
+			try
+			{
+				currentResxJS = json = JSON.parse(text);
+				console.log("data json is :" + text);
+			} catch {
+				table.style.display = 'none';
+				errorContainer.innerText = 'Error: Document is not valid resx';
+				errorContainer.style.display = '';
+				return;
+			}
+			table.style.display = '';
+			errorContainer.style.display = 'none';
+
+			// Render the scratches
+			table.innerHTML = '';
+
+
+			var i = 0;
+			for (const node of json)
+			{
+
+				if (node)
+				{
+					//create tr
+					const tr = document.createElement("tr");
+					//create key td
+					const key = document.createElement("td");
+					const keyInput = /** @type {HTMLInputElement} */ document.createElement('input');
+					keyInput.type = 'text';
+					keyInput.value = node._attributes.name ?? "";
+					console.log("key : " + node._attributes.name ?? "");
+					//keyInput.oninput =(key) =>inputEvent(key);;
+					keyInput.id = `${i}.key`;
+					keyInput.addEventListener('focusout', inputEvent, false);
+					key.appendChild(keyInput);
+
+					//create value td
+					const value = document.createElement("td");
+					const valueInput = document.createElement('input');
+					valueInput.value = node.value._text ?? ""
+					valueInput.type = 'text';
+					valueInput.id = `${i}.value`;
+					console.log("Value : " + node.value._text ?? "");
+					valueInput.addEventListener('focusout', inputEvent, false);
+					value.appendChild(valueInput);
+
+					//create comment td
+					const comment = document.createElement("td");
+					const commentInput = document.createElement('input');
+					commentInput.id = `${i}.comment`;
+					commentInput.type = 'text';
+					commentInput.value = node?.comment?._text ?? "";
+
+					console.log("comment : " + node?.comment?._text ?? "");
+					commentInput.addEventListener('focusout', inputEvent, false);
+					comment.appendChild(commentInput);
+
+					//delete character X
+					const x = document.createElement("td");
+					x.id = `${i}.delete`;
+					const p = document.createElement("p");
+					p.innerHTML = "X";
+					x.appendChild(p);
+					x.addEventListener('click', deleteEvent, false);
+
+
+					tr.append(key, value, comment, x);
+
+					//add tr to table 
+					table.appendChild(tr);
+					i++;
+				}else{
+					console.log('node is undefined or null');
+				}
+
+			}
+		} else
+		{
 			table.style.display = 'none';
 			errorContainer.innerText = 'Error: Document is not valid resx';
 			errorContainer.style.display = '';
 			return;
 		}
-		table.style.display = '';
-		errorContainer.style.display = 'none';
 
-		// Render the scratches
-		table.innerHTML = '';
-
-
-		var i = 0;
-		for (const node of json)
-		{
-
-			//create tr
-			const tr = document.createElement("tr");
-			//create key td
-			const key = document.createElement("td");
-			const keyInput = /** @type {HTMLInputElement} */ document.createElement('input');
-			keyInput.type = 'text';
-			keyInput.value = node._attributes.name ?? "";
-			console.log("key : " + node._attributes.name ?? "");
-			//keyInput.oninput =(key) =>inputEvent(key);;
-			keyInput.id = `${i}.key`;
-			keyInput.addEventListener('focusout', inputEvent, false);
-			key.appendChild(keyInput);
-
-			//create value td
-			const value = document.createElement("td");
-			const valueInput = document.createElement('input');
-			valueInput.value = node.value._text ?? ""
-			valueInput.type = 'text';
-			valueInput.id = `${i}.value`;
-			console.log("Value : " + node.value._text ?? "");
-			valueInput.addEventListener('focusout', inputEvent, false);
-			value.appendChild(valueInput);
-
-			//create comment td
-			const comment = document.createElement("td");
-			const commentInput = document.createElement('input');
-			commentInput.id = `${i}.comment`;
-			commentInput.type = 'text';
-			commentInput.value = node.comment._text ?? "";
-
-			console.log("comment : " + node.comment._text ?? "");
-			commentInput.addEventListener('focusout', inputEvent, false);
-			comment.appendChild(commentInput);
-
-			//delete character X
-			const x = document.createElement("td");
-			x.id = `${i}.delete`;
-			const p = document.createElement("p");
-			p.innerHTML = "X";
-			p.setAttribute("style", "align:center");
-			x.appendChild(p);
-			x.addEventListener('click',deleteEvent, false);
-
-
-			tr.append(key, value, comment, x);
-
-			//add tr to table 
-			table.appendChild(tr);
-			i++;
-		}
 
 	}
 	window.addEventListener('message', event =>

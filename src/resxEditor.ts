@@ -142,20 +142,9 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
     private addNewKeyValue(document: vscode.TextDocument, json: any)
     {
         var newObj = JSON.parse(json);
-        var sendableObj = {
-            _attributes: {
-                name: newObj.key,
-                'xml:space': "preserve"
-            }, value: { _text: newObj?.value },
-            comment: { _text: newObj?.comment }
-        };
-        var currentData = getDataJs(document.getText());
-
-        var pos = currentData.map(function (e) { return e?._attributes?.name; }).indexOf(sendableObj._attributes.name);
-
-
-        currentData.push(sendableObj);
-        return this.updateTextDocument(document, JSON.stringify(currentData));
+        var docDataList = getDataJs(document.getText());
+        docDataList.push(newObj);
+        return this.updateTextDocument(document, JSON.stringify(docDataList));
     }
 
     /**
@@ -187,12 +176,29 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
 
     private updateTextDocument(document: vscode.TextDocument, dataListJson: any)
     {
+        console.log('Current resx : /n' + xmljs.xml2json(document.getText(),{compact:true}));
+        
         var dataList = JSON.parse(dataListJson);
         const edit = new vscode.WorkspaceEdit();
 
         var currentJs: any = xmljs.xml2js(document.getText(), { compact: true });
-        currentJs.root.data = dataList;
+        if(dataList){
+            switch (dataList.length) {
+                case 0:
+                    currentJs.root.data = {};
+                    break;
+                case 1:
+                    currentJs.root.data = dataList[0];
+                default:
+                    currentJs.root.data = dataList;
+                    break;
+            }
+                
 
+
+        }else{
+            currentJs.root.data = {};
+        }
 
 
         var resx = xmljs.js2xml(currentJs, { spaces: 4, compact: true });
@@ -206,31 +212,12 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
         return vscode.workspace.applyEdit(edit);
     }
 
-    // private updateTextDocumentwithKVC(document: vscode.TextDocument, dataListJson: any)
-    // {
-    //     var dataList = JSON.parse(dataListJson);
-    //     const edit = new vscode.WorkspaceEdit();
-
-    //     var currentJs: any = xmljs.xml2js(document.getText(), { compact: true });
-    //     currentJs.root.data = dataList;
-
-
-
-    //     var resx = xmljs.js2xml(currentJs, { spaces: 4, compact: true });
-    //     console.log("Updated resx" + resx);
-    //     edit.replace(
-    //         document.uri,
-    //         new vscode.Range(0, 0, document.lineCount, 0),
-    //         resx);
-
-
-    //     return vscode.workspace.applyEdit(edit);
-    // }
 
 
 }
 function getDataJs(text: string): any[]
 {
+    console.log('----Current resx json --- : \n' + xmljs.xml2json(text,{compact:true}));
     var jsObj: any = xmljs.xml2js(text, { compact: true });
 
     var dataList: any[] = [];
@@ -243,61 +230,16 @@ function getDataJs(text: string): any[]
         } else
         {
 
-            dataList.push(jsObj.root.data);
+            if(jsObj.root.data){
+                dataList.push(jsObj.root.data);
+            }
+            else{
+                console.log('jsObj root data is null');
+                
+            }
         }
     }
 
-    console.log(JSON.stringify(dataList));
-
-    try
-    {
-        for (const x of dataList)
-        {
-            console.log(x._attributes.name);
-            console.log(x.value._text);
-            console.log(x.comment?._text ?? "");
-        }
-    } catch (error)
-    {
-
-    }
-
-
-    // try
-    // {
-    //     dataList.forEach(element =>
-    //     {
-    //         console.log(element._attributes.name);
-    //         console.log(element.value._text);
-    //         console.log(element.comment?._text);
-
-
-    //     });
-    // } catch (error)
-    // {
-
-    // }
-
-
-    // try
-    // {
-    //     for (const key in dataList)
-    //     {
-    //         if (Object.prototype.hasOwnProperty.call(dataList, key))
-    //         {
-    //             const element = dataList[key];
-    //             console.log(element['_attributes']['name']);
-    //             console.log(element['value']['_text']);
-    //             console.log(element['comment']['_text']);
-
-
-
-    //         }
-    //     }
-    // } catch (error)
-    // {
-
-    // }
 
 
     return dataList;
