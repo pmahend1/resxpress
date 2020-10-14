@@ -55,3 +55,7 @@ input{
   border-color: transparent;
   outline-color: transparent;
 }
+
+p{
+  align-items: center;
+}

@@ -144,7 +144,7 @@ function sortKeyValuesResx(revere?: boolean)
 
 		return xml;
 	} 
-	catch (error: any)
+	catch (error)
 	{
 		console.error(error);
 

@@ -106,7 +106,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
 
         const nonce = getNonce();
 
-        return `<!DOCTYPE html>
+        return `<!DOCTYPE html />
         <html lang="en">
           <head>
             <meta charset="UTF-8" />
@@ -127,7 +127,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
                 <th>Comment</th>
                 <th> </th>
               </thead>
-              <tbody id="tbb">
+              <tbody>
               </tbody>
             </table>
             <script nonce="${nonce}" src="${scriptUri}"></script>
@@ -153,7 +153,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
 
         var pos = currentData.map(function (e) { return e?._attributes?.name; }).indexOf(sendableObj._attributes.name);
 
-        
+
         currentData.push(sendableObj);
         return this.updateTextDocument(document, JSON.stringify(currentData));
     }
@@ -206,12 +206,99 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
         return vscode.workspace.applyEdit(edit);
     }
 
+    // private updateTextDocumentwithKVC(document: vscode.TextDocument, dataListJson: any)
+    // {
+    //     var dataList = JSON.parse(dataListJson);
+    //     const edit = new vscode.WorkspaceEdit();
+
+    //     var currentJs: any = xmljs.xml2js(document.getText(), { compact: true });
+    //     currentJs.root.data = dataList;
+
+
+
+    //     var resx = xmljs.js2xml(currentJs, { spaces: 4, compact: true });
+    //     console.log("Updated resx" + resx);
+    //     edit.replace(
+    //         document.uri,
+    //         new vscode.Range(0, 0, document.lineCount, 0),
+    //         resx);
+
+
+    //     return vscode.workspace.applyEdit(edit);
+    // }
+
 
 }
 function getDataJs(text: string): any[]
 {
     var jsObj: any = xmljs.xml2js(text, { compact: true });
 
-    var dataList = jsObj.root.data;
+    var dataList: any[] = [];
+
+    if (dataList)
+    {
+        if (jsObj.root.data instanceof Array)
+        {
+            dataList.concat(jsObj.root.data);
+        } else
+        {
+
+            dataList.push(jsObj.root.data);
+        }
+    }
+
+    console.log(JSON.stringify(dataList));
+
+    try
+    {
+        for (const x of dataList)
+        {
+            console.log(x._attributes.name);
+            console.log(x.value._text);
+            console.log(x.comment?._text ?? "");
+        }
+    } catch (error)
+    {
+
+    }
+
+
+    // try
+    // {
+    //     dataList.forEach(element =>
+    //     {
+    //         console.log(element._attributes.name);
+    //         console.log(element.value._text);
+    //         console.log(element.comment?._text);
+
+
+    //     });
+    // } catch (error)
+    // {
+
+    // }
+
+
+    // try
+    // {
+    //     for (const key in dataList)
+    //     {
+    //         if (Object.prototype.hasOwnProperty.call(dataList, key))
+    //         {
+    //             const element = dataList[key];
+    //             console.log(element['_attributes']['name']);
+    //             console.log(element['value']['_text']);
+    //             console.log(element['comment']['_text']);
+
+
+
+    //         }
+    //     }
+    // } catch (error)
+    // {
+
+    // }
+
+
     return dataList;
 }
