@@ -25,15 +25,15 @@ let currentResxJS = [];
 		console.log('index is :' + index);
 		if (index >= currentResxJS.length)
 		{
-			
-			console.log('This is the new shit ' +index + ' ' + currentResxJS.length);
+
+			console.log('This is the new shit ' + index + ' ' + currentResxJS.length);
 			// This is the new shit
 			// Stand up and admit
 			// Do we get it? "Yeah!"
 			// Do we want it? "Yeah!"
 			// This is the new shit
 
-			var newObj = { _attributes: { name: '', 'xml:space': 'preserve' }, value: { _text: '' }};
+			var newObj = { _attributes: { name: '', 'xml:space': 'preserve' }, value: { _text: '' } };
 			const key =  /** @type {HTMLInputElement} */ (document.getElementById(`${index}.key`));
 			const value = /** @type {HTMLInputElement} */ (document.getElementById(`${index}.value`));
 			const comment =  /** @type {HTMLInputElement} */ (document.getElementById(`${index}.comment`));
@@ -44,36 +44,40 @@ let currentResxJS = [];
 			{
 				newObj._attributes.name = key?.value ?? "";
 				newObj.value._text = value?.value ?? "";
-				if(comment?.value){
-					newObj.comment = {_text : comment?.value};
-				}else{
+				if (comment?.value)
+				{
+					newObj.comment = { _text: comment?.value };
+				} else
+				{
 					delete newObj.comment;
 				}
 
 				console.log('newObj set');
-				var pos = currentResxJS.map( (x)=>{return x?._attributes?.name;}).indexOf(newObj._attributes.name);
+				var pos = currentResxJS.map((x) => { return x?._attributes?.name; }).indexOf(newObj._attributes.name);
 
 				//avoid adding data with same key
-				if(pos === -1){
+				if (pos === -1)
+				{
 					currentResxJS.push(newObj);
 					console.log('Input event : ' + JSON.stringify(newObj));
 
 					errorContainer.innerText = '';
 					errorContainer.style.display = '';
-	
+
 					vscode.setState({ text: JSON.stringify(currentResxJS) });
 					vscode.postMessage({
 						type: 'add',
 						json: JSON.stringify(newObj)
 					});
-				}else{
-					console.log('has dupes ' );
+				} else
+				{
+					console.log('has dupes ');
 					errorContainer.innerText = `Error: Data with ${newObj._attributes.name} already exists`;
 					errorContainer.style.display = '';
 					return;
 
 				}
-			   
+
 
 
 
@@ -95,11 +99,14 @@ let currentResxJS = [];
 
 			if (key.value && value.value)//
 			{
+
 				editingObj._attributes.name = key.value ?? "";
 				editingObj.value._text = value.value ?? "";
-				if(comment?.value){
-					editingObj.comment = {_text : comment?.value};
-				}else{
+				if (comment?.value)
+				{
+					editingObj.comment = { _text: comment?.value };
+				} else
+				{
 					delete editingObj.comment;
 
 				}
@@ -108,16 +115,20 @@ let currentResxJS = [];
 				tempArray[index] = editingObj;
 
 				console.log('temp array is ' + JSON.stringify(tempArray));
-				if(new Set(tempArray.map(x =>x._attributes.name)).size !== tempArray.length){
-					console.log('has dupes ' );
+
+				var keyArray = tempArray.map(x => x._attributes.name);
+				if (new Set(keyArray).size !== keyArray.length)
+				{
+					console.log('has dupes ');
 					errorContainer.innerText = `Error: Data with ${editingObj._attributes.name} already exists`;
 					errorContainer.style.display = '';
-					
-				}else{
+
+				} else
+				{
 					currentResxJS[index] = editingObj;
 				}
 
-				
+
 
 			} else
 			{
@@ -182,7 +193,7 @@ let currentResxJS = [];
 			//create tr
 			const tr = document.createElement("tr");
 
-			var index = (currentResxJS.length > 0) ? currentResxJS.length+ 1 : 0;
+			var index = (currentResxJS.length > 0) ? currentResxJS.length + 1 : 0;
 
 			//create key td
 			const key = document.createElement("td");
@@ -310,7 +321,8 @@ let currentResxJS = [];
 					//add tr to table 
 					table.appendChild(tr);
 					i++;
-				}else{
+				} else
+				{
 					console.log('node is undefined or null');
 				}
 
@@ -339,7 +351,8 @@ let currentResxJS = [];
 				// }
 				var sentDataListJs = JSON.parse(text) ?? [];
 
-				if(sentDataListJs.length !== currentResxJS.length){
+				if (sentDataListJs.length !== currentResxJS.length)
+				{
 					console.log('Sent data is not same as current webview data');
 
 					console.log('Sent data as json ' + text);
