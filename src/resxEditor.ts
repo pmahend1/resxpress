@@ -26,20 +26,16 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
 
     private static readonly viewType = 'resx.editor';
 
-    constructor(
-        private readonly context: vscode.ExtensionContext
-    ) { }
+    constructor(private readonly context: vscode.ExtensionContext) { }
 
     /**
      * Called when our custom editor is opened.
      * 
      * 
      */
-    public async resolveCustomTextEditor(
-        document: vscode.TextDocument,
+    public async resolveCustomTextEditor(document: vscode.TextDocument,
         webviewPanel: vscode.WebviewPanel,
-        _token: vscode.CancellationToken
-    ): Promise<void>
+        _token: vscode.CancellationToken): Promise<void>
     {
         // Setup initial content for the webview
         webviewPanel.webview.options = {
@@ -114,7 +110,6 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
                   content="default-src 'none'; img-src ${webview.cspSource}; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';"/>
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <link href="${styleUri}" rel="stylesheet" />
-
             <title>ResxFileName</title>          
           </head>
           <body>
@@ -143,7 +138,18 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
     {
         var newObj = JSON.parse(json);
         var docDataList = getDataJs(document.getText());
-        docDataList.push(newObj);
+        
+        var pos = docDataList.map( (x)=>{return x?._attributes?.name;}).indexOf(newObj._attributes.name);
+
+        //avoid adding data with same key
+        if(pos === -1){
+            docDataList.push(newObj);
+        }else{
+            // commented for now. its triggering twice 
+            //vscode.window.showErrorMessage(`Data with same key ${newObj._attributes.name} already exists`);
+        }
+       
+        
         return this.updateTextDocument(document, JSON.stringify(docDataList));
     }
 
@@ -153,22 +159,18 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
     private deleteKeyValue(document: vscode.TextDocument, json: any)
     {
 
-
+        console.log('deleteKeyValue start');
+        
         var deletedJsObj = JSON.parse(json);
-
-        var sendableObj = {
-            _attributes: {
-                name: deletedJsObj.key,
-                'xml:space': "preserve"
-            }, value: { _text: deletedJsObj?.value },
-            comment: { _text: deletedJsObj?.comment }
-        };
 
         var currentData = getDataJs(document.getText());
 
-        var pos = currentData.map(function (e) { return e?._attributes?.name; }).indexOf(sendableObj._attributes.name);
+        console.log(`Datalist before deleting ${deletedJsObj._attributes.name} : ${JSON.stringify(currentData)}`);
+        
+        var pos = currentData.map(function (e) { return e?._attributes?.name; }).indexOf(deletedJsObj._attributes.name);
 
         currentData.splice(pos, 1);
+        console.log('deleteKeyValue end');
         return this.updateTextDocument(document, JSON.stringify(currentData));
 
     }
@@ -176,16 +178,21 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
 
     private updateTextDocument(document: vscode.TextDocument, dataListJson: any)
     {
-        console.log('Current resx : /n' + xmljs.xml2json(document.getText(),{compact:true}));
-        
+        console.log('updateTextDocument start');
+
         var dataList = JSON.parse(dataListJson);
         const edit = new vscode.WorkspaceEdit();
 
         var currentJs: any = xmljs.xml2js(document.getText(), { compact: true });
-        if(dataList){
-            switch (dataList.length) {
+
+        console.log(`Before datalist - ${JSON.stringify(currentJs.root.data)} `);
+
+        if (dataList)
+        {
+            switch (dataList.length)
+            {
                 case 0:
-                    currentJs.root.data = {};
+                    delete currentJs.root.data;
                     break;
                 case 1:
                     currentJs.root.data = dataList[0];
@@ -193,13 +200,16 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
                     currentJs.root.data = dataList;
                     break;
             }
-                
 
 
-        }else{
+
+        } else
+        {
+            console.log('Empty data : red flag');
+
             currentJs.root.data = {};
         }
-
+        console.log(`After datalist - ${JSON.stringify(currentJs.root.data)} `);
 
         var resx = xmljs.js2xml(currentJs, { spaces: 4, compact: true });
         console.log("Updated resx" + resx);
@@ -209,6 +219,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
             resx);
 
 
+        console.log('updateTextDocument end');
         return vscode.workspace.applyEdit(edit);
     }
 
@@ -217,30 +228,32 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
 }
 function getDataJs(text: string): any[]
 {
-    console.log('----Current resx json --- : \n' + xmljs.xml2json(text,{compact:true}));
+    console.log('getDataJs start ');
     var jsObj: any = xmljs.xml2js(text, { compact: true });
 
     var dataList: any[] = [];
-
-    if (dataList)
+    console.log(`Datalist before process :${JSON.stringify(jsObj?.root?.data)}`);
+    if (jsObj?.root?.data)
     {
+        
+        
         if (jsObj.root.data instanceof Array)
         {
-            dataList.concat(jsObj.root.data);
+            dataList = dataList.concat(jsObj.root.data);
+            console.log('its array so concat 2 two arrays');
         } else
         {
-
-            if(jsObj.root.data){
+            //check if empty object
+            if(jsObj.root.data?._attributes?.name){
+                console.log('it is an object  so append to existing array');
                 dataList.push(jsObj.root.data);
             }
-            else{
-                console.log('jsObj root data is null');
-                
-            }
+
         }
     }
 
+    console.log(`Datalist after process :${JSON.stringify(dataList)}`);
 
-
+    console.log('getDataJs end ');
     return dataList;
 }

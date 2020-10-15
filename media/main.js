@@ -1,5 +1,5 @@
 // @ts-check
-
+let currentResxJS = [];
 
 // Script run within the webview itself.
 (function ()
@@ -18,14 +18,15 @@
 
 	function inputEvent()
 	{
-
+		errorContainer.innerText = '';
 		let idstr = this.id;
 		console.log('input event for id = ' + idstr);
 		var index = idstr.split('.')[0];
 		console.log('index is :' + index);
 		if (index >= currentResxJS.length)
 		{
-			console.log('This is the new shit' +index + ' ' + currentResxJS.length);
+			
+			console.log('This is the new shit ' +index + ' ' + currentResxJS.length);
 			// This is the new shit
 			// Stand up and admit
 			// Do we get it? "Yeah!"
@@ -45,25 +46,40 @@
 				newObj.value._text = value?.value ?? "";
 				if(comment?.value){
 					newObj.comment = {_text : comment?.value};
+				}else{
+					delete newObj.comment;
 				}
 
 				console.log('newObj set');
-				currentResxJS.push(newObj);
+				var pos = currentResxJS.map( (x)=>{return x?._attributes?.name;}).indexOf(newObj._attributes.name);
 
-				console.log('Input event : ' + JSON.stringify(newObj));
+				//avoid adding data with same key
+				if(pos === -1){
+					currentResxJS.push(newObj);
+					console.log('Input event : ' + JSON.stringify(newObj));
 
-				errorContainer.innerText = '';
-				errorContainer.style.display = '';
+					errorContainer.innerText = '';
+					errorContainer.style.display = '';
+	
+					vscode.setState({ text: JSON.stringify(currentResxJS) });
+					vscode.postMessage({
+						type: 'add',
+						json: JSON.stringify(newObj)
+					});
+				}else{
+					console.log('has dupes ' );
+					errorContainer.innerText = `Error: Data with ${newObj._attributes.name} already exists`;
+					errorContainer.style.display = '';
+					return;
 
-				vscode.setState({ text: JSON.stringify(newObj) });
-				vscode.postMessage({
-					type: 'add',
-					json: JSON.stringify(newObj)
-				});
+				}
+			   
+
+
 
 			} else
 			{
-				errorContainer.innerText = 'Need both key and value';
+				errorContainer.innerText = 'Key and Value are both mandatory fields!';
 				errorContainer.style.display = '';
 				return;
 			}
@@ -81,12 +97,27 @@
 			{
 				editingObj._attributes.name = key.value ?? "";
 				editingObj.value._text = value.value ?? "";
-				editingObj.comment._text = comment.value ?? "";
 				if(comment?.value){
 					editingObj.comment = {_text : comment?.value};
+				}else{
+					delete editingObj.comment;
+
 				}
 
-				currentResxJS[index] = editingObj;
+				var tempArray = Array.from(currentResxJS);
+				tempArray[index] = editingObj;
+
+				console.log('temp array is ' + JSON.stringify(tempArray));
+				if(new Set(tempArray.map(x =>x._attributes.name)).size !== tempArray.length){
+					console.log('has dupes ' );
+					errorContainer.innerText = `Error: Data with ${editingObj._attributes.name} already exists`;
+					errorContainer.style.display = '';
+					
+				}else{
+					currentResxJS[index] = editingObj;
+				}
+
+				
 
 			} else
 			{
@@ -109,7 +140,7 @@
 
 	function deleteEvent()
 	{
-
+		errorContainer.innerText = '';
 		let idstr = this.id;
 		console.log('id to be deleted = ' + idstr);
 		var index = idstr.split('.')[0];
@@ -122,7 +153,8 @@
 			var row = /** @type {HTMLTableElement} */ this.parentNode;
 			row.parentNode.removeChild(row);
 
-			vscode.setState({ text: JSON.stringify(deleteableObj) });
+			vscode.setState({ text: JSON.stringify(currentResxJS) });//always set the full list
+
 			vscode.postMessage({
 				type: 'delete',
 				json: JSON.stringify(deleteableObj)
@@ -200,7 +232,7 @@
 		});
 	}
 
-	let currentResxJS = [];
+
 
 	function updateContent(/** @type {string} */ text)
 	{
@@ -300,14 +332,20 @@
 		{
 			case 'update':
 				const text = message.text;
-				if (text != vscode.getState()?.text)
-				{
-					// Update our webview's content
+				// if (text != vscode.getState()?.text)
+				// {
+				// 	// Update our webview's content
+				// 	updateContent(text);
+				// }
+				var sentDataListJs = JSON.parse(text) ?? [];
+
+				if(sentDataListJs.length !== currentResxJS.length){
+					console.log('Sent data is not same as current webview data');
+
+					console.log('Sent data as json ' + text);
+					console.log('Current data as json ' + JSON.stringify(currentResxJS));
 					updateContent(text);
 				}
-				// Update our webview's content
-				updateContent(text);
-
 				// Then persist state information.
 				// This state is returned in the call to `vscode.getState` below when a webview is reloaded.
 				vscode.setState({ text });
