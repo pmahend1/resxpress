@@ -2,6 +2,10 @@
 
 All notable changes to the **ResxPress** extension will be documented in this file.
 
+## 4.0.0 - 15-Oct-2020
+
+Resx custom editor added. Now you can edit files in a webview based custom editor similar to Visual Studio Windows.
+
 ## 3.0.0 - 7-Oct-2020
 
 Added `resxpress.newpreview` command.

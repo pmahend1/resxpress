@@ -1,0 +1,66 @@
+body {
+  justify-content: center;
+  align-items: center;
+  margin: 1em 2em;
+}
+.button {
+  border: none;
+  color: white;
+  padding: 10px 24px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 12px;
+  margin: 2px 1px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.button2 {
+  background-color: #008cba;
+}
+.tableFixHead {
+  overflow-y: auto;
+  height: 106px;
+}
+.tableFixHead thead th {
+  position: sticky;
+  top: 0;
+}
+table {
+  border-collapse: collapse;
+  width: 85%;
+}
+
+th {
+  position: sticky;
+  background-color: var(--vscode-sideBar-background);
+  border: 1px solid;
+  text-align: center;
+  padding: 8px;
+}
+
+td {
+  border: 1px solid;
+  padding: 1px;
+}
+
+tr:nth-child(even) {
+  background-color: var(--vscode-sideBar-background);
+}
+
+input {
+  background-color: transparent;
+  padding: 0px;
+  color: var(--vscode-editor-foreground);
+  border-color: transparent;
+  outline-color: transparent;
+}
+
+p {
+  text-align: center;
+}
+
+.error {
+  color: red;
+}

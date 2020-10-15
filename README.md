@@ -18,6 +18,26 @@ A Visual Studio Code extension for awesome preview and reorganizing resx files b
 
 ## Features
 
+### Custom Resx Editor
+
+![Resx Editor](./images/../images/resxEditor.png)
+
+This is **active by default** when the file is opened, *however* you can choose to open from **Explorer Panel - Right Click on the resx file - Choose ResXpress Editor**
+
+![Custom Editor Option](./images/resxEditorOption.png)
+
+Below is the **Text Editor** vs. **Resx Editor** side by side comparision.
+
+![Compare Editors](/images/textVsResxEditor.png)
+
+It offers the following features;
+- Adding a new resx data
+- Editing an existing resx data
+- Deleting an existing resx data
+- Checks for resx data with duplicate keys and shows error if exists.
+- To and Fro updates between Text document and ResxEditors as soon as typed valid resx data
+- To and fro updates Text document and ResxEditors when Save triggered on either.
+
 ### ResXpress: Markdown Preview
 
    Preview resx file as Markdown table.
@@ -39,7 +59,7 @@ Preview resx file as a nice Webview table.
 ## Requirements
 
 - Built in markdown support
-- VS code 1.43+
+- VS code 1.49+
 
 ## Extension Settings
 
