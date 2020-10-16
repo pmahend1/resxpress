@@ -5,15 +5,35 @@
     "description": "Preview and sort Resx files",
     "publisher": "PrateekMahendrakar",
     "icon": "images/logo.png",
+    "badges": [
+        {
+            "url": "https://img.shields.io/github/workflow/status/pmahend1/resxpress/Deploy%20CI?color=brightgreen&label=Deploy%20CI&style=flat-square&logo=github",
+            "href": "https://img.shields.io/github/workflow/status/pmahend1/resxpress/Deploy%20CI?color=brightgreen&label=Deploy%20CI&style=flat-square&logo=github",
+            "description": "Deploy CI"
+        },
+        {
+            "url": "https://cdn.buymeacoffee.com/buttons/v2/default-blue.png",
+            "description": "Buy me coffee",
+            "href": "https://www.buymeacoffee.com/pmahend1"
+        }
+    ],
     "repository": {
         "url": "https://github.com/pmahend1/resxpress.git"
     },
-    "version": "4.0.0",
+    "bugs": {
+        "url": "https://github.com/pmahend1/resxpress/issues"
+    },
+    "galleryBanner": {
+        "color": "#99ceff",
+        "theme": "dark"
+    },
+    "version": "4.0.1",
     "engines": {
         "vscode": "^1.49.0"
     },
     "categories": [
-        "Other"
+        "Other",
+        "Visualization"
     ],
     "activationEvents": [
         "onCommand:resxpress.resxpreview",
@@ -61,6 +81,15 @@
             }
         ]
     },
+    "keywords": [
+        "resx",
+        "custom editor",
+        "editor",
+        "xml",
+        "preview",
+        "markdown"
+    ],
+    "markdown": "standard",
     "scripts": {
         "compile": "tsc -p ./",
         "lint": "eslint src --ext ts",
