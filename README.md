@@ -1,6 +1,6 @@
 # ResXpress
 
-A Visual Studio Code extension for awesome preview and reorganizing resx files by keys.
+Resx editor, previewer and reorganizer extension for Visual Studio Code and VSCodium.
 
 <img src="./images/logo.png" alt="Logo" width="250" height="250">
 
