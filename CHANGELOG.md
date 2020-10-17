@@ -2,6 +2,13 @@
 
 All notable changes to the **ResxPress** extension will be documented in this file.
 
+## 4.0.2 - 17-Oct-2020
+
+- Updated banner color and package.json description
+- Removed BuymeCoffee from VS Marketplace.
+- Updated editor id.
+- Deleted unused files
+
 ## 4.0.0 - 15-Oct-2020
 
 Resx custom editor added. Now you can edit files in a webview based custom editor similar to Visual Studio Windows.

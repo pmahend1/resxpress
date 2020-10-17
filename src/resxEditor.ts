@@ -3,10 +3,10 @@ import * as vscode from 'vscode';
 import { getNonce } from './util';
 import * as xmljs from "xml-js";
 /**
- * Provider for cat scratch editors.
+ * Provider for Resx editors.
  * 
- * Cat scratch editors are used for `.cscratch` files, which are just json files.
- * To get started, run this extension and open an empty `.cscratch` file in VS Code.
+ * Resx editors are used for `.resx` files, which are just json files.
+ * To get started, run this extension and open an empty `.resx` file in VS Code.
  * 
  * This provider demonstrates:
  * 
@@ -24,14 +24,12 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
         return providerRegistration;
     }
 
-    private static readonly viewType = 'resx.editor';
+    private static readonly viewType = 'resxpress.editor';
 
     constructor(private readonly context: vscode.ExtensionContext) { }
 
     /**
      * Called when our custom editor is opened.
-     * 
-     * 
      */
     public async resolveCustomTextEditor(document: vscode.TextDocument,
         webviewPanel: vscode.WebviewPanel,
