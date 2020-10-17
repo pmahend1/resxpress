@@ -2,7 +2,7 @@
     "name": "resxpress",
     "displayName": "ResXpress",
     "license": "MIT",
-    "description": "Resx editor, previewer and sortinh extension",
+    "description": "Resx editor, previewer and sorting extension",
     "publisher": "PrateekMahendrakar",
     "icon": "images/logo.png",
     "badges": [
