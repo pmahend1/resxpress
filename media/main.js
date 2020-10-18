@@ -25,7 +25,6 @@ let currentResxJS = [];
 		console.log('index is :' + index);
 		if (index >= currentResxJS.length)
 		{
-
 			console.log('This is the new shit ' + index + ' ' + currentResxJS.length);
 			// This is the new shit
 			// Stand up and admit
@@ -53,7 +52,7 @@ let currentResxJS = [];
 				}
 
 				console.log('newObj set');
-				var pos = currentResxJS.map(x =>  x?._attributes?.name ).indexOf(newObj._attributes.name);
+				var pos = currentResxJS.map(x => x?._attributes?.name).indexOf(newObj._attributes.name);
 
 				//avoid adding data with same key
 				if (pos === -1)
@@ -117,8 +116,6 @@ let currentResxJS = [];
 				var tempArray = Array.from(currentResxJS);
 				tempArray[index] = editingObj;
 
-				
-
 				var keyArray = tempArray.map(x => x._attributes.name);
 
 				console.log('keyArray is ' + JSON.stringify(keyArray));
@@ -132,8 +129,6 @@ let currentResxJS = [];
 				{
 					currentResxJS[index] = editingObj;
 				}
-
-
 
 			} else
 			{
@@ -198,7 +193,7 @@ let currentResxJS = [];
 			//create tr
 			const tr = document.createElement("tr");
 
-			var index = (currentResxJS.length > 0) ? currentResxJS.length + 1 : 0;
+			var index = (currentResxJS.length > 0) ? currentResxJS.length : 0;
 
 			//create key td
 			const key = document.createElement("td");
