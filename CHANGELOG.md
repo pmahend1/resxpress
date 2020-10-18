@@ -2,6 +2,14 @@
 
 All notable changes to the **ResxPress** extension will be documented in this file.
 
+## 4.0.4 - 17-Oct-2020
+
+- Fixed indexing issue causing multiple errors with 'Data with same key already exists'
+
+## 4.0.3 - 17-Oct-2020
+
+- Typo fix in package json description.
+
 ## 4.0.2 - 17-Oct-2020
 
 - Updated banner color and package.json description
