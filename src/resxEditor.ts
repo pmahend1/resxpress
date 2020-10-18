@@ -144,7 +144,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
             docDataList.push(newObj);
         }else{
             // commented for now. its triggering twice 
-            //vscode.window.showErrorMessage(`Data with same key ${newObj._attributes.name} already exists`);
+            vscode.window.showErrorMessage(`Data with same key ${newObj._attributes.name} already exists`);
         }
        
         

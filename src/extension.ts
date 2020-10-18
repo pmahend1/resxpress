@@ -54,6 +54,7 @@ export function activate(context: vscode.ExtensionContext)
 			}
 		)
 	);
+
 	context.subscriptions.push(
 		vscode.commands.registerTextEditorCommand(
 			"resxpress.newpreview",
@@ -108,7 +109,7 @@ async function sortByKeys()
 	}
 }
 
-function sortKeyValuesResx(revere?: boolean)
+function sortKeyValuesResx(reverse?: boolean)
 {
 	try
 	{
@@ -143,19 +144,18 @@ function sortKeyValuesResx(revere?: boolean)
 		var xml = xmljs.js2xml(jsObj, { spaces: 4 });
 
 		return xml;
-	} 
+	}
 	catch (error)
 	{
 		console.error(error);
-
 		vscode.window.showErrorMessage(error.message);
 	}
 }
 
-
-function getDataJs() : any[]{
+function getDataJs(): any[]
+{
 	var text = vscode.window.activeTextEditor?.document?.getText() ?? "";
-	var jsObj:any = xmljs.xml2js(text, {compact:true});
+	var jsObj: any = xmljs.xml2js(text, { compact: true });
 	return jsObj.root.data;
 }
 async function newPreview()
@@ -217,7 +217,7 @@ async function displayAsMarkdown()
 					{
 						const regexM = /[\\`*_{}[\]()#+.!|-]/g;
 						//clean up key
-						var property =  jsObj._attributes.name;
+						var property = jsObj._attributes.name;
 						var propertyString = property;
 
 						propertyString = property.replace(regexM, "\\$&");
@@ -275,11 +275,11 @@ async function displayJsonInHtml(jsonData: any[], filename: string)
 			var commentstr = "";
 			element.elements.forEach((subElement: any) =>
 			{
-				if (subElement.name === "value" && subElement.elements?.length >0)
+				if (subElement.name === "value" && subElement.elements?.length > 0)
 				{
 					valueStr = subElement.elements[0].text;
-				} 
-				else if (subElement.name === "comment" && subElement.elements?.length >0)
+				}
+				else if (subElement.name === "comment" && subElement.elements?.length > 0)
 				{
 					commentstr = subElement.elements[0].text;
 				}
