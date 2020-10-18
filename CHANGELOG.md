@@ -2,6 +2,11 @@
 
 All notable changes to the **ResxPress** extension will be documented in this file.
 
+## 4.0.5 - 17-Oct-2020
+
+- Error div moved to top.
+- Sticky top elements.
+
 ## 4.0.4 - 17-Oct-2020
 
 - Fixed indexing issue causing multiple errors with 'Data with same key already exists'
