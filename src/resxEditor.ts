@@ -100,31 +100,35 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
 
         const nonce = getNonce();
 
-        return `<!DOCTYPE html />
+        return `<!DOCTYPE html>
         <html lang="en">
-          <head>
-            <meta charset="UTF-8" />
+        <head>
+            <meta charset="UTF-8">
             <meta http-equiv="Content-Security-Policy"
-                  content="default-src 'none'; img-src ${webview.cspSource}; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';"/>
+                content="default-src 'none'; img-src ${webview.cspSource}; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <link href="${styleUri}" rel="stylesheet" />
-            <title>ResxFileName</title>          
-          </head>
-          <body>
-            <button class="button button2" 
-                    id="addButton">Add New Resource</button>
+            <title>ResxFileName</title>
+        </head>
+        <body>
+            <div class="topdiv">
+                <button class="buttoncss" id="addButton">Add New Resource</button>
+                <span>
+                    <div id="diverr" class="error"></div>
+                </span>
+             <div>
             <table id="tbl">
-              <thead>
-                <th>Key</th>
-                <th>Value</th>
-                <th>Comment</th>
-                <th> </th>
-              </thead>
-              <tbody>
-              </tbody>
+                <thead class="tableFixHead thead th">
+                    <th>Key</th>
+                    <th>Value</th>
+                    <th>Comment</th>
+                    <th> </th>
+                </thead>
+                <tbody>
+                </tbody>
             </table>
             <script nonce="${nonce}" src="${scriptUri}"></script>
-          </body>
+        </body>
         </html>
         `;
     }

@@ -3,33 +3,37 @@ body {
   align-items: center;
   margin: 1em 2em;
 }
-.button {
-  border: none;
-  color: white;
-  padding: 10px 24px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 12px;
-  margin: 2px 1px;
-  cursor: pointer;
-  font-family: inherit;
+
+#topdiv {
+  width: 100%;
+  background-color: var(--vscode-editor-background);
+  height: 70px;
 }
 
-.button2 {
-  background-color: #008cba;
+.buttoncss {
+  background-color: #5e7cbb;
+  border: 0px solid;
+  padding: 5px 20px;
+  color: #fefefe;
+  height: 50px;
+  border-radius: 12px;
+  top: 0px;
+  margin: 5px 0px;
+  display: inline-block;
+  position: sticky;
+  position: -webkit-sticky;
+  top: 0px;
 }
 .tableFixHead {
   overflow-y: auto;
-  height: 106px;
+  height: 50px;
 }
 .tableFixHead thead th {
   position: sticky;
-  top: 0;
 }
 table {
   border-collapse: collapse;
-  width: 85%;
+  width: 90%;
 }
 
 th {
@@ -37,24 +41,29 @@ th {
   background-color: var(--vscode-sideBar-background);
   border: 1px solid;
   text-align: center;
-  padding: 8px;
+  padding: 15px 15px;
+  top: 60px;
 }
 
 td {
   border: 1px solid;
-  padding: 1px;
+  padding: 0px 0px;
 }
 
 tr:nth-child(even) {
   background-color: var(--vscode-sideBar-background);
+  padding: 0;
 }
 
 input {
   background-color: transparent;
-  padding: 0px;
   color: var(--vscode-editor-foreground);
   border-color: transparent;
-  outline-color: transparent;
+  height: 100%;
+  width: 95%;
+  display: inline-block;
+  margin: 0px 3px;
+  padding: 0px 2px;
 }
 
 p {
@@ -63,4 +72,10 @@ p {
 
 .error {
   color: red;
+  display: inline-block;
+  margin: 4px 20px;
+  position: sticky;
+  position: -webkit-sticky;
+  top: 0px;
+  background-color: var(--vscode-editor-background);
 }

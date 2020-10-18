@@ -11,10 +11,7 @@ let currentResxJS = [];
 	var table =  /** @type {HTMLElement} */ (document.querySelector("tbody"));
 
 
-	const errorContainer = document.createElement('div');
-	document.body.appendChild(errorContainer);
-	errorContainer.className = 'error'
-	errorContainer.style.display = 'none'
+	const errorContainer = document.getElementById('diverr');
 
 	function inputEvent()
 	{
