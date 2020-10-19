@@ -20,6 +20,8 @@
         "vscode": "^1.49.0"
     },
     "categories": [
+        "Snippets",
+        "Visualization",
         "Other"
     ],
     "activationEvents": [
@@ -56,9 +58,12 @@
                 "title": "ResXpress: Web Preview"
             }
         ],
-        "configuration": {
-            "title": "ResXpress"
-        },
+        "snippets": [
+            {
+                "language": "xml",
+                "path": "./snippets/resx.json"
+            }
+        ],
         "languages": [
             {
                 "id": "resx",
