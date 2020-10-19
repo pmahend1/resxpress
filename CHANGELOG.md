@@ -2,6 +2,10 @@
 
 All notable changes to the **ResxPress** extension will be documented in this file.
 
+## 4.1.0 - 18-Oct-2020
+
+- Resx Key-Value-Comment snippet added with prefix `resx`.
+
 ## 4.0.6 - 18-Oct-2020
 
 - Fixed overflown content on top of sticky header visible issue.
