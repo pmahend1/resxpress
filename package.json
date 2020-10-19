@@ -5,13 +5,6 @@
     "description": "Resx editor, previewer and sorting extension",
     "publisher": "PrateekMahendrakar",
     "icon": "images/logo.png",
-    "badges": [
-        {
-            "url": "https://img.shields.io/github/workflow/status/pmahend1/resxpress/Deploy%20CI?color=brightgreen&label=Deploy%20CI&style=flat-square&logo=github",
-            "href": "https://img.shields.io/github/workflow/status/pmahend1/resxpress/Deploy%20CI?color=brightgreen&label=Deploy%20CI&style=flat-square&logo=github",
-            "description": "Deploy CI"
-        }
-    ],
     "repository": {
         "url": "https://github.com/pmahend1/resxpress.git"
     },
@@ -22,7 +15,7 @@
         "color": "#123456",
         "theme": "dark"
     },
-    "version": "4.0.5",
+    "version": "4.0.6",
     "engines": {
         "vscode": "^1.49.0"
     },
