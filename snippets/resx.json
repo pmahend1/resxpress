@@ -1,0 +1,12 @@
+{
+    "Resx Data": {
+        "prefix": "resx",
+        "body": [
+            "<data name=\"${1:key}\" xml:space=\"preserve\">",
+            "    <value>${2:value}</value>",
+            "    <comment>$0</comment>",
+            "</data>"
+        ],
+        "description": "Resx key-value-comment data"
+    }
+}

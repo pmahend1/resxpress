@@ -40,21 +40,30 @@ It offers the following features;
 
 ### ResXpress: Markdown Preview
 
-   Preview resx file as Markdown table.
+Preview resx file as Markdown table.
 
-  ![Screenshot1](./images/preview.gif)  
+![Screenshot1](./images/preview.gif)  
 
 ### ResXpress: Sort By Keys
 
 Reorganize file by sorting by Keys.
 
-  ![Screenshot2](./images/sortByKeys.gif)  
+![Screenshot2](./images/sortByKeys.gif)  
 
 ### ResXpress: Web Preview
 
 Preview resx file as a nice Webview table.
   
-  ![Screenshot3](./images/webPreview.gif)
+![Screenshot3](./images/webPreview.gif)
+
+### Resx Data Snippet
+
+- Type `resx` and snippet will pop up.
+- If it doesnt then Control+Space(CMD+Space for Mac) to trigger intellisense.
+- Edit key, value and comment values(press Tab to go to next editable value)
+
+![Snippet](./images/snippet.png)
+
 
 ## Requirements
 
