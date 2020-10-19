@@ -116,7 +116,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
                 <span>
                     <div id="diverr" class="error"></div>
                 </span>
-             <div>
+            </div>
             <table id="tbl">
                 <thead class="tableFixHead thead th">
                     <th>Key</th>

@@ -1,13 +1,17 @@
 body {
+  margin: 0;
+  padding: 2rem;
   justify-content: center;
   align-items: center;
-  margin: 1em 2em;
 }
-
-#topdiv {
-  width: 100%;
+.error {
+  color: red;
+  display: inline-block;
+  margin: 4px 20px;
+  position: sticky;
+  position: -webkit-sticky;
+  top: 0px;
   background-color: var(--vscode-editor-background);
-  height: 70px;
 }
 
 .buttoncss {
@@ -22,32 +26,33 @@ body {
   display: inline-block;
   position: sticky;
   position: -webkit-sticky;
+  z-index: 100;
   top: 0px;
 }
-.tableFixHead {
-  overflow-y: auto;
-  height: 50px;
-}
-.tableFixHead thead th {
-  position: sticky;
-}
+
 table {
+  text-align: left;
+  position: relative;
   border-collapse: collapse;
   width: 90%;
 }
-
-th {
-  position: sticky;
-  background-color: var(--vscode-sideBar-background);
+th,
+td {
+  padding: 0.25rem;
   border: 1px solid;
-  text-align: center;
-  padding: 15px 15px;
-  top: 60px;
 }
 
-td {
-  border: 1px solid;
-  padding: 0px 0px;
+th {
+  background: white;
+  position: sticky;
+  position: -webkit-sticky;
+  padding: -chrome-sticky;
+  top: 62px;
+  margin-top: 62px;
+  box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+  background-color: var(--vscode-sideBar-background);
+  text-align: center;
+  padding: 15px 15px;
 }
 
 tr:nth-child(even) {
@@ -70,12 +75,12 @@ p {
   text-align: center;
 }
 
-.error {
-  color: red;
-  display: inline-block;
-  margin: 4px 20px;
+.topdiv {
+  width: 100%;
+  background-color: var(--vscode-editor-background);
+  z-index: 200;
+  top: 0px;
   position: sticky;
   position: -webkit-sticky;
-  top: 0px;
-  background-color: var(--vscode-editor-background);
+  padding: -chrome-sticky;
 }
