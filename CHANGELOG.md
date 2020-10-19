@@ -2,7 +2,7 @@
 
 All notable changes to the **ResxPress** extension will be documented in this file.
 
-## 4.0.6 - 17-Oct-2020
+## 4.0.6 - 18-Oct-2020
 
 - Fixed overflown content on top of sticky header visible issue.
 
