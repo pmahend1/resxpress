@@ -2,6 +2,10 @@
 
 All notable changes to the **ResxPress** extension will be documented in this file.
 
+## 4.0.6 - 17-Oct-2020
+
+- Fixed overflown content on top of sticky header visible issue.
+
 ## 4.0.5 - 17-Oct-2020
 
 - Error div moved to top.
