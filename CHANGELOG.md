@@ -2,6 +2,10 @@
 
 All notable changes to the **ResxPress** extension will be documented in this file.
 
+## 4.2.0 - 21-Feb-2020
+
+- Yarn upgrades
+  
 ## 4.1.0 - 18-Oct-2020
 
 - Resx Key-Value-Comment snippet added with prefix `resx`.
