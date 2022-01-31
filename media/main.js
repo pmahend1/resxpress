@@ -22,18 +22,11 @@ let currentResxJS = [];
 		console.log('index is :' + index);
 		if (index >= currentResxJS.length)
 		{
-			console.log('This is the new shit ' + index + ' ' + currentResxJS.length);
-			// This is the new shit
-			// Stand up and admit
-			// Do we get it? "Yeah!"
-			// Do we want it? "Yeah!"
-			// This is the new shit
-
+			console.log(`Index: ${ index }. Current Resx Length: ${ currentResxJS.length }`);
 			var newObj = { _attributes: { name: '', 'xml:space': 'preserve' }, value: { _text: '' } };
-			const key =  /** @type {HTMLInputElement} */ (document.getElementById(`${index}.key`));
-			const value = /** @type {HTMLInputElement} */ (document.getElementById(`${index}.value`));
-			const comment =  /** @type {HTMLInputElement} */ (document.getElementById(`${index}.comment`));
-
+			const key =  /** @type {HTMLInputElement} */ (document.getElementById(`${ index }.key`));
+			const value = /** @type {HTMLInputElement} */ (document.getElementById(`${ index }.value`));
+			const comment =  /** @type {HTMLInputElement} */ (document.getElementById(`${ index }.comment`));
 
 			console.log('if check');
 			if (key?.value && value?.value)
@@ -43,7 +36,8 @@ let currentResxJS = [];
 				if (comment?.value)
 				{
 					newObj.comment = { _text: comment?.value };
-				} else
+				} 
+				else
 				{
 					delete newObj.comment;
 				}
@@ -65,35 +59,30 @@ let currentResxJS = [];
 						type: 'add',
 						json: JSON.stringify(newObj)
 					});
-				} else
+				} 
+				else
 				{
 					console.log('has dupes ');
-					errorContainer.innerText = `Error: Data with ${newObj._attributes.name} already exists`;
+					errorContainer.innerText = `Error: Data with ${ newObj._attributes.name } already exists`;
 					errorContainer.style.display = '';
 					return;
-
 				}
-
-
-
-
-			} else
+			} 
+			else
 			{
 				errorContainer.innerText = 'Key and Value are both mandatory fields!';
 				errorContainer.style.display = '';
 				return;
 			}
 
-		} else
+		} 
+		else
 		{
-			//old shit
-
-			console.log('old shit');
 			var editingObj = currentResxJS[index];
 
-			const key =  /** @type {HTMLInputElement} */ (document.getElementById(`${index}.key`));
-			const value = /** @type {HTMLInputElement} */ (document.getElementById(`${index}.value`));
-			const comment =  /** @type {HTMLInputElement} */ (document.getElementById(`${index}.comment`));
+			const key =  /** @type {HTMLInputElement} */ (document.getElementById(`${ index }.key`));
+			const value = /** @type {HTMLInputElement} */ (document.getElementById(`${ index }.value`));
+			const comment =  /** @type {HTMLInputElement} */ (document.getElementById(`${ index }.comment`));
 
 			if (key.value && value.value)//
 			{
@@ -104,10 +93,10 @@ let currentResxJS = [];
 				if (comment?.value)
 				{
 					editingObj.comment = { _text: comment?.value };
-				} else
+				} 
+				else
 				{
 					delete editingObj.comment;
-
 				}
 
 				var tempArray = Array.from(currentResxJS);
@@ -119,21 +108,20 @@ let currentResxJS = [];
 				if (new Set(keyArray).size !== keyArray.length)
 				{
 					console.log('edited Data key already exists');
-					errorContainer.innerText = `Error while updating data : Data with ${editingObj._attributes.name} already exists`;
+					errorContainer.innerText = `Error while updating data : Data with ${ editingObj._attributes.name } already exists`;
 					errorContainer.style.display = '';
-
-				} else
+				} 
+				else
 				{
 					currentResxJS[index] = editingObj;
 				}
-
-			} else
+			} 
+			else
 			{
 				errorContainer.innerText = 'Error: Document is not valid resx';
 				errorContainer.style.display = '';
 				return;
 			}
-
 
 			console.log('Input event : ' + JSON.stringify(currentResxJS));
 			vscode.setState({ text: JSON.stringify(currentResxJS) });
@@ -142,8 +130,6 @@ let currentResxJS = [];
 				json: JSON.stringify(currentResxJS)
 			});
 		}
-
-
 	};
 
 	function deleteEvent()
@@ -167,20 +153,14 @@ let currentResxJS = [];
 				type: 'delete',
 				json: JSON.stringify(deleteableObj)
 			});
-
-		} else
+		}
+		else
 		{
-			// This is the new shit
-			// Stand up and admit
-			// Do we get it? "No!"
-			// Do we want it? "No!"
-			// This is the new shit
 			var row = /** @type {HTMLTableElement} */ this.parentNode;
 			row.parentNode.removeChild(row);
 		}
-
-
 	}
+
 	var add = document.getElementById("addButton");
 
 	if (add)
@@ -195,7 +175,7 @@ let currentResxJS = [];
 			//create key td
 			const key = document.createElement("td");
 			const keyInput = /** @type {HTMLInputElement} */ document.createElement('input');
-			keyInput.id = `${index}.key`;
+			keyInput.id = `${ index }.key`;
 			keyInput.type = 'text';
 			keyInput.value = "";
 
@@ -206,18 +186,18 @@ let currentResxJS = [];
 			//create value td
 			const value = document.createElement("td");
 			const valueInput = /** @type {HTMLInputElement} */document.createElement('input');
-			valueInput.id = `${index}.value`;
-			valueInput.value = ""
+			valueInput.id = `${ index }.value`;
+			valueInput.value = "";
 			valueInput.type = 'text';
 
-			valueInput.addEventListener('focusout', inputEvent, false)
+			valueInput.addEventListener('focusout', inputEvent, false);
 			value.appendChild(valueInput);
 
 			//create comment td
 			const comment = document.createElement("td");
 
 			const commentInput = document.createElement('input');
-			commentInput.id = `${index}.comment`;
+			commentInput.id = `${ index }.comment`;
 			commentInput.type = 'text';
 			commentInput.value = "";
 
@@ -240,8 +220,6 @@ let currentResxJS = [];
 		});
 	}
 
-
-
 	function updateContent(/** @type {string} */ text)
 	{
 		if (text)
@@ -251,7 +229,9 @@ let currentResxJS = [];
 			{
 				currentResxJS = json = JSON.parse(text);
 				console.log("data json is :" + text);
-			} catch {
+			}
+			catch
+			{
 				table.style.display = 'none';
 				errorContainer.innerText = 'Error: Document is not valid resx';
 				errorContainer.style.display = '';
@@ -262,7 +242,6 @@ let currentResxJS = [];
 
 			// Render the scratches
 			table.innerHTML = '';
-
 
 			var i = 0;
 			for (const node of json)
@@ -278,17 +257,17 @@ let currentResxJS = [];
 					keyInput.type = 'text';
 					keyInput.value = node._attributes.name ?? "";
 					console.log("key : " + node._attributes.name ?? "");
-					//keyInput.oninput =(key) =>inputEvent(key);;
-					keyInput.id = `${i}.key`;
+
+					keyInput.id = `${ i }.key`;
 					keyInput.addEventListener('focusout', inputEvent, false);
 					key.appendChild(keyInput);
 
 					//create value td
 					const value = document.createElement("td");
 					const valueInput = document.createElement('input');
-					valueInput.value = node.value._text ?? ""
+					valueInput.value = node.value._text ?? "";
 					valueInput.type = 'text';
-					valueInput.id = `${i}.value`;
+					valueInput.id = `${ i }.value`;
 					console.log("Value : " + node.value._text ?? "");
 					valueInput.addEventListener('focusout', inputEvent, false);
 					value.appendChild(valueInput);
@@ -296,7 +275,7 @@ let currentResxJS = [];
 					//create comment td
 					const comment = document.createElement("td");
 					const commentInput = document.createElement('input');
-					commentInput.id = `${i}.comment`;
+					commentInput.id = `${ i }.comment`;
 					commentInput.type = 'text';
 					commentInput.value = node?.comment?._text ?? "";
 
@@ -306,7 +285,7 @@ let currentResxJS = [];
 
 					//delete character X
 					const x = document.createElement("td");
-					x.id = `${i}.delete`;
+					x.id = `${ i }.delete`;
 					const p = document.createElement("p");
 					p.innerHTML = "X";
 					x.appendChild(p);
@@ -318,22 +297,22 @@ let currentResxJS = [];
 					//add tr to table 
 					table.appendChild(tr);
 					i++;
-				} else
+				} 
+				else
 				{
 					console.log('node is undefined or null');
 				}
-
 			}
-		} else
+		}
+		 else
 		{
 			table.style.display = 'none';
 			errorContainer.innerText = 'Error: Document is not valid resx';
 			errorContainer.style.display = '';
 			return;
 		}
-
-
 	}
+
 	window.addEventListener('message', event =>
 	{
 		const message = event.data; // The json data that the extension sent
@@ -341,11 +320,6 @@ let currentResxJS = [];
 		{
 			case 'update':
 				const text = message.text;
-				// if (text != vscode.getState()?.text)
-				// {
-				// 	// Update our webview's content
-				// 	updateContent(text);
-				// }
 				var sentDataListJs = JSON.parse(text) ?? [];
 
 				if (sentDataListJs.length !== currentResxJS.length)
@@ -363,10 +337,10 @@ let currentResxJS = [];
 				return;
 		}
 	});
+
 	const state = vscode.getState();
 	if (state)
 	{
 		updateContent(state.text);
 	}
-
 }());
