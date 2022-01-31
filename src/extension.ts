@@ -5,12 +5,24 @@ import { PreviewEditPanel } from "./webview_panel";
 import * as path from "path";
 import * as xmljs from "xml-js";
 import { ResxEditorProvider } from "./resxEditor";
+import { NotificationService } from "./notificationService";
 
 
 let currentContext: vscode.ExtensionContext;
 
 export function activate(context: vscode.ExtensionContext)
 {
+	try
+	{
+		const notificationService = new NotificationService(context);
+		notificationService.promptForReviewAsync();
+	}
+	catch (error)
+	{
+		let errorMessage = (error as Error)?.message;
+		console.error(errorMessage);
+	}
+
 	currentContext = context;
 
 	context.subscriptions.push(
@@ -101,11 +113,12 @@ async function sortByKeys()
 				editBuilder.replace(ranger, unordered);
 			});
 		}
-	} catch (error)
+	}
+	catch (error)
 	{
+		let errorMessage = (error as Error)?.message;
 		console.error(error);
-
-		vscode.window.showErrorMessage(error.message);
+		vscode.window.showErrorMessage(errorMessage);
 	}
 }
 
@@ -123,7 +136,8 @@ function sortKeyValuesResx(reverse?: boolean)
 			if (x.name === "data")
 			{
 				dataList.push(x);
-			} else
+			} 
+			else
 			{
 				sorted.push(x);
 			}
@@ -147,8 +161,9 @@ function sortKeyValuesResx(reverse?: boolean)
 	}
 	catch (error)
 	{
-		console.error(error);
-		vscode.window.showErrorMessage(error.message);
+		let errorMessage = (error as Error)?.message;
+		console.error(errorMessage);
+		vscode.window.showErrorMessage(errorMessage);
 	}
 }
 
@@ -169,7 +184,8 @@ async function newPreview()
 		if (x.name === "data")
 		{
 			dataList.push(x);
-		} else
+		} 
+		else
 		{
 			sorted.push(x);
 		}
@@ -248,18 +264,22 @@ async function displayAsMarkdown()
 						"workbench.action.closeActiveEditor"
 					);
 				}
-			} else
+			} 
+			else
 			{
 				vscode.window.showErrorMessage("Error parsing resx data");
 			}
-		} else
+		} 
+		else
 		{
 			vscode.window.showErrorMessage("Error finding path of the file");
 		}
-	} catch (error)
+	}
+	catch (error)
 	{
+		let errorMessage = (error as Error)?.message;
 		console.error(error);
-		vscode.window.showErrorMessage(error.message);
+		vscode.window.showErrorMessage(errorMessage);
 	}
 }
 
@@ -294,9 +314,11 @@ async function displayJsonInHtml(jsonData: any[], filename: string)
 		var title = pathObj.name + pathObj.ext;
 
 		PreviewEditPanel.createOrShow(currentContext.extensionUri, title, _content);
-	} catch (error)
+	} 
+	catch (error)
 	{
-		vscode.window.showErrorMessage(error.message);
+		let errorMessage = (error as Error)?.message;
+		vscode.window.showErrorMessage(errorMessage);
 		console.error(error);
 	}
 }
