@@ -2,10 +2,11 @@
 
 All notable changes to the **ResxPress** extension will be documented in this file.
 
-## 4.3.0 - 01-Jan-2022
+## 4.4.0 - 01-Jan-2022
 
 - Added review prompt.
 - Yarn upgrades
+
 ## 4.2.1 - 27-Jun-2021
 
 - Yarn upgrades
