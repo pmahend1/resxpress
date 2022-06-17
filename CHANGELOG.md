@@ -2,9 +2,14 @@
 
 All notable changes to the **ResxPress** extension will be documented in this file.
 
+## 4.6.0 - 17-Jun-2022
+
+-   Yarn upgrades.
+-   Added `Don't show again` for rating prompt.
+
 ## 4.5.0 - 27-Mar-2022
 
--   Yarn upgrades.  
+-   Yarn upgrades.
 
 ## 4.4.0 - 01-Jan-2022
 
