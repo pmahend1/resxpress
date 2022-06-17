@@ -3,16 +3,12 @@ export class NotificationService
 {
     private context: vscode.ExtensionContext;
     public readonly storageKeyPrefix: string;
-
-    private lastNotifiedDateKey: string;
-
-    private lastRatingPromptDateKey: string;
+    private readonly lastRatingPromptDateKey: string;
 
     constructor(context: vscode.ExtensionContext)
     {
         this.context = context;
         this.storageKeyPrefix = this.context.extension.id + ".";
-        this.lastNotifiedDateKey = `${ this.storageKeyPrefix }lastNotifiedDate`;
         this.lastRatingPromptDateKey = `${ this.storageKeyPrefix }lastRatingPromptDate`;
     }
 
@@ -24,7 +20,7 @@ export class NotificationService
             if (shouldDisplayPrompt)
             {
                 var text = "Loving ResXpress extension? Would you like to rate and review?";
-                var selection = await vscode.window.showInformationMessage(text, "Sure", "Later");
+                var selection = await vscode.window.showInformationMessage(text, "Sure", "Later", "Don't show again");
                 if (selection)
                 {
                     if (selection === "Sure")
@@ -51,6 +47,13 @@ export class NotificationService
                     else if (selection === "Later")
                     {
                         this.context.globalState.update(this.lastRatingPromptDateKey, new Date());
+                    }
+                    else if (selection === "Don't show again")
+                    {
+                        var oneYear = new Date();
+                        oneYear.setDate(oneYear.getDate() + 365);
+
+                        this.context.globalState.update(this.lastRatingPromptDateKey, oneYear);
                     }
                 }
             }
