@@ -128,9 +128,9 @@
   integrity sha512-qjd88DrCxupx/kJD5yQgZdcYKZKSIGBVDIBE1/LTGcNm3d2Np/jxojkdePDdfnBHJc5W7vSMpbJ1aB7p/Py69A==
 
 "@types/vscode@^1.53.0":
-  version "1.68.0"
-  resolved "https://registry.yarnpkg.com/@types/vscode/-/vscode-1.68.0.tgz#c0864e4ea43c509bfc6b53f4e91aa923fd0475b8"
-  integrity sha512-duBwEK5ta/eBBMJMQ7ECMEsMvlE3XJdRGh3xoS1uOO4jl2Z4LPBl5vx8WvBP10ERAgDRmIt/FaSD4RHyBGbChw==
+  version "1.69.0"
+  resolved "https://registry.yarnpkg.com/@types/vscode/-/vscode-1.69.0.tgz#a472011af392fbcf82cbb82f60b4c239c21b921c"
+  integrity sha512-RlzDAnGqUoo9wS6d4tthNyAdZLxOIddLiX3djMoWk29jFfSA1yJbIwr0epBYqqYarWB6s2Z+4VaZCQ80Jaa3kA==
 
 "@types/xml-js@^1.0.0":
   version "1.0.0"
@@ -623,7 +623,15 @@ emoji-regex@^8.0.0:
   resolved "https://registry.yarnpkg.com/emoji-regex/-/emoji-regex-8.0.0.tgz#e818fd69ce5ccfcb404594f842963bf53164cc37"
   integrity sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==
 
-enhanced-resolve@^5.0.0, enhanced-resolve@^5.9.3:
+enhanced-resolve@^5.0.0:
+  version "5.10.0"
+  resolved "https://registry.yarnpkg.com/enhanced-resolve/-/enhanced-resolve-5.10.0.tgz#0dc579c3bb2a1032e357ac45b8f3a6f3ad4fb1e6"
+  integrity sha512-T0yTFjdpldGY8PmuXXR0PyQ1ufZpEGiHVrp7zHKB7jdR4qlmZHhONVM5AQOAWXuF/w3dnHbEQVrNptJgt7F+cQ==
+  dependencies:
+    graceful-fs "^4.2.4"
+    tapable "^2.2.0"
+
+enhanced-resolve@^5.9.3:
   version "5.9.3"
   resolved "https://registry.yarnpkg.com/enhanced-resolve/-/enhanced-resolve-5.9.3.tgz#44a342c012cbc473254af5cc6ae20ebd0aae5d88"
   integrity sha512-Bq9VSor+kjvW3f9/MiiR4eE3XYgOl7/rS8lnSxbRbF3kS0B2r+Y9w5krBWxZgDxASVZbdYrn5wT4j/Wb0J9qow==
@@ -1481,9 +1489,9 @@ to-regex-range@^5.0.1:
   integrity sha1-cXuPIgzAu3tE5AUUwisui7xw2Lk=
 
 ts-loader@^9.2.3:
-  version "9.3.0"
-  resolved "https://registry.yarnpkg.com/ts-loader/-/ts-loader-9.3.0.tgz#980f4dbfb60e517179e15e10ed98e454b132159f"
-  integrity sha512-2kLLAdAD+FCKijvGKi9sS0OzoqxLCF3CxHpok7rVgCZ5UldRzH0TkbwG9XECKjBzHsAewntC5oDaI/FwKzEUog==
+  version "9.3.1"
+  resolved "https://registry.yarnpkg.com/ts-loader/-/ts-loader-9.3.1.tgz#fe25cca56e3e71c1087fe48dc67f4df8c59b22d4"
+  integrity sha512-OkyShkcZTsTwyS3Kt7a4rsT/t2qvEVQuKCTg4LJmpj9fhFR7ukGdZwV6Qq3tRUkqcXtfGpPR7+hFKHCG/0d3Lw==
   dependencies:
     chalk "^4.1.0"
     enhanced-resolve "^5.0.0"
@@ -1522,9 +1530,9 @@ tsutils@^2.29.0:
     tslib "^1.8.1"
 
 typescript@^4.1.5:
-  version "4.7.3"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.7.3.tgz#8364b502d5257b540f9de4c40be84c98e23a129d"
-  integrity sha512-WOkT3XYvrpXx4vMMqlD+8R8R37fZkjyLGlxavMc4iB8lrl8L0DeTcHbYgw/v0N/z9wAFsgBhcsF0ruoySS22mA==
+  version "4.7.4"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.7.4.tgz#1a88596d1cf47d59507a1bcdfb5b9dfe4d488235"
+  integrity sha512-C0WQT0gezHuw6AdY1M2jxUO83Rjf0HP7Sk1DtXj6j1EwkQNZrHAg2XPWlq62oqEhYvONq5pkC2Y9oPljWToLmQ==
 
 unzipper@^0.10.11:
   version "0.10.11"
