@@ -4,6 +4,12 @@ All notable changes to the **ResxPress** extension will be documented in this fi
 
 ---
 
+## 4.9.0 - 25-Sep-2022
+
+-   Yarn upgrades.
+
+---
+
 ## 4.8.0 - 01-Aug-2022
 
 -   Yarn upgrades.
