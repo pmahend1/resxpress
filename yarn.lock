@@ -211,10 +211,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/vscode@npm:1.69.0":
-  version: 1.69.0
-  resolution: "@types/vscode@npm:1.69.0"
-  checksum: 58d657c2c398d8ec5b8f0264f91140d182b9beddb42f1c2277c4ed6438ef5112532d450acd6eea85f16da99a6a0f39d7f417974a4a3ac47b31f175fd8a3325de
+"@types/vscode@npm:^1.69.0":
+  version: 1.74.0
+  resolution: "@types/vscode@npm:1.74.0"
+  checksum: 25de153cc10136d32d425960c04687fdc26b79b49420d055799f01169e3141fa619d3ed6b3126c4ca4635d12aff2b77df51460e89235c71b55d570f8c08df71c
   languageName: node
   linkType: hard
 
@@ -2296,7 +2296,7 @@ __metadata:
     "@types/glob": ^8.0.0
     "@types/mocha": ^10.0.1
     "@types/node": ^18.11.18
-    "@types/vscode": 1.69.0
+    "@types/vscode": ^1.69.0
     "@types/xml-js": ^1.0.0
     glob: ^8.0.3
     mocha: ^10.2.0

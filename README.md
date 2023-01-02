@@ -30,12 +30,12 @@ Below is the **Text Editor** vs. **Resx Editor** side by side comparision.
 
 It offers the following features;
 
--   Adding a new resx data.
--   Editing an existing resx data.
--   Deleting an existing resx data.
--   Checks for resx data with duplicate keys and shows error if exists.
--   To and Fro updates between Text document and ResxEditors as soon as typed valid resx data.
--   To and fro updates Text document and ResxEditors when Save triggered on either.
+- Adding a new resx data.
+- Editing an existing resx data.
+- Deleting an existing resx data.
+- Checks for resx data with duplicate keys and shows error if exists.
+- To and Fro updates between Text document and ResxEditors as soon as typed valid resx data.
+- To and fro updates Text document and ResxEditors when Save triggered on either.
 
 ### ResXpress: Markdown Preview
 
@@ -57,16 +57,16 @@ Preview resx file as a nice Webview table.
 
 ### Resx Data Snippet
 
--   Type `resx` and snippet will pop up.
--   If it doesnt then Control+Space(CMD+Space for Mac) to trigger intellisense.
--   Edit key, value and comment values(press Tab to go to next editable value)
+- Type `resx` and snippet will pop up.
+- If it doesnt then Control+Space(CMD+Space for Mac) to trigger intellisense.
+- Edit key, value and comment values(press Tab to go to next editable value)
 
 ![Snippet](./images/snippet.png)
 
 ## Requirements
 
--   Built in markdown support
--   VS code 1.53+
+- Built in markdown support
+- VS code 1.69+
 
 ## Extension Settings
 

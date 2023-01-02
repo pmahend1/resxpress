@@ -101,7 +101,7 @@
         "@types/glob": "^8.0.0",
         "@types/mocha": "^10.0.1",
         "@types/node": "^18.11.18",
-        "@types/vscode": "1.69.0",
+        "@types/vscode": "^1.69.0",
         "@types/xml-js": "^1.0.0",
         "glob": "^8.0.3",
         "mocha": "^10.2.0",
