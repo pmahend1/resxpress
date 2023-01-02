@@ -4,7 +4,7 @@ All notable changes to the **ResxPress** extension will be documented in this fi
 
 ---
 
-## 4.9.2 - 31-Dec-2022
+## 4.9.3 - 31-Dec-2022
 
 - Fixed shields.io badges.
 - Set to modern `yarn`.
