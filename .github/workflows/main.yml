@@ -24,11 +24,11 @@ jobs:
         run: yarn
 
       - name: VSCE Publish
-        run: vsce publish --yarn -p $env:VSCE_PAT
+        run: vsce publish --no-yarn -p $env:VSCE_PAT
         env:
           VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
 
       - name: Open VSX Publish
-        run: npx ovsx publish --yarn -p $env:OPEN_VSX_PAT
+        run: yarn exec ovsx publish -p $env:OPEN_VSX_PAT
         env:
           OPEN_VSX_PAT: ${{ secrets.OPENVSX }}
