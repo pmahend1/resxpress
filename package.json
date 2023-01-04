@@ -71,6 +71,18 @@
                     ".resx"
                 ]
             }
+        ],
+        "configuration": [
+            {
+                "title": "ResXpress Settings",
+                "properties": {
+                    "resxpress.configuration.generateStronglyTypedResourceClassOnSave": {
+                        "type": "boolean",
+                        "default": false,
+                        "markdownDescription": "Generate strongly typed resource class files when updates to resx files are made.\n Resource1.resx → Resource1.Designer.cs"
+                    }
+                }
+            }
         ]
     },
     "capabilities": {
