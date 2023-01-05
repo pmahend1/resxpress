@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { promises as fsPromises } from 'fs';
 import { PreviewEditPanel } from "./webview_panel";
 import * as path from "path";
-import * as xmljs from 'xml-js/types'
+import * as xmljs from 'xml-js'
 import { ResxEditorProvider } from './resxEditor';
 import { NotificationService } from './notificationService';
 import * as childProcess from 'child_process';
