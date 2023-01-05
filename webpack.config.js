@@ -2,7 +2,7 @@
 
 'use strict';
 
-import path from 'path';
+const path = require('path');
 
 /**@type {import('webpack').Configuration}*/
 const config = {
@@ -34,4 +34,4 @@ const config = {
         }]
     }
 };
-export default config;
+module.exports = config;
