@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { getNonce } from './util';
-import * as xmljs from "xml-js";
+import * as xmljs from 'xml-js/types';
 /**
  * Provider for Resx editors.
  * 
