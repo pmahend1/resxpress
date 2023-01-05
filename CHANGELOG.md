@@ -4,6 +4,14 @@ All notable changes to the **ResxPress** extension will be documented in this fi
 
 ---
 
+## 5.0.0 - 5-Jan-2023
+
+- `ResGen` added as setting.
+- Reverted to classic `yarn` because of no VSCE support for yarn v2 or v3.
+- `yarn` upgrades.
+
+---
+
 ## 4.9.3 - 31-Dec-2022
 
 - Fixed shields.io badges.

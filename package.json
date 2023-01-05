@@ -79,7 +79,7 @@
                     "resxpress.configuration.generateStronglyTypedResourceClassOnSave": {
                         "type": "boolean",
                         "default": false,
-                        "markdownDescription": "Generate/update strongly typed resource class files when updates to resx files are made. \n\n Ex: Resource1.resx → Resource1.Designer.cs \n\n > **Note**: You will need to add `resgen` to environment PATH. "
+                        "markdownDescription": "Generate/update strongly typed resource class files when updates to resx files are made. Default is **`false`** \n\n Ex: Resource1.resx → Resource1.Designer.cs \n\n > **Note**: You will need to add `resgen` to environment PATH. "
                     }
                 }
             }
