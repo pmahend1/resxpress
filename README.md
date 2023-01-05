@@ -36,6 +36,13 @@ It offers the following features;
 - Checks for resx data with duplicate keys and shows error if exists.
 - To and Fro updates between Text document and ResxEditors as soon as typed valid resx data.
 - To and fro updates Text document and ResxEditors when Save triggered on either.
+- Automatically regenerate strongly typed resource class file(controlled by setting)
+
+### Settings
+
+`generateStronglyTypedResourceClassOnSave`: Generate/update strongly typed resource class files when updates to resx files are made.  Default is **`false`**.  
+Ex: Resource1.resx → Resource1.Designer.cs  
+> **Note**: You will need to add `resgen` to environment PATH.
 
 ### ResXpress: Markdown Preview
 

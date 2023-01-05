@@ -1,14 +1,16 @@
-import * as vscode from "vscode";
+import * as vscode from 'vscode';
 
-import { promises as fsPromises } from "fs";
+import { promises as fsPromises } from 'fs';
 import { PreviewEditPanel } from "./webview_panel";
 import * as path from "path";
-import * as xmljs from "xml-js";
-import { ResxEditorProvider } from "./resxEditor";
-import { NotificationService } from "./notificationService";
+import * as xmljs from 'xml-js'
+import { ResxEditorProvider } from './resxEditor';
+import { NotificationService } from './notificationService';
+import * as childProcess from 'child_process';
 
 
 let currentContext: vscode.ExtensionContext;
+var shouldGenerateStronglyTypedResourceClassOnSave: boolean = false
 
 export function activate(context: vscode.ExtensionContext)
 {
@@ -24,6 +26,12 @@ export function activate(context: vscode.ExtensionContext)
 	}
 
 	currentContext = context;
+	loadConfiguration();
+
+	vscode.workspace.onDidChangeConfiguration((configChangeEvent: vscode.ConfigurationChangeEvent) =>
+	{
+		loadConfiguration();
+	});
 
 	context.subscriptions.push(
 		vscode.commands.registerTextEditorCommand(
@@ -89,6 +97,96 @@ export function activate(context: vscode.ExtensionContext)
 	);
 
 	context.subscriptions.push(ResxEditorProvider.register(context));
+
+	vscode.workspace.onDidSaveTextDocument(async (documentSavedEvent) =>
+	{
+		try
+		{
+			var isResx = documentSavedEvent.fileName.endsWith(".resx");
+			if (isResx && shouldGenerateStronglyTypedResourceClassOnSave)
+			{
+				await runResGenAsync(documentSavedEvent.fileName);
+			}
+		}
+		catch (error)
+		{
+			let errorMessage = (error as Error)?.message;
+			console.error(error);
+			vscode.window.showErrorMessage(errorMessage);
+		}
+	});
+}
+
+function loadConfiguration()
+{
+	let resxConfig = vscode.workspace.getConfiguration("resxpress.configuration");
+	shouldGenerateStronglyTypedResourceClassOnSave = resxConfig.get<boolean>("generateStronglyTypedResourceClassOnSave") ?? false;
+}
+
+export async function runResGenAsync(fileName: string): Promise<void>
+{
+	try
+	{
+		let pathFile = path.parse(fileName);
+		let fileNameNoExt = pathFile.name;
+
+		//best effort to get existing resource class file name
+		let files = await vscode.workspace.findFiles(`**/${fileNameNoExt}.Designer.*`, '**/*.dll', 1)
+
+		var resourceFileName = "";
+		var ext = "cs"
+		if (files.length === 1)
+		{
+			let filePath = path.parse(files[0].path);
+			ext = filePath.ext.substring(1)
+			resourceFileName = `${path.join(pathFile.dir, filePath.name)}.${ext}`
+		}
+		else
+		{
+			resourceFileName = `${path.join(pathFile.dir, pathFile.name)}.Designer.${ext}`
+		}
+
+		let nameSpace = path.basename(path.dirname(fileName))
+		let parameter = `/str:${ext},${nameSpace},,${resourceFileName}`
+		console.log('Parameter: ' + parameter);
+		const cli = childProcess.spawn('ResGen', [`${fileName}`, '/useSourcePath', parameter], { stdio: ['pipe'] });
+
+		var stdOutData = "";
+		var stdErrData = "";
+		cli.stdout.setEncoding("utf8");
+		cli.stdout.on("data", data =>
+		{
+			stdOutData += data;
+		});
+
+		cli.stderr.setEncoding("utf8");
+		cli.stderr.on("data", data =>
+		{
+			stdErrData += data;
+		});
+
+		let promise = new Promise<void>((resolve, reject) =>
+		{
+			cli.on("close", (exitCode: Number) =>
+			{
+				if (exitCode !== 0)
+				{
+					reject();
+					console.log(stdErrData)
+				}
+				else
+				{
+					resolve();
+					console.log(stdOutData)
+				}
+			});
+		});
+		return promise;
+	}
+	catch (error)
+	{
+		throw error;
+	}
 }
 
 // this method is called when your extension is deactivated
@@ -136,13 +234,13 @@ function sortKeyValuesResx(reverse?: boolean)
 			if (x.name === "data")
 			{
 				dataList.push(x);
-			} 
+			}
 			else
 			{
 				sorted.push(x);
 			}
 		});
-		console.log(dataList);
+
 		var dataListsorted = dataList.sort((x1: any, x2: any) =>
 		{
 			return x1.attributes.name < x2.attributes.name
@@ -184,13 +282,13 @@ async function newPreview()
 		if (x.name === "data")
 		{
 			dataList.push(x);
-		} 
+		}
 		else
 		{
 			sorted.push(x);
 		}
 	});
-	console.log(dataList);
+
 	var currentFileName = vscode.window.activeTextEditor?.document.fileName;
 	if (currentFileName)
 	{
@@ -264,12 +362,12 @@ async function displayAsMarkdown()
 						"workbench.action.closeActiveEditor"
 					);
 				}
-			} 
+			}
 			else
 			{
 				vscode.window.showErrorMessage("Error parsing resx data");
 			}
-		} 
+		}
 		else
 		{
 			vscode.window.showErrorMessage("Error finding path of the file");
@@ -314,7 +412,7 @@ async function displayJsonInHtml(jsonData: any[], filename: string)
 		var title = pathObj.name + pathObj.ext;
 
 		PreviewEditPanel.createOrShow(currentContext.extensionUri, title, _content);
-	} 
+	}
 	catch (error)
 	{
 		let errorMessage = (error as Error)?.message;
