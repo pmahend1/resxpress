@@ -105,9 +105,9 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
         <head>
             <meta charset="UTF-8">
             <meta http-equiv="Content-Security-Policy"
-                content="default-src 'none'; img-src ${ webview.cspSource }; style-src ${ webview.cspSource }; script-src 'nonce-${ nonce }';" />
+                content="default-src 'none'; img-src ${webview.cspSource}; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <link href="${ styleUri }" rel="stylesheet" />
+            <link href="${styleUri}" rel="stylesheet" />
             <title>ResxFileName</title>
         </head>
         <body>
@@ -127,7 +127,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
                 <tbody>
                 </tbody>
             </table>
-            <script nonce="${ nonce }" src="${ scriptUri }"></script>
+            <script nonce="${nonce}" src="${scriptUri}"></script>
         </body>
         </html>
         `;
@@ -151,7 +151,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
         else
         {
             // commented for now. its triggering twice 
-            vscode.window.showErrorMessage(`Data with same key ${ newObj._attributes.name } already exists`);
+            vscode.window.showErrorMessage(`Data with same key ${newObj._attributes.name} already exists`);
         }
         return this.updateTextDocument(document, JSON.stringify(docDataList));
     }
@@ -168,14 +168,13 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
 
         var currentData = getDataJs(document.getText());
 
-        console.log(`Datalist before deleting ${ deletedJsObj._attributes.name } : ${ JSON.stringify(currentData) }`);
+        console.log(`Datalist before deleting ${deletedJsObj._attributes.name} : ${JSON.stringify(currentData)}`);
 
         var pos = currentData.map(function (e) { return e?._attributes?.name; }).indexOf(deletedJsObj._attributes.name);
 
         currentData.splice(pos, 1);
         console.log('deleteKeyValue end');
         return this.updateTextDocument(document, JSON.stringify(currentData));
-
     }
 
 
@@ -188,7 +187,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
 
         var currentJs: any = xmljs.xml2js(document.getText(), { compact: true });
 
-        console.log(`Before datalist - ${ JSON.stringify(currentJs.root.data) } `);
+        console.log(`Before datalist - ${JSON.stringify(currentJs.root.data)} `);
 
         if (dataList)
         {
@@ -198,7 +197,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
                     delete currentJs.root.data;
                     break;
                 case 1:
-                    currentJs.root.data = dataList[ 0 ];
+                    currentJs.root.data = dataList[0];
                 default:
                     currentJs.root.data = dataList;
                     break;
@@ -210,7 +209,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
 
             currentJs.root.data = {};
         }
-        console.log(`After datalist - ${ JSON.stringify(currentJs.root.data) } `);
+        console.log(`After datalist - ${JSON.stringify(currentJs.root.data)} `);
 
         var resx = xmljs.js2xml(currentJs, { spaces: 4, compact: true });
         console.log("Updated resx" + resx);
@@ -228,11 +227,10 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
 }
 function getDataJs(text: string): any[]
 {
-    console.log('getDataJs start ');
     var jsObj: any = xmljs.xml2js(text, { compact: true });
 
     var dataList: any[] = [];
-    console.log(`Datalist before process :${ JSON.stringify(jsObj?.root?.data) }`);
+    console.log(`Datalist before process :${JSON.stringify(jsObj?.root?.data)}`);
     if (jsObj?.root?.data)
     {
 
@@ -252,7 +250,7 @@ function getDataJs(text: string): any[]
         }
     }
 
-    console.log(`Datalist after process :${ JSON.stringify(dataList) }`);
+    console.log(`Datalist after process :${JSON.stringify(dataList)}`);
 
     console.log('getDataJs end ');
     return dataList;
