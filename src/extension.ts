@@ -10,6 +10,7 @@ import * as childProcess from "child_process";
 
 
 let currentContext: vscode.ExtensionContext;
+var shouldGenerateStronglyTypedResourceClassOnSave: boolean = false
 
 export function activate(context: vscode.ExtensionContext)
 {
@@ -25,6 +26,12 @@ export function activate(context: vscode.ExtensionContext)
 	}
 
 	currentContext = context;
+	loadConfiguration();
+
+	vscode.workspace.onDidChangeConfiguration((configChangeEvent: vscode.ConfigurationChangeEvent) =>
+	{
+		loadConfiguration();
+	});
 
 	context.subscriptions.push(
 		vscode.commands.registerTextEditorCommand(
@@ -96,14 +103,9 @@ export function activate(context: vscode.ExtensionContext)
 		try
 		{
 			var isResx = documentSavedEvent.fileName.endsWith(".resx");
-			if (isResx)
+			if (isResx && shouldGenerateStronglyTypedResourceClassOnSave)
 			{
-				let resxConfig = vscode.workspace.getConfiguration("resxpress.configuration");
-				let shouldGenerateStronglyTypedResourceClassOnSave = resxConfig.get<boolean>("generateStronglyTypedResourceClassOnSave") ?? false;
-				if (shouldGenerateStronglyTypedResourceClassOnSave)
-				{
-					await runResGenAsync(documentSavedEvent.fileName)
-				}
+				await runResGenAsync(documentSavedEvent.fileName);
 			}
 		}
 		catch (error)
@@ -113,6 +115,12 @@ export function activate(context: vscode.ExtensionContext)
 			vscode.window.showErrorMessage(errorMessage);
 		}
 	});
+}
+
+function loadConfiguration()
+{
+	let resxConfig = vscode.workspace.getConfiguration("resxpress.configuration");
+	shouldGenerateStronglyTypedResourceClassOnSave = resxConfig.get<boolean>("generateStronglyTypedResourceClassOnSave") ?? false;
 }
 
 export async function runResGenAsync(fileName: string): Promise<void>
