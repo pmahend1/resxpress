@@ -4,6 +4,10 @@ All notable changes to the **ResxPress** extension will be documented in this fi
 
 ---
 
+## 5.1.0 - 15-Mar-2023
+
+- `yarn` upgrades.
+
 ## 5.0.0 - 5-Jan-2023
 
 - `ResGen` added as setting.
