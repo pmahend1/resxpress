@@ -4,7 +4,7 @@ Resx editor, previewer and reorganizer extension for Visual Studio Code and VSCo
 
 <img src="./images/logo.png" alt="Logo" width="250" height="250">
 
-[![License](https://img.shields.io/github/license/pmahend1/resxpress?style=flat-square&label=License&color=9cf)](https://choosealicense.com/licenses/mit/)![Deploy](https://img.shields.io/github/workflow/status/pmahend1/resxpress/Deploy%20CI?color=brightgreen&label=Deploy%20CI&style=flat-square&logo=github)
+[![License](https://img.shields.io/github/license/pmahend1/resxpress?style=flat-square&label=License&color=9cf)](https://choosealicense.com/licenses/mit/)![Deploy](https://img.shields.io/github/actions/workflow/status/pmahend1/resxpress/main.yml?branch=main&color=brightgreen&label=Deploy%20CI&style=flat-square&logo=github)
 
 <!-- Visual Studio MarketPlace: Version|Installs|Downloads|Rating -->
 [![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/PrateekMahendrakar.resxpress?style=for-the-badge&color=blue&logo=visualstudiocode&logoColor=blue&label=Visual%20Studio%20MarketPlace)](https://marketplace.visualstudio.com/items?itemName=PrateekMahendrakar.resxpress)![Visual Studio Marketplace Installs](https://img.shields.io/visual-studio-marketplace/i/PrateekMahendrakar.resxpress?style=for-the-badge&color=blue)![Visual Studio Marketplace Downloads](https://img.shields.io/visual-studio-marketplace/d/PrateekMahendrakar.resxpress?style=for-the-badge&color=blue)![Visual Studio Marketplace Rating](https://img.shields.io/visual-studio-marketplace/r/PrateekMahendrakar.resxpress?style=for-the-badge&color=blue)  
