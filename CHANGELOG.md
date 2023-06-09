@@ -4,6 +4,10 @@ All notable changes to the **ResxPress** extension will be documented in this fi
 
 ---
 
+## 5.3.1 - 9-Jun-2023
+
+- Updated broken badge icons.
+
 ## 5.3.0 - 8-Jun-2023
 
 - `yarn` upgrades.
