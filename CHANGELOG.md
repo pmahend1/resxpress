@@ -4,6 +4,10 @@ All notable changes to the **ResxPress** extension will be documented in this fi
 
 ---
 
+## 5.6.0 - 10-Nov-2023
+
+- `yarn` upgrades.
+
 ## 5.5.0 - 20-Sep-2023
 
 - `yarn` upgrades.
