@@ -12,15 +12,12 @@ import * as childProcess from 'child_process';
 let currentContext: vscode.ExtensionContext;
 var shouldGenerateStronglyTypedResourceClassOnSave: boolean = false
 
-export function activate(context: vscode.ExtensionContext)
-{
-	try
-	{
+export function activate(context: vscode.ExtensionContext) {
+	try {
 		const notificationService = new NotificationService(context);
 		notificationService.promptForReviewAsync();
 	}
-	catch (error)
-	{
+	catch (error) {
 		let errorMessage = (error as Error)?.message;
 		console.error(errorMessage);
 	}
@@ -28,24 +25,21 @@ export function activate(context: vscode.ExtensionContext)
 	currentContext = context;
 	loadConfiguration();
 
-	vscode.workspace.onDidChangeConfiguration((configChangeEvent: vscode.ConfigurationChangeEvent) =>
-	{
+	vscode.workspace.onDidChangeConfiguration((configChangeEvent: vscode.ConfigurationChangeEvent) => {
 		loadConfiguration();
 	});
 
 	context.subscriptions.push(
 		vscode.commands.registerTextEditorCommand(
 			"resxpress.resxpreview",
-			async () =>
-			{
+			async () => {
 				vscode.window.withProgress(
 					{
 						location: vscode.ProgressLocation.Notification,
 						cancellable: false,
 						title: "ResXpress",
 					},
-					async (p) =>
-					{
+					async (p) => {
 						p.report({ message: "Showing Preview" });
 						await displayAsMarkdown();
 					}
@@ -57,16 +51,14 @@ export function activate(context: vscode.ExtensionContext)
 	context.subscriptions.push(
 		vscode.commands.registerTextEditorCommand(
 			"resxpress.sortbykeys",
-			async () =>
-			{
+			async () => {
 				vscode.window.withProgress(
 					{
 						location: vscode.ProgressLocation.Notification,
 						cancellable: false,
 						title: "ResXpress",
 					},
-					async (p) =>
-					{
+					async (p) => {
 						p.report({ message: "Sorting by keys" });
 						await sortByKeys();
 					}
@@ -78,16 +70,14 @@ export function activate(context: vscode.ExtensionContext)
 	context.subscriptions.push(
 		vscode.commands.registerTextEditorCommand(
 			"resxpress.newpreview",
-			async () =>
-			{
+			async () => {
 				vscode.window.withProgress(
 					{
 						location: vscode.ProgressLocation.Notification,
 						cancellable: false,
 						title: "ResXpress",
 					},
-					async (p) =>
-					{
+					async (p) => {
 						p.report({ message: "Showing Web Preview" });
 						await newPreview();
 					}
@@ -98,18 +88,14 @@ export function activate(context: vscode.ExtensionContext)
 
 	context.subscriptions.push(ResxEditorProvider.register(context));
 
-	vscode.workspace.onDidSaveTextDocument(async (documentSavedEvent) =>
-	{
-		try
-		{
+	vscode.workspace.onDidSaveTextDocument(async (documentSavedEvent) => {
+		try {
 			var isResx = documentSavedEvent.fileName.endsWith(".resx");
-			if (isResx && shouldGenerateStronglyTypedResourceClassOnSave)
-			{
+			if (isResx && shouldGenerateStronglyTypedResourceClassOnSave) {
 				await runResGenAsync(documentSavedEvent.fileName);
 			}
 		}
-		catch (error)
-		{
+		catch (error) {
 			let errorMessage = (error as Error)?.message;
 			console.error(error);
 			vscode.window.showErrorMessage(errorMessage);
@@ -117,74 +103,64 @@ export function activate(context: vscode.ExtensionContext)
 	});
 }
 
-function loadConfiguration()
-{
+function loadConfiguration() {
 	let resxConfig = vscode.workspace.getConfiguration("resxpress.configuration");
 	shouldGenerateStronglyTypedResourceClassOnSave = resxConfig.get<boolean>("generateStronglyTypedResourceClassOnSave") ?? false;
 }
 
-export async function runResGenAsync(fileName: string): Promise<void>
-{
-	try
-	{
-		let pathFile = path.parse(fileName);
-		let fileNameNoExt = pathFile.name;
+export async function runResGenAsync(fileName: string): Promise<void> {
+	try {
+		if (process.platform == "win32") {
+			let pathFile = path.parse(fileName);
+			let fileNameNoExt = pathFile.name;
 
-		//best effort to get existing resource class file name
-		let files = await vscode.workspace.findFiles(`**/${fileNameNoExt}.Designer.*`, '**/*.dll', 1)
+			//best effort to get existing resource class file name
+			let files = await vscode.workspace.findFiles(`**/${fileNameNoExt}.Designer.*`, '**/*.dll', 1)
 
-		var resourceFileName = "";
-		var ext = "cs"
-		if (files.length === 1)
-		{
-			let filePath = path.parse(files[0].path);
-			ext = filePath.ext.substring(1)
-			resourceFileName = `${path.join(pathFile.dir, filePath.name)}.${ext}`
-		}
-		else
-		{
-			resourceFileName = `${path.join(pathFile.dir, pathFile.name)}.Designer.${ext}`
-		}
+			var resourceFileName = "";
+			var ext = "cs"
+			if (files.length === 1) {
+				let filePath = path.parse(files[0].path);
+				ext = filePath.ext.substring(1)
+				resourceFileName = `${path.join(pathFile.dir, filePath.name)}.${ext}`
+			}
+			else {
+				resourceFileName = `${path.join(pathFile.dir, pathFile.name)}.Designer.${ext}`
+			}
 
-		let nameSpace = path.basename(path.dirname(fileName))
-		let parameter = `/str:${ext},${nameSpace},,${resourceFileName}`
-		console.log('Parameter: ' + parameter);
-		const cli = childProcess.spawn('ResGen', [`${fileName}`, '/useSourcePath', parameter], { stdio: ['pipe'] });
+			let nameSpace = path.basename(path.dirname(fileName))
+			let parameter = `/str:${ext},${nameSpace},,${resourceFileName}`
+			console.log('Parameter: ' + parameter);
+			const cli = childProcess.spawn('ResGen', [`${fileName}`, '/useSourcePath', parameter], { stdio: ['pipe'] });
 
-		var stdOutData = "";
-		var stdErrData = "";
-		cli.stdout.setEncoding("utf8");
-		cli.stdout.on("data", data =>
-		{
-			stdOutData += data;
-		});
-
-		cli.stderr.setEncoding("utf8");
-		cli.stderr.on("data", data =>
-		{
-			stdErrData += data;
-		});
-
-		let promise = new Promise<void>((resolve, reject) =>
-		{
-			cli.on("close", (exitCode: Number) =>
-			{
-				if (exitCode !== 0)
-				{
-					reject();
-					console.log(stdErrData)
-				}
-				else
-				{
-					resolve();
-					console.log(stdOutData)
-				}
+			var stdOutData = "";
+			var stdErrData = "";
+			cli.stdout.setEncoding("utf8");
+			cli.stdout.on("data", data => {
+				stdOutData += data;
 			});
-		});
-		return promise;
+
+			cli.stderr.setEncoding("utf8");
+			cli.stderr.on("data", data => {
+				stdErrData += data;
+			});
+
+			let promise = new Promise<void>((resolve, reject) => {
+				cli.on("close", (exitCode: Number) => {
+					if (exitCode !== 0) {
+						reject();
+						console.log(stdErrData)
+					}
+					else {
+						resolve();
+						console.log(stdOutData)
+					}
+				});
+			});
+			return promise;
+		}
 	}
-	catch (error)
-	{
+	catch (error) {
 		throw error;
 	}
 }
@@ -192,57 +168,46 @@ export async function runResGenAsync(fileName: string): Promise<void>
 // this method is called when your extension is deactivated
 export function deactivate() { }
 
-async function sortByKeys()
-{
-	try
-	{
+async function sortByKeys() {
+	try {
 		let unordered: any = sortKeyValuesResx();
 
 		let editor = vscode.window.activeTextEditor;
 
-		if (editor)
-		{
+		if (editor) {
 			let document = editor.document;
 
 			var ranger = new vscode.Range(0, 0, document.lineCount, 0);
 
-			editor.edit((editBuilder) =>
-			{
+			editor.edit((editBuilder) => {
 				editBuilder.replace(ranger, unordered);
 			});
 		}
 	}
-	catch (error)
-	{
+	catch (error) {
 		let errorMessage = (error as Error)?.message;
 		console.error(error);
 		vscode.window.showErrorMessage(errorMessage);
 	}
 }
 
-function sortKeyValuesResx(reverse?: boolean)
-{
-	try
-	{
+function sortKeyValuesResx(reverse?: boolean) {
+	try {
 		var text = vscode.window.activeTextEditor?.document?.getText() ?? "";
 		var jsObj = xmljs.xml2js(text);
 
 		var dataList = new Array();
 		var sorted = new Array();
-		jsObj.elements[0].elements.forEach((x: any) =>
-		{
-			if (x.name === "data")
-			{
+		jsObj.elements[0].elements.forEach((x: any) => {
+			if (x.name === "data") {
 				dataList.push(x);
 			}
-			else
-			{
+			else {
 				sorted.push(x);
 			}
 		});
 
-		var dataListsorted = dataList.sort((x1: any, x2: any) =>
-		{
+		var dataListsorted = dataList.sort((x1: any, x2: any) => {
 			return x1.attributes.name < x2.attributes.name
 				? -1
 				: x1.attributes.name > x2.attributes.name
@@ -257,67 +222,54 @@ function sortKeyValuesResx(reverse?: boolean)
 
 		return xml;
 	}
-	catch (error)
-	{
+	catch (error) {
 		let errorMessage = (error as Error)?.message;
 		console.error(errorMessage);
 		vscode.window.showErrorMessage(errorMessage);
 	}
 }
 
-function getDataJs(): any[]
-{
+function getDataJs(): any[] {
 	var text = vscode.window.activeTextEditor?.document?.getText() ?? "";
 	var jsObj: any = xmljs.xml2js(text, { compact: true });
 	return jsObj.root.data;
 }
-async function newPreview()
-{
+async function newPreview() {
 	var text = vscode.window.activeTextEditor?.document?.getText() ?? "";
 	var jsObj = xmljs.xml2js(text);
 	var dataList = new Array();
 	var sorted = new Array();
-	jsObj.elements[0].elements.forEach((x: any) =>
-	{
-		if (x.name === "data")
-		{
+	jsObj.elements[0].elements.forEach((x: any) => {
+		if (x.name === "data") {
 			dataList.push(x);
 		}
-		else
-		{
+		else {
 			sorted.push(x);
 		}
 	});
 
 	var currentFileName = vscode.window.activeTextEditor?.document.fileName;
-	if (currentFileName)
-	{
+	if (currentFileName) {
 		await displayJsonInHtml(dataList, currentFileName);
 	}
 }
 
 
 // Markdown Preview
-async function displayAsMarkdown()
-{
-	try
-	{
+async function displayAsMarkdown() {
+	try {
 		var pathObj = path.parse(
 			vscode.window.activeTextEditor?.document.fileName ?? ""
 		);
-		if (pathObj)
-		{
-			if (pathObj.ext !== ".resx")
-			{
+		if (pathObj) {
+			if (pathObj.ext !== ".resx") {
 				await vscode.window.showErrorMessage("Not a Resx file.");
 				return;
 			}
 			const jsonData: any[] = getDataJs();
-			if (!(jsonData instanceof Error))
-			{
+			if (!(jsonData instanceof Error)) {
 				var currentFileName = vscode.window.activeTextEditor?.document.fileName;
-				if (currentFileName)
-				{
+				if (currentFileName) {
 					var fileNameNoExt = vscode.window.activeTextEditor?.document.fileName.substring(
 						0,
 						currentFileName.lastIndexOf(".")
@@ -327,8 +279,7 @@ async function displayAsMarkdown()
 					let fileContent = `### ${pathObj.name} Preview\n\n| Key | Value | Comment |\n`;
 					fileContent += "| --- | --- | --- |" + "\n";
 
-					for (const jsObj of jsonData)
-					{
+					for (const jsObj of jsonData) {
 						const regexM = /[\\`*_{}[\]()#+.!|-]/g;
 						//clean up key
 						var property = jsObj._attributes.name;
@@ -363,42 +314,33 @@ async function displayAsMarkdown()
 					);
 				}
 			}
-			else
-			{
+			else {
 				vscode.window.showErrorMessage("Error parsing resx data");
 			}
 		}
-		else
-		{
+		else {
 			vscode.window.showErrorMessage("Error finding path of the file");
 		}
 	}
-	catch (error)
-	{
+	catch (error) {
 		let errorMessage = (error as Error)?.message;
 		console.error(error);
 		vscode.window.showErrorMessage(errorMessage);
 	}
 }
 
-async function displayJsonInHtml(jsonData: any[], filename: string)
-{
-	try
-	{
+async function displayJsonInHtml(jsonData: any[], filename: string) {
+	try {
 		var _content = "";
 
-		jsonData.forEach((element) =>
-		{
+		jsonData.forEach((element) => {
 			var valueStr = "";
 			var commentstr = "";
-			element.elements.forEach((subElement: any) =>
-			{
-				if (subElement.name === "value" && subElement.elements?.length > 0)
-				{
+			element.elements.forEach((subElement: any) => {
+				if (subElement.name === "value" && subElement.elements?.length > 0) {
 					valueStr = subElement.elements[0].text;
 				}
-				else if (subElement.name === "comment" && subElement.elements?.length > 0)
-				{
+				else if (subElement.name === "comment" && subElement.elements?.length > 0) {
 					commentstr = subElement.elements[0].text;
 				}
 			});
@@ -413,8 +355,7 @@ async function displayJsonInHtml(jsonData: any[], filename: string)
 
 		PreviewEditPanel.createOrShow(currentContext.extensionUri, title, _content);
 	}
-	catch (error)
-	{
+	catch (error) {
 		let errorMessage = (error as Error)?.message;
 		vscode.window.showErrorMessage(errorMessage);
 		console.error(error);

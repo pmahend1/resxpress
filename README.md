@@ -42,7 +42,7 @@ It offers the following features;
 
 `generateStronglyTypedResourceClassOnSave`: Generate/update strongly typed resource class files when updates to resx files are made.  Default is **`false`**.  
 Ex: Resource1.resx → Resource1.Designer.cs  
-> **Note**: You will need to add `resgen` to environment PATH.
+> **Note**: *Windows platform only.* You will need to add `resgen` to environment PATH.
 
 ### ResXpress: Markdown Preview
 
