@@ -4,6 +4,11 @@ All notable changes to the **ResxPress** extension will be documented in this fi
 
 ---
 
+## 5.7.0 - 02-Jan-2024
+
+- `yarn` upgrades
+- Strongly typed resource generation only on Windows.
+
 ## 5.6.0 - 10-Nov-2023
 
 - `yarn` upgrades.
