@@ -14,11 +14,9 @@ import * as xmljs from 'xml-js';
  * - Loading scripts and styles in a custom editor.
  * - Synchronizing changes between a text document and a custom editor.
  */
-export class ResxEditorProvider implements vscode.CustomTextEditorProvider
-{
+export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
 
-    public static register(context: vscode.ExtensionContext): vscode.Disposable
-    {
+    public static register(context: vscode.ExtensionContext): vscode.Disposable {
         const provider = new ResxEditorProvider(context);
         const providerRegistration = vscode.window.registerCustomEditorProvider(ResxEditorProvider.viewType, provider);
         return providerRegistration;
@@ -33,8 +31,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
      */
     public async resolveCustomTextEditor(document: vscode.TextDocument,
         webviewPanel: vscode.WebviewPanel,
-        _token: vscode.CancellationToken): Promise<void>
-    {
+        _token: vscode.CancellationToken): Promise<void> {
         // Setup initial content for the webview
         webviewPanel.webview.options = {
             enableScripts: true,
@@ -42,8 +39,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
 
         webviewPanel.webview.html = this.getHtmlForWebview(webviewPanel.webview);
 
-        function updateWebview()
-        {
+        function updateWebview() {
 
             var jsonText = JSON.stringify(getDataJs(document.getText()));
             webviewPanel.webview.postMessage({
@@ -53,25 +49,20 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
 
         }
 
-        const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(e =>
-        {
-            if (e.document.uri.toString() === document.uri.toString())
-            {
+        const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(e => {
+            if (e.document.uri.toString() === document.uri.toString()) {
                 updateWebview();
             }
         });
 
         // Make sure we get rid of the listener when our editor is closed.
-        webviewPanel.onDidDispose(() =>
-        {
+        webviewPanel.onDidDispose(() => {
             changeDocumentSubscription.dispose();
         });
 
         // Receive message from the webview.
-        webviewPanel.webview.onDidReceiveMessage(e =>
-        {
-            switch (e.type)
-            {
+        webviewPanel.webview.onDidReceiveMessage(e => {
+            switch (e.type) {
                 case 'update':
                     this.updateTextDocument(document, e.json);
                     return;
@@ -92,8 +83,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
     /**
      * Get the static html used for the editor webviews.
      */
-    private getHtmlForWebview(webview: vscode.Webview): string
-    {
+    private getHtmlForWebview(webview: vscode.Webview): string {
 
         const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'media', 'main.js')));
         const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'media', 'main.css')));
@@ -136,20 +126,17 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
     /**
      * Add a new key value back to text editor 
      */
-    private addNewKeyValue(document: vscode.TextDocument, json: any)
-    {
+    private addNewKeyValue(document: vscode.TextDocument, json: any) {
         var newObj = JSON.parse(json);
         var docDataList = getDataJs(document.getText());
 
         var pos = docDataList.map((x) => { return x?._attributes?.name; }).indexOf(newObj._attributes.name);
 
         //avoid adding data with same key
-        if (pos === -1)
-        {
+        if (pos === -1) {
             docDataList.push(newObj);
         }
-        else
-        {
+        else {
             // commented for now. its triggering twice 
             vscode.window.showErrorMessage(`Data with same key ${newObj._attributes.name} already exists`);
         }
@@ -159,8 +146,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
     /**
      * Delete an existing scratch from a document.
      */
-    private deleteKeyValue(document: vscode.TextDocument, json: any)
-    {
+    private deleteKeyValue(document: vscode.TextDocument, json: any) {
 
         console.log('deleteKeyValue start');
 
@@ -178,8 +164,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
     }
 
 
-    private updateTextDocument(document: vscode.TextDocument, dataListJson: any)
-    {
+    private updateTextDocument(document: vscode.TextDocument, dataListJson: any) {
         console.log('updateTextDocument start');
 
         var dataList = JSON.parse(dataListJson);
@@ -189,10 +174,8 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
 
         console.log(`Before datalist - ${JSON.stringify(currentJs.root.data)} `);
 
-        if (dataList)
-        {
-            switch (dataList.length)
-            {
+        if (dataList) {
+            switch (dataList.length) {
                 case 0:
                     delete currentJs.root.data;
                     break;
@@ -203,8 +186,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
                     break;
             }
         }
-        else
-        {
+        else {
             console.log('Empty data : red flag');
 
             currentJs.root.data = {};
@@ -225,25 +207,20 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider
 
 
 }
-function getDataJs(text: string): any[]
-{
+function getDataJs(text: string): any[] {
     var jsObj: any = xmljs.xml2js(text, { compact: true });
 
     var dataList: any[] = [];
     console.log(`Datalist before process :${JSON.stringify(jsObj?.root?.data)}`);
-    if (jsObj?.root?.data)
-    {
+    if (jsObj?.root?.data) {
 
-        if (jsObj.root.data instanceof Array)
-        {
+        if (jsObj.root.data instanceof Array) {
             dataList = dataList.concat(jsObj.root.data);
             console.log('its array so concat 2 two arrays');
         }
-        else
-        {
+        else {
             //check if empty object
-            if (jsObj.root.data?._attributes?.name)
-            {
+            if (jsObj.root.data?._attributes?.name) {
                 console.log('it is an object  so append to existing array');
                 dataList.push(jsObj.root.data);
             }

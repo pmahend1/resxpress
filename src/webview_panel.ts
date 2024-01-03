@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 
-class PreviewEditPanel
-{
+class PreviewEditPanel {
 
 	public static currentPanel: PreviewEditPanel | undefined;
 
@@ -13,8 +12,7 @@ class PreviewEditPanel
 	private _disposables: vscode.Disposable[] = [];
 	private static _title: string = "Resx Preview";
 
-	public static createOrShow(extensionUri: vscode.Uri, title: string, content: string)
-	{
+	public static createOrShow(extensionUri: vscode.Uri, title: string, content: string) {
 
 		const column = vscode.window.activeTextEditor
 			? vscode.window.activeTextEditor.viewColumn
@@ -23,8 +21,7 @@ class PreviewEditPanel
 		this._title = title;
 
 		// If we already have a panel, show it.
-		if (PreviewEditPanel.currentPanel)
-		{
+		if (PreviewEditPanel.currentPanel) {
 			PreviewEditPanel.currentPanel._panel.reveal(column);
 			return;
 		}
@@ -46,13 +43,11 @@ class PreviewEditPanel
 		PreviewEditPanel.currentPanel = new PreviewEditPanel(panel, extensionUri, content);
 	}
 
-	public static revive(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, content: string)
-	{
+	public static revive(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, content: string) {
 		PreviewEditPanel.currentPanel = new PreviewEditPanel(panel, extensionUri, content);
 	}
 
-	private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, content: string)
-	{
+	private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, content: string) {
 		this._panel = panel;
 		this._extensionUri = extensionUri;
 		this._content = content;
@@ -66,10 +61,8 @@ class PreviewEditPanel
 
 		// Update the content based on view changes
 		this._panel.onDidChangeViewState(
-			e =>
-			{
-				if (this._panel.visible)
-				{
+			e => {
+				if (this._panel.visible) {
 					this._update(this._content);
 				}
 			},
@@ -79,10 +72,8 @@ class PreviewEditPanel
 
 		// Handle messages from the webview
 		this._panel.webview.onDidReceiveMessage(
-			message =>
-			{
-				switch (message.command)
-				{
+			message => {
+				switch (message.command) {
 					case 'alert':
 						vscode.window.showErrorMessage(message.text);
 						return;
@@ -93,37 +84,31 @@ class PreviewEditPanel
 		);
 	}
 
-	public doRefactor()
-	{
+	public doRefactor() {
 		// Send a message to the webview webview.
 		// You can send any JSON serializable data.
 		this._panel.webview.postMessage({ command: 'refactor' });
 	}
 
-	public dispose()
-	{
+	public dispose() {
 		PreviewEditPanel.currentPanel = undefined;
 
 		// Clean up our resources
 		this._panel.dispose();
 
-		while (this._disposables.length)
-		{
+		while (this._disposables.length) {
 			const x = this._disposables.pop();
-			if (x)
-			{
+			if (x) {
 				x.dispose();
 			}
 		}
 	}
 
-	private _update(content: string)
-	{
+	private _update(content: string) {
 		const webview = this._panel.webview;
 
 		// Vary the webview's content based on where it is located in the editor.
-		switch (this._panel.viewColumn)
-		{
+		switch (this._panel.viewColumn) {
 			case vscode.ViewColumn.Two:
 				this._updateKeyValues(webview, content);
 				return;
@@ -139,14 +124,12 @@ class PreviewEditPanel
 		}
 	}
 
-	private _updateKeyValues(webview: vscode.Webview, content: string)
-	{
+	private _updateKeyValues(webview: vscode.Webview, content: string) {
 		this._panel.title = PreviewEditPanel._title + " Preview";
 		this._panel.webview.html = this._getHtmlForWebview(webview, content);
 	}
 
-	private _getHtmlForWebview(webview: vscode.Webview, content: string) 
-	{
+	private _getHtmlForWebview(webview: vscode.Webview, content: string) {
 
 		return `<!DOCTYPE html>
 			<html lang="en">
