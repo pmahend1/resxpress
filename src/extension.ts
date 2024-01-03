@@ -127,61 +127,64 @@ export async function runResGenAsync(fileName: string): Promise<void>
 {
 	try
 	{
-		let pathFile = path.parse(fileName);
-		let fileNameNoExt = pathFile.name;
-
-		//best effort to get existing resource class file name
-		let files = await vscode.workspace.findFiles(`**/${fileNameNoExt}.Designer.*`, '**/*.dll', 1)
-
-		var resourceFileName = "";
-		var ext = "cs"
-		if (files.length === 1)
+		if (process.platform == "win32")
 		{
-			let filePath = path.parse(files[0].path);
-			ext = filePath.ext.substring(1)
-			resourceFileName = `${path.join(pathFile.dir, filePath.name)}.${ext}`
-		}
-		else
-		{
-			resourceFileName = `${path.join(pathFile.dir, pathFile.name)}.Designer.${ext}`
-		}
-
-		let nameSpace = path.basename(path.dirname(fileName))
-		let parameter = `/str:${ext},${nameSpace},,${resourceFileName}`
-		console.log('Parameter: ' + parameter);
-		const cli = childProcess.spawn('ResGen', [`${fileName}`, '/useSourcePath', parameter], { stdio: ['pipe'] });
-
-		var stdOutData = "";
-		var stdErrData = "";
-		cli.stdout.setEncoding("utf8");
-		cli.stdout.on("data", data =>
-		{
-			stdOutData += data;
-		});
-
-		cli.stderr.setEncoding("utf8");
-		cli.stderr.on("data", data =>
-		{
-			stdErrData += data;
-		});
-
-		let promise = new Promise<void>((resolve, reject) =>
-		{
-			cli.on("close", (exitCode: Number) =>
+			let pathFile = path.parse(fileName);
+			let fileNameNoExt = pathFile.name;
+	
+			//best effort to get existing resource class file name
+			let files = await vscode.workspace.findFiles(`**/${fileNameNoExt}.Designer.*`, '**/*.dll', 1)
+	
+			var resourceFileName = "";
+			var ext = "cs"
+			if (files.length === 1)
 			{
-				if (exitCode !== 0)
-				{
-					reject();
-					console.log(stdErrData)
-				}
-				else
-				{
-					resolve();
-					console.log(stdOutData)
-				}
+				let filePath = path.parse(files[0].path);
+				ext = filePath.ext.substring(1)
+				resourceFileName = `${path.join(pathFile.dir, filePath.name)}.${ext}`
+			}
+			else
+			{
+				resourceFileName = `${path.join(pathFile.dir, pathFile.name)}.Designer.${ext}`
+			}
+	
+			let nameSpace = path.basename(path.dirname(fileName))
+			let parameter = `/str:${ext},${nameSpace},,${resourceFileName}`
+			console.log('Parameter: ' + parameter);
+			const cli = childProcess.spawn('ResGen', [`${fileName}`, '/useSourcePath', parameter], { stdio: ['pipe'] });
+	
+			var stdOutData = "";
+			var stdErrData = "";
+			cli.stdout.setEncoding("utf8");
+			cli.stdout.on("data", data =>
+			{
+				stdOutData += data;
 			});
-		});
-		return promise;
+	
+			cli.stderr.setEncoding("utf8");
+			cli.stderr.on("data", data =>
+			{
+				stdErrData += data;
+			});
+	
+			let promise = new Promise<void>((resolve, reject) =>
+			{
+				cli.on("close", (exitCode: Number) =>
+				{
+					if (exitCode !== 0)
+					{
+						reject();
+						console.log(stdErrData)
+					}
+					else
+					{
+						resolve();
+						console.log(stdOutData)
+					}
+				});
+			});
+			return promise;
+		}
 	}
 	catch (error)
 	{
