@@ -15,7 +15,7 @@
         "color": "#123456",
         "theme": "dark"
     },
-    "version": "5.7.0",
+    "version": "5.8.0",
     "engines": {
         "vscode": "^1.69.0"
     },
@@ -25,10 +25,6 @@
         "Other"
     ],
     "activationEvents": [
-        "onCommand:resxpress.resxpreview",
-        "onCommand:resxpress.sortbykeys",
-        "onCommand:resxpress.newpreview",
-        "onCustomEditor:resxpress.editor",
         "onLanguage:resx"
     ],
     "main": "./out/extension.js",
@@ -60,7 +56,7 @@
         ],
         "snippets": [
             {
-                "language": "xml",
+                "language": "resx",
                 "path": "./snippets/resx.json"
             }
         ],

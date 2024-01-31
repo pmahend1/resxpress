@@ -4,6 +4,11 @@ All notable changes to the **ResxPress** extension will be documented in this fi
 
 ---
 
+## 5.8.0 - 31-Jan-2024
+
+- `yarn` upgrades.
+- Fixed snippet not popping issue.
+
 ## 5.7.0 - 02-Jan-2024
 
 - `yarn` upgrades

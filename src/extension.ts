@@ -18,8 +18,7 @@ export function activate(context: vscode.ExtensionContext) {
 		notificationService.promptForReviewAsync();
 	}
 	catch (error) {
-		let errorMessage = (error as Error)?.message;
-		console.error(errorMessage);
+		console.error(error);
 	}
 
 	currentContext = context;
@@ -96,7 +95,13 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		}
 		catch (error) {
-			let errorMessage = (error as Error)?.message;
+			var errorMessage = "";
+			if (error instanceof Error) {
+				errorMessage = error.message;
+			}
+			else if (typeof error === "string") {
+				errorMessage = error;
+			}
 			console.error(error);
 			vscode.window.showErrorMessage(errorMessage);
 		}
@@ -185,9 +190,15 @@ async function sortByKeys() {
 		}
 	}
 	catch (error) {
-		let errorMessage = (error as Error)?.message;
-		console.error(error);
+		var errorMessage = "";
+		if (error instanceof Error) {
+			errorMessage = error.message;
+		}
+		else if (typeof error === "string") {
+			errorMessage = error;
+		}
 		vscode.window.showErrorMessage(errorMessage);
+		console.error(error);
 	}
 }
 
@@ -223,9 +234,15 @@ function sortKeyValuesResx(reverse?: boolean) {
 		return xml;
 	}
 	catch (error) {
-		let errorMessage = (error as Error)?.message;
-		console.error(errorMessage);
+		var errorMessage = "";
+		if (error instanceof Error) {
+			errorMessage = error.message;
+		}
+		else if (typeof error === "string") {
+			errorMessage = error;
+		}
 		vscode.window.showErrorMessage(errorMessage);
+		console.error(error);
 	}
 }
 
@@ -323,9 +340,15 @@ async function displayAsMarkdown() {
 		}
 	}
 	catch (error) {
-		let errorMessage = (error as Error)?.message;
-		console.error(error);
+		var errorMessage = "";
+		if (error instanceof Error) {
+			errorMessage = error.message;
+		}
+		else if (typeof error === "string") {
+			errorMessage = error;
+		}
 		vscode.window.showErrorMessage(errorMessage);
+		console.error(error);
 	}
 }
 
@@ -356,7 +379,13 @@ async function displayJsonInHtml(jsonData: any[], filename: string) {
 		PreviewEditPanel.createOrShow(currentContext.extensionUri, title, _content);
 	}
 	catch (error) {
-		let errorMessage = (error as Error)?.message;
+		var errorMessage = "";
+		if (error instanceof Error) {
+			errorMessage = error.message;
+		}
+		else if (typeof error === "string") {
+			errorMessage = error;
+		}
 		vscode.window.showErrorMessage(errorMessage);
 		console.error(error);
 	}
