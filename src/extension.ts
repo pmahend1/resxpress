@@ -95,10 +95,15 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		}
 		catch (error) {
+			var errorMessage = "";
 			if (error instanceof Error) {
-				console.error(error.message);
-				vscode.window.showErrorMessage(error.message);
+				errorMessage = error.message;
 			}
+			else if (typeof error === "string") {
+				errorMessage = error;
+			}
+			console.error(error);
+			vscode.window.showErrorMessage(errorMessage);
 		}
 	});
 }
@@ -166,9 +171,7 @@ export async function runResGenAsync(fileName: string): Promise<void> {
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {
-
-}
+export function deactivate() { }
 
 async function sortByKeys() {
 	try {
