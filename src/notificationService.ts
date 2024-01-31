@@ -14,8 +14,8 @@ export class NotificationService {
         try {
             var shouldDisplayPrompt = this.shouldOpenRatingPrompt();
             if (shouldDisplayPrompt) {
-                var text = "Loving ResXpress extension? Would you like to rate and review?";
-                var selection = await vscode.window.showInformationMessage(text, "Sure", "Later", "Don't show again");
+                let text = "Loving ResXpress extension? Would you like to rate and review?";
+                let selection = await vscode.window.showInformationMessage(text, "Sure", "Later", "Don't show again");
                 if (selection) {
                     if (selection === "Sure") {
                         var appName = vscode.env.appName.toLowerCase();

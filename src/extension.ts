@@ -96,9 +96,10 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		}
 		catch (error) {
-			let errorMessage = (error as Error)?.message;
-			console.error(error);
-			vscode.window.showErrorMessage(errorMessage);
+			if (error instanceof Error) {
+				console.error(error.message);
+				vscode.window.showErrorMessage(error.message);
+			}
 		}
 	});
 }
@@ -166,7 +167,9 @@ export async function runResGenAsync(fileName: string): Promise<void> {
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() { }
+export function deactivate() {
+
+}
 
 async function sortByKeys() {
 	try {
@@ -223,9 +226,10 @@ function sortKeyValuesResx(reverse?: boolean) {
 		return xml;
 	}
 	catch (error) {
-		let errorMessage = (error as Error)?.message;
-		console.error(errorMessage);
-		vscode.window.showErrorMessage(errorMessage);
+		if (error instanceof Error) {
+			console.error(error.message);
+			vscode.window.showErrorMessage(error.message);
+		}
 	}
 }
 

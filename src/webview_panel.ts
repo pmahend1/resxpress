@@ -6,11 +6,10 @@ class PreviewEditPanel {
 
 	public static readonly viewType = 'previewEdit';
 
-	private readonly _panel: vscode.WebviewPanel;
-	private readonly _extensionUri: vscode.Uri;
-	public _content: string;
-	private _disposables: vscode.Disposable[] = [];
-	private static _title: string = "Resx Preview";
+	private readonly panel: vscode.WebviewPanel;
+	public content: string;
+	private disposables: vscode.Disposable[] = [];
+	private static title: string = "Resx Preview";
 
 	public static createOrShow(extensionUri: vscode.Uri, title: string, content: string) {
 
@@ -18,11 +17,11 @@ class PreviewEditPanel {
 			? vscode.window.activeTextEditor.viewColumn
 			: undefined;
 
-		this._title = title;
+		this.title = title;
 
 		// If we already have a panel, show it.
 		if (PreviewEditPanel.currentPanel) {
-			PreviewEditPanel.currentPanel._panel.reveal(column);
+			PreviewEditPanel.currentPanel.panel.reveal(column);
 			return;
 		}
 
@@ -48,30 +47,29 @@ class PreviewEditPanel {
 	}
 
 	private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, content: string) {
-		this._panel = panel;
-		this._extensionUri = extensionUri;
-		this._content = content;
+		this.panel = panel;
+		this.content = content;
 
 		// Set the webview's initial html content
-		this._update(content);
+		this.update(content);
 
 		// Listen for when the panel is disposed
 		// This happens when the user closes the panel or when the panel is closed programatically
-		this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
+		this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
 
 		// Update the content based on view changes
-		this._panel.onDidChangeViewState(
+		this.panel.onDidChangeViewState(
 			e => {
-				if (this._panel.visible) {
-					this._update(this._content);
+				if (this.panel.visible) {
+					this.update(this.content);
 				}
 			},
 			null,
-			this._disposables
+			this.disposables
 		);
 
 		// Handle messages from the webview
-		this._panel.webview.onDidReceiveMessage(
+		this.panel.webview.onDidReceiveMessage(
 			message => {
 				switch (message.command) {
 					case 'alert':
@@ -80,53 +78,53 @@ class PreviewEditPanel {
 				}
 			},
 			null,
-			this._disposables
+			this.disposables
 		);
 	}
 
 	public doRefactor() {
 		// Send a message to the webview webview.
 		// You can send any JSON serializable data.
-		this._panel.webview.postMessage({ command: 'refactor' });
+		this.panel.webview.postMessage({ command: 'refactor' });
 	}
 
 	public dispose() {
 		PreviewEditPanel.currentPanel = undefined;
 
 		// Clean up our resources
-		this._panel.dispose();
+		this.panel.dispose();
 
-		while (this._disposables.length) {
-			const x = this._disposables.pop();
+		while (this.disposables.length) {
+			const x = this.disposables.pop();
 			if (x) {
 				x.dispose();
 			}
 		}
 	}
 
-	private _update(content: string) {
-		const webview = this._panel.webview;
+	private update(content: string) {
+		const webview = this.panel.webview;
 
 		// Vary the webview's content based on where it is located in the editor.
-		switch (this._panel.viewColumn) {
+		switch (this.panel.viewColumn) {
 			case vscode.ViewColumn.Two:
-				this._updateKeyValues(webview, content);
+				this.updateKeyValues(webview, content);
 				return;
 
 			case vscode.ViewColumn.Three:
-				this._updateKeyValues(webview, content);
+				this.updateKeyValues(webview, content);
 				return;
 
 			case vscode.ViewColumn.One:
 			default:
-				this._updateKeyValues(webview, content);
+				this.updateKeyValues(webview, content);
 				return;
 		}
 	}
 
-	private _updateKeyValues(webview: vscode.Webview, content: string) {
-		this._panel.title = PreviewEditPanel._title + " Preview";
-		this._panel.webview.html = this._getHtmlForWebview(webview, content);
+	private updateKeyValues(webview: vscode.Webview, content: string) {
+		this.panel.title = PreviewEditPanel.title + " Preview";
+		this.panel.webview.html = this._getHtmlForWebview(webview, content);
 	}
 
 	private _getHtmlForWebview(webview: vscode.Webview, content: string) {
@@ -136,7 +134,7 @@ class PreviewEditPanel {
 			<head>
 				<meta charset="UTF-8">
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-				<title>${PreviewEditPanel._title}</title>
+				<title>${PreviewEditPanel.title}</title>
 				<style>
 					table 
 					{
