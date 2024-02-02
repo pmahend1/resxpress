@@ -37,7 +37,8 @@
                     {
                         "filenamePattern": "*.resx"
                     }
-                ]
+                ],
+                "priority": "option"
             }
         ],
         "commands": [
@@ -57,6 +58,7 @@
         "snippets": [
             {
                 "language": "resx",
+                "filenamePattern": "*.resx",
                 "path": "./snippets/resx.json"
             }
         ],
@@ -68,6 +70,29 @@
                 ]
             }
         ],
+        "menus": {
+            "editor/context": [
+                {
+                    "command": "resxpress.newpreview",
+                    "group": "z_commands",
+                    "when": "resourceExtname == .resx"
+                }
+            ],
+            "editor/title/context": [
+                {
+                    "command": "resxpress.newpreview",
+                    "group": "3_preview",
+                    "when": "resourceExtname == .resx"
+                }
+            ],
+            "explorer/context": [
+                {
+                    "command": "resxpress.newpreview",
+                    "group": "3_preview",
+                    "when": "resourceExtname == .resx"
+                }
+            ]
+        },
         "configuration": [
             {
                 "title": "ResXpress Settings",
