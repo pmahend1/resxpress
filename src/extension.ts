@@ -4,9 +4,10 @@ import { promises as fsPromises } from 'fs';
 import { PreviewEditPanel } from "./webview_panel";
 import * as path from "path";
 import * as xmljs from 'xml-js'
-import { ResxEditorProvider } from './resxEditor';
+import { ResxEditorProvider } from './resxEditorProvider';
 import { NotificationService } from './notificationService';
 import * as childProcess from 'child_process';
+import { ResxEditor } from './resxEditor';
 
 
 let currentContext: vscode.ExtensionContext;
@@ -84,6 +85,11 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		)
 	);
+	
+	let resxEditor = new ResxEditor(context);
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand("resxpress.resxeditor", async () => {
+		//
+	}));
 
 	context.subscriptions.push(ResxEditorProvider.register(context));
 
@@ -235,9 +241,9 @@ export async function runResGenAsync(fileName: string): Promise<void> {
 		
 		`;
 
-					jsObj.elements[0].elements.forEach((element: any) => {
-						if (element.name === "data") {
-							sb += `
+				jsObj.elements[0].elements.forEach((element: any) => {
+					if (element.name === "data") {
+						sb += `
 	/// <summary>
 	/// Looks up a localized string similar to ${element.elements[0].text}.
 	/// </summary>
@@ -247,7 +253,7 @@ export async function runResGenAsync(fileName: string): Promise<void> {
 				});
 
 
-sb += `}
+				sb += `}
     }`;
 				console.log(sb);
 			}
@@ -442,6 +448,10 @@ async function displayAsMarkdown() {
 		vscode.window.showErrorMessage(errorMessage);
 		console.error(error);
 	}
+}
+
+async function openResxEditorAsync() {
+	//let resxEditor = new ResxEditor(this.ExtensionContext);
 }
 
 async function displayJsonInHtml(jsonData: any[], filename: string) {
