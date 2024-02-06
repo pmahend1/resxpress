@@ -29,7 +29,8 @@ export class ResxEditor {
         <body>
             <div class="topdiv">
                 <button class="buttoncss" id="addButton">Add New Resource</button>
-                <input type="text" id="namespace" placeholder="Enter namespace" />
+                <input type="text" id="namespace" placeholder="Enter namespace" width="300px" />
+                <button class="buttoncss" id="switchToEditor">Switch to Text Editor</button>
                 <span>
                     <div id="diverr" class="error"></div>
                 </span>

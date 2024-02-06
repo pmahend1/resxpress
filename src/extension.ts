@@ -170,6 +170,7 @@ export async function runResGenAsync(fileName: string): Promise<void> {
 		}
 		else {
 			if (vscode.window.activeTextEditor != null) {
+				
 				let document = vscode.window.activeTextEditor.document;
 				var jsObj = xmljs.xml2js(document.getText() ?? "");
 
@@ -445,9 +446,9 @@ async function displayAsMarkdown() {
 }
 
 async function openResxEditorAsync() {
-	var pathObj = path.parse(filename);
-	var title = pathObj.name + pathObj.ext;
-	PreviewEditPanel.createOrShow(currentContext.extensionUri, title, _content);
+	// var pathObj = path.parse(filename);
+	// var title = pathObj.name + pathObj.ext;
+	// PreviewEditPanel.createOrShow(currentContext.extensionUri, title, _content);
 }
 
 async function displayJsonInHtml(jsonData: any[], filename: string) {

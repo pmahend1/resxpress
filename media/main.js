@@ -149,6 +149,22 @@ let currentResxJS = [];
 
 	var add = document.getElementById("addButton");
 
+	var switchToTextEditor = document.getElementById('switchToEditor');
+
+	if (switchToTextEditor){
+		switchToTextEditor.addEventListener('click', async ()=> {
+			// let editor = vscode.window.activeTextEditor;
+			// if(editor){
+			// 	await vscode.window.showTextDocument(editor.document)
+			// }
+			vscode.postMessage({
+				type: 'switch',
+				json: JSON.stringify("")
+			});
+		
+		});
+	}
+
 	if (add) {
 		add.addEventListener('click', () => {
 			//create tr

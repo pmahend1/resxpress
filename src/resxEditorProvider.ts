@@ -79,6 +79,8 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
                 case 'delete':
                     this.resxEditor.deleteKeyValue(document, e.json);
                     return;
+                case 'switch':
+                    vscode.window.showTextDocument(document, vscode.ViewColumn.Active);
             }
         });
 
