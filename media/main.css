@@ -14,7 +14,7 @@ body {
   background-color: var(--vscode-editor-background);
 }
 
-.buttoncss {
+.largeButtonStyle {
   background-color: #5e7cbb;
   border: 0px solid;
   padding: 5px 20px;
@@ -28,6 +28,38 @@ body {
   position: -webkit-sticky;
   z-index: 100;
   top: 0px;
+}
+
+.smallButtonStyle {
+  background-color: cadetblue;
+  color: antiquewhite;
+  border: 0px solid;
+  height: 30pt;
+  width: 100pt;
+  border-radius: 10px;
+}
+
+#container {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  position: sticky;
+  position: -webkit-sticky;
+}
+#leftThing {
+  width: 25%;
+  position: sticky;
+  position: -webkit-sticky;
+}
+#content {
+  width: 50%;
+  position: sticky;
+  position: -webkit-sticky;
+}
+#rightThing {
+  width: 25%;
+  position: sticky;
+  position: -webkit-sticky;
 }
 
 table {

@@ -27,10 +27,19 @@ export class ResxEditor {
             <title>ResxFileName</title>
         </head>
         <body>
-            <div class="topdiv">
-                <button class="buttoncss" id="addButton">Add New Resource</button>
-                <input type="text" id="namespace" placeholder="Enter namespace" width="300px" />
-                <button class="buttoncss" id="switchToEditor">Switch to Text Editor</button>
+            <div id="container" class="topdiv">
+                <div id="leftThing">
+                    <button class="largeButtonStyle" id="addButton">Add New Resource</button>
+                </div>
+            
+                <div id="content">
+                    <input type="text" id="namespace" width="300px"/>
+                </div>
+                
+                <div id="rightThing">
+                    <button class="smallButtonStyle" id="switchToEditor">Switch to Text Editor</button>
+                </div>
+                
                 <span>
                     <div id="diverr" class="error"></div>
                 </span>

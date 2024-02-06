@@ -308,6 +308,12 @@ let currentResxJS = [];
 		}
 	}
 
+	let body = document.getElementById("body");
+	if(body){
+		
+	}
+	
+
 	window.addEventListener('message', event => {
 		const message = event.data; // The json data that the extension sent
 		switch (message.type) {
