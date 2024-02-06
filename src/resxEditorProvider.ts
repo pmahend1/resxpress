@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { ResxJsonHelper } from './ResxJsonHelper';
 import { ResxEditor } from './resxEditor';
+import { ResxJsonHelper } from './resxJsonHelper';
 
 /**
  * Provider for Resx editors.

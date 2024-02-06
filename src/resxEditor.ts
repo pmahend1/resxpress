@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { getNonce } from './util';
 import * as xmljs from 'xml-js';
-import { ResxJsonHelper } from './ResxJsonHelper';
+import { ResxJsonHelper } from './resxJsonHelper';
 
 export class ResxEditor {
     private readonly context: vscode.ExtensionContext;

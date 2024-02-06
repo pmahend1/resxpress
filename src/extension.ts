@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 import { promises as fsPromises } from 'fs';
-import { PreviewEditPanel } from "./webview_panel";
+import { PreviewEditPanel } from "./previewEditPanel";
 import * as path from "path";
 import * as xmljs from 'xml-js'
 import { ResxEditorProvider } from './resxEditorProvider';
@@ -87,9 +87,7 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 	
 	let resxEditor = new ResxEditor(context);
-	context.subscriptions.push(vscode.commands.registerTextEditorCommand("resxpress.resxeditor", async () => {
-		//
-	}));
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand("resxpress.resxeditor", async () => {await newPreview();}));
 
 	context.subscriptions.push(ResxEditorProvider.register(context));
 
@@ -421,12 +419,8 @@ async function displayAsMarkdown() {
 					await vscode.commands.executeCommand("vscode.open", uri);
 					await vscode.commands.executeCommand("markdown.showPreview");
 					await vscode.commands.executeCommand("markdown.preview.refresh");
-					await vscode.commands.executeCommand(
-						"workbench.action.previousEditor"
-					);
-					await vscode.commands.executeCommand(
-						"workbench.action.closeActiveEditor"
-					);
+					await vscode.commands.executeCommand("workbench.action.previousEditor");
+					await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
 				}
 			}
 			else {
@@ -451,7 +445,9 @@ async function displayAsMarkdown() {
 }
 
 async function openResxEditorAsync() {
-	//let resxEditor = new ResxEditor(this.ExtensionContext);
+	var pathObj = path.parse(filename);
+	var title = pathObj.name + pathObj.ext;
+	PreviewEditPanel.createOrShow(currentContext.extensionUri, title, _content);
 }
 
 async function displayJsonInHtml(jsonData: any[], filename: string) {
