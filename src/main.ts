@@ -181,10 +181,38 @@ let currentResxJS: any = [];
 	}
 
 	//content
-	let content = document.getElementById("content");
-	if (content) {
-		content.addEventListener("click", () => {
-			namespace?.removeAttribute("disabled");
+	let middleThing = document.getElementById("middleThing");
+	if (middleThing) {
+		middleThing.addEventListener("click", () => {
+			console.log(`middleThing clicked`);
+			let namespace = document.getElementById("namespace");
+			let divElement = document.createElement("div");
+			
+			if (namespace){
+				middleThing.removeChild(namespace);
+				console.log(`removing namespace ${namespace}`);
+			}
+			let inputElement = document.createElement("input");
+			inputElement.id = "namespace";
+			inputElement.type = "text"
+			inputElement.placeholder = "Enter namespace";
+
+			inputElement.addEventListener("focusout", (ev) => {
+				const val = inputElement.value;
+				console.log(`removing inputElement ${inputElement.nodeType}`);
+				middleThing.removeChild(inputElement);
+				divElement.id = "namespace";
+				divElement.innerHTML = `Namespace: ${val}`;
+
+
+				divElement.addEventListener("click", (ev) => {
+
+				}, false);
+				middleThing.appendChild(divElement);
+			} , false);
+
+			middleThing.appendChild(inputElement);
+			inputElement.focus();
 		});
 	}
 	var add = document.getElementById("addButton");

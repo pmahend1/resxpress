@@ -32,8 +32,10 @@ export class ResxEditor {
                     <button class="largeButtonStyle" id="addButton">Add New Resource</button>
                 </div>
             
-                <div id="content">
-                    <input type="text" id="namespace" width="300px" placeholder="Enter namespace" disabled/>
+                <div id="middleThing">
+                    <div id="namespace">
+                        <p>Namespace</p>
+                    </div>
                 </div>
                 
                 <div id="rightThing">
