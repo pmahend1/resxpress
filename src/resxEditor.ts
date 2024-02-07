@@ -11,7 +11,7 @@ export class ResxEditor {
     }
     public getHtmlForWebview(webview: vscode.Webview): string {
 
-        const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'media', 'main.js')));
+        const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'out', 'main.js')));
         const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'media', 'main.css')));
 
         const nonce = getNonce();
@@ -33,7 +33,7 @@ export class ResxEditor {
                 </div>
             
                 <div id="content">
-                    <input type="text" id="namespace" width="300px"/>
+                    <input type="text" id="namespace" width="300px" placeholder="Enter namespace" disabled/>
                 </div>
                 
                 <div id="rightThing">
