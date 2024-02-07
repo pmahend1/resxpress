@@ -3,14 +3,29 @@ import * as vscode from 'vscode';
 import { getNonce } from './util';
 import * as xmljs from 'xml-js';
 import { ResxJsonHelper } from './resxJsonHelper';
-
+import { readFileSync } from 'fs';
+import { join } from 'path';
 export class ResxEditor {
     private readonly context: vscode.ExtensionContext;
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
     }
     public getHtmlForWebview(webview: vscode.Webview): string {
-
+        let fileUrls = vscode.workspace.findFiles("**/*.Designer.cs");
+        var namespace = "Unknown";
+        fileUrls.then(urls => {
+            if (urls.length > 0) {
+                const fileContent = readFileSync(urls[0].fsPath, 'utf-8');
+                if(fileContent && fileContent != ""){
+                    const lines = fileContent.split('\r\n');
+                    var newLines  = lines.filter(x => x.startsWith("namespace ")).map(x => x.trim().replace("namespace ","").replace(" ","").replace("{",""));
+                    if(newLines.length > 0){
+                        namespace = newLines[0];
+                    }
+                }
+            }
+        })
+       
         const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'out', 'main.js')));
         const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'media', 'main.css')));
 
@@ -34,7 +49,7 @@ export class ResxEditor {
             
                 <div id="middleThing">
                     <div id="namespace">
-                        <p>Namespace</p>
+                        <p>Namespace: ${namespace}</p>
                     </div>
                 </div>
                 
