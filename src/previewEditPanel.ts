@@ -39,7 +39,7 @@ class PreviewEditPanel {
 				enableScripts: true,
 
 				// And restrict the webview to only loading content from our extension's `webpanel` directory.
-				localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'webpanel')]
+				localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'styles'), vscode.Uri.joinPath(extensionUri, 'out')]
 			}
 		);
 
@@ -133,8 +133,8 @@ class PreviewEditPanel {
 	}
 
 	private getHtmlForWebview(webview: vscode.Webview, content: string) {
-		const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.extensionUri.path, 'webpanel', 'script.js')));
-		const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.extensionUri.path, 'webpanel', 'styles.css')));
+		const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.extensionUri.path, 'out', 'webpanelScript.js')));
+		const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.extensionUri.path, 'styles', 'webpanel.css')));
 		const nonce = getNonce();
 
 		return `<!DOCTYPE html>
