@@ -13,31 +13,37 @@ export class ResxEditor {
     }
 
     public async tryGetNamespace() {
-        let fileUrls = await vscode.workspace.findFiles("**/*.Designer.cs");
-        var namespace = "Unknown";
+        try {
+            let fileUrls = await vscode.workspace.findFiles("**/*.Designer.cs");
+            var namespace = "Unknown";
 
-        if (fileUrls.length > 0) {
-            const fileContent = readFileSync(fileUrls[0].fsPath, 'utf-8');
-            
-            if (fileContent && fileContent != "") {
-                const lines = fileContent.split('\r\n');
-                var newLines = lines.filter(x => x.startsWith("namespace ")).map(x => x.trim().replace("namespace ", "").replace(" ", "").replace("{", ""));
-                if (newLines.length > 0) {
-                    namespace = newLines[0];
-                    PreviewEditPanel.namespace = namespace;
+            if (fileUrls.length > 0) {
+                const fileContent = readFileSync(fileUrls[0].fsPath, 'utf-8');
+
+                if (fileContent && fileContent != "") {
+                    const lines = fileContent.split('\r\n');
+                    var newLines = lines.filter(x => x.startsWith("namespace ")).map(x => x.trim().replace("namespace ", "").replace(" ", "").replace("{", ""));
+                    if (newLines.length > 0) {
+                        namespace = newLines[0];
+                        PreviewEditPanel.namespace = namespace;
+                    }
                 }
+            }
+        } catch (error) {
+            if (error instanceof Error){
+                console.log(error.message);
             }
         }
     }
 
     public getHtmlForWebview(webview: vscode.Webview): string {
 
-    const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'out', 'main.js')));
-    const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'media', 'main.css')));
+        const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'out', 'main.js')));
+        const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'media', 'main.css')));
 
-    const nonce = getNonce();
+        const nonce = getNonce();
 
-    return `<!DOCTYPE html>
+        return `<!DOCTYPE html>
         <html lang="en">
         <head>
             <meta charset="UTF-8">
@@ -81,86 +87,86 @@ export class ResxEditor {
         </body>
         </html>
         `;
-}
+    }
 
     /**
      * Add a new key value back to text editor 
      */
     public addNewKeyValue(document: vscode.TextDocument, json: any) {
-    var newObj = JSON.parse(json);
-    var docDataList = ResxJsonHelper.getJsonData(document.getText());
+        var newObj = JSON.parse(json);
+        var docDataList = ResxJsonHelper.getJsonData(document.getText());
 
-    var pos = docDataList.map((x) => { return x?._attributes?.name; }).indexOf(newObj._attributes.name);
+        var pos = docDataList.map((x) => { return x?._attributes?.name; }).indexOf(newObj._attributes.name);
 
-    //avoid adding data with same key
-    if (pos === -1) {
-        docDataList.push(newObj);
+        //avoid adding data with same key
+        if (pos === -1) {
+            docDataList.push(newObj);
+        }
+        else {
+            // commented for now. its triggering twice 
+            vscode.window.showErrorMessage(`Data with same key ${newObj._attributes.name} already exists`);
+        }
+        return this.updateTextDocument(document, JSON.stringify(docDataList));
     }
-    else {
-        // commented for now. its triggering twice 
-        vscode.window.showErrorMessage(`Data with same key ${newObj._attributes.name} already exists`);
-    }
-    return this.updateTextDocument(document, JSON.stringify(docDataList));
-}
 
     /**
      * Delete an existing scratch from a document.
      */
     public deleteKeyValue(document: vscode.TextDocument, json: any) {
 
-    console.log('deleteKeyValue start');
+        console.log('deleteKeyValue start');
 
-    var deletedJsObj = JSON.parse(json);
+        var deletedJsObj = JSON.parse(json);
 
-    var currentData = ResxJsonHelper.getJsonData(document.getText());
+        var currentData = ResxJsonHelper.getJsonData(document.getText());
 
-    console.log(`Datalist before deleting ${deletedJsObj._attributes.name} : ${JSON.stringify(currentData)}`);
+        console.log(`Datalist before deleting ${deletedJsObj._attributes.name} : ${JSON.stringify(currentData)}`);
 
-    var pos = currentData.map(function (e) { return e?._attributes?.name; }).indexOf(deletedJsObj._attributes.name);
+        var pos = currentData.map(function (e) { return e?._attributes?.name; }).indexOf(deletedJsObj._attributes.name);
 
-    currentData.splice(pos, 1);
-    console.log('deleteKeyValue end');
-    return this.updateTextDocument(document, JSON.stringify(currentData));
-}
+        currentData.splice(pos, 1);
+        console.log('deleteKeyValue end');
+        return this.updateTextDocument(document, JSON.stringify(currentData));
+    }
 
 
     public updateTextDocument(document: vscode.TextDocument, dataListJson: any) {
-    console.log('updateTextDocument start');
+        console.log('updateTextDocument start');
 
-    var dataList = JSON.parse(dataListJson);
-    const edit = new vscode.WorkspaceEdit();
+        var dataList = JSON.parse(dataListJson);
+        const edit = new vscode.WorkspaceEdit();
 
-    var currentJs: any = xmljs.xml2js(document.getText(), { compact: true });
+        var currentJs: any = xmljs.xml2js(document.getText(), { compact: true });
 
-    console.log(`Before datalist - ${JSON.stringify(currentJs.root.data)} `);
+        console.log(`Before datalist - ${JSON.stringify(currentJs.root.data)} `);
 
-    if (dataList) {
-        switch (dataList.length) {
-            case 0:
-                delete currentJs.root.data;
-                break;
-            case 1:
-                currentJs.root.data = dataList[0];
-            default:
-                currentJs.root.data = dataList;
-                break;
+        if (dataList) {
+            switch (dataList.length) {
+                case 0:
+                    delete currentJs.root.data;
+                    break;
+                case 1:
+                    currentJs.root.data = dataList[0];
+                default:
+                    currentJs.root.data = dataList;
+                    break;
+            }
         }
+        else {
+            console.log('Empty data : red flag');
+
+            currentJs.root.data = {};
+        }
+        console.log(`After datalist - ${JSON.stringify(currentJs.root.data)} `);
+
+        var resx = xmljs.js2xml(currentJs, { spaces: 4, compact: true });
+        console.log("Updated resx" + resx);
+        edit.replace(
+            document.uri,
+            new vscode.Range(0, 0, document.lineCount, 0),
+            resx);
+
+        console.log('updateTextDocument end');
+        return vscode.workspace.applyEdit(edit);
     }
-    else {
-        console.log('Empty data : red flag');
-
-        currentJs.root.data = {};
-    }
-    console.log(`After datalist - ${JSON.stringify(currentJs.root.data)} `);
-
-    var resx = xmljs.js2xml(currentJs, { spaces: 4, compact: true });
-    console.log("Updated resx" + resx);
-    edit.replace(
-        document.uri,
-        new vscode.Range(0, 0, document.lineCount, 0),
-        resx);
-
-    console.log('updateTextDocument end');
-    return vscode.workspace.applyEdit(edit);
-}
 }

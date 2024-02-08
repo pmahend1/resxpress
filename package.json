@@ -38,7 +38,7 @@
                         "filenamePattern": "*.resx"
                     }
                 ],
-                "priority": "default"
+                "priority": "option"
             }
         ],
         "commands": [
@@ -57,17 +57,9 @@
         ],
         "snippets": [
             {
-                "language": "resx",
+                "language": "xml",
                 "filenamePattern": "*.resx",
                 "path": "./snippets/resx.json"
-            }
-        ],
-        "languages": [
-            {
-                "id": "resx",
-                "extensions": [
-                    ".resx"
-                ]
             }
         ],
         "menus": {

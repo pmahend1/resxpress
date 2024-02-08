@@ -8,6 +8,7 @@ import { ResxEditorProvider } from './resxEditorProvider';
 import { NotificationService } from './notificationService';
 import * as childProcess from 'child_process';
 import { ResxEditor } from './resxEditor';
+import { FileHelper } from "./fileHelper";
 
 
 let currentContext: vscode.ExtensionContext;
@@ -85,9 +86,9 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		)
 	);
-	
+
 	let resxEditor = new ResxEditor(context);
-	context.subscriptions.push(vscode.commands.registerTextEditorCommand("resxpress.resxeditor", async () => {await newPreview();}));
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand("resxpress.resxeditor", async () => { await newPreview(); }));
 
 	context.subscriptions.push(ResxEditorProvider.register(context));
 
@@ -169,18 +170,13 @@ export async function runResGenAsync(fileName: string): Promise<void> {
 			return promise;
 		}
 		else {
-			
-			if (vscode.window.activeTextEditor != null) {
-				let parsedPath = path.parse(vscode.window.activeTextEditor.document.fileName);
-				
-				let document = vscode.window.activeTextEditor.document;
-				var jsObj = xmljs.xml2js(document.getText() ?? "");
-
-				var sb = "";
-				
+			let fileName = FileHelper.getFileName() ?? "Resources";
+			let documentText = FileHelper.getActiveDocumentText();
+			if (documentText != "") {
+				var jsObj = xmljs.xml2js(documentText);
+				var resourceCSharpClassText = "";
 				let accessModifier = "public"
-				var fileName = parsedPath.name;//vscode.window.activeTextEditor?.document.fileName  ?? "Resources";
-				sb += `namespace ${PreviewEditPanel.namespace} 
+				resourceCSharpClassText += `namespace ${PreviewEditPanel.namespace} 
 {
 	using System;
 
@@ -241,7 +237,7 @@ export async function runResGenAsync(fileName: string): Promise<void> {
 
 				jsObj.elements[0].elements.forEach((element: any) => {
 					if (element.name === "data") {
-						sb += `
+						resourceCSharpClassText += `
 	/// <summary>
 	/// Looks up a localized string similar to ${element.elements[0].text}.
 	/// </summary>
@@ -251,15 +247,11 @@ export async function runResGenAsync(fileName: string): Promise<void> {
 				});
 
 
-				sb += `}
+				resourceCSharpClassText += `}
     }`;
-				console.log(sb);
+				console.log(resourceCSharpClassText);
 			}
-
-
 		}
-
-
 	}
 	catch (error) {
 		throw error;

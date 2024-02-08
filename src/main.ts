@@ -182,7 +182,7 @@ let currentResxJS: any = [];
 
 	//content
 	let middleThing = document.getElementById("middleThing");
-	if (middleThing) {
+	if (middleThing != null) {
 		middleThing.addEventListener("click", () => {
 			console.log(`middleThing clicked`);
 			let namespace = document.getElementById("namespace");

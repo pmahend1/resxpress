@@ -43,6 +43,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
             enableScripts: true,
         };
 
+        await this.resxEditor.tryGetNamespace();
         webviewPanel.webview.html = this.resxEditor.getHtmlForWebview(webviewPanel.webview);
 
         function updateWebview() {
