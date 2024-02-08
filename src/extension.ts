@@ -22,7 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
 	catch (error) {
 		console.error(error);
 	}
-
+	
 	currentContext = context;
 	loadConfiguration();
 
@@ -111,6 +111,8 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.window.showErrorMessage(errorMessage);
 		}
 	});
+
+	console.log(`Extension ${context.extension.id} activated`);
 }
 
 function loadConfiguration() {
