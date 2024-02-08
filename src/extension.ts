@@ -1,12 +1,14 @@
 import * as vscode from 'vscode';
 
 import { promises as fsPromises } from 'fs';
-import { PreviewEditPanel } from "./webview_panel";
+import { PreviewEditPanel } from "./previewEditPanel";
 import * as path from "path";
-import * as xmljs from 'xml-js'
-import { ResxEditorProvider } from './resxEditor';
+import *  as xmljs from "xml-js";
+import { ResxEditorProvider } from './resxEditorProvider';
 import { NotificationService } from './notificationService';
 import * as childProcess from 'child_process';
+import { ResxEditor } from './resxEditor';
+import { FileHelper } from "./fileHelper";
 
 
 let currentContext: vscode.ExtensionContext;
@@ -28,62 +30,54 @@ export function activate(context: vscode.ExtensionContext) {
 		loadConfiguration();
 	});
 
-	context.subscriptions.push(
-		vscode.commands.registerTextEditorCommand(
-			"resxpress.resxpreview",
-			async () => {
-				vscode.window.withProgress(
-					{
-						location: vscode.ProgressLocation.Notification,
-						cancellable: false,
-						title: "ResXpress",
-					},
-					async (p) => {
-						p.report({ message: "Showing Preview" });
-						await displayAsMarkdown();
-					}
-				);
-			}
-		)
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand("resxpress.resxpreview",
+		async () => {
+			vscode.window.withProgress(
+				{
+					location: vscode.ProgressLocation.Notification,
+					cancellable: false,
+					title: "ResXpress",
+				},
+				async (p) => {
+					p.report({ message: "Showing Preview" });
+					await displayAsMarkdown();
+				}
+			);
+		}));
+
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand("resxpress.sortbykeys",
+		async () => {
+			vscode.window.withProgress(
+				{
+					location: vscode.ProgressLocation.Notification,
+					cancellable: false,
+					title: "ResXpress",
+				},
+				async (p) => {
+					p.report({ message: "Sorting by keys" });
+					await sortByKeys();
+				}
+			);
+		}));
+
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand("resxpress.newpreview",
+		async () => {
+			vscode.window.withProgress(
+				{
+					location: vscode.ProgressLocation.Notification,
+					cancellable: false,
+					title: "ResXpress",
+				},
+				async (p) => {
+					p.report({ message: "Showing Web Preview" });
+					await newPreview();
+				}
+			);
+		}
+	)
 	);
 
-	context.subscriptions.push(
-		vscode.commands.registerTextEditorCommand(
-			"resxpress.sortbykeys",
-			async () => {
-				vscode.window.withProgress(
-					{
-						location: vscode.ProgressLocation.Notification,
-						cancellable: false,
-						title: "ResXpress",
-					},
-					async (p) => {
-						p.report({ message: "Sorting by keys" });
-						await sortByKeys();
-					}
-				);
-			}
-		)
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerTextEditorCommand(
-			"resxpress.newpreview",
-			async () => {
-				vscode.window.withProgress(
-					{
-						location: vscode.ProgressLocation.Notification,
-						cancellable: false,
-						title: "ResXpress",
-					},
-					async (p) => {
-						p.report({ message: "Showing Web Preview" });
-						await newPreview();
-					}
-				);
-			}
-		)
-	);
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand("resxpress.resxeditor", async () => { await newPreview(); }));
 
 	context.subscriptions.push(ResxEditorProvider.register(context));
 
@@ -106,6 +100,8 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.window.showErrorMessage(errorMessage);
 		}
 	});
+
+	console.log(`Extension ${context.extension.id} activated`);
 }
 
 function loadConfiguration() {
@@ -133,7 +129,7 @@ export async function runResGenAsync(fileName: string): Promise<void> {
 				resourceFileName = `${path.join(pathFile.dir, pathFile.name)}.Designer.${ext}`
 			}
 
-			let nameSpace = path.basename(path.dirname(fileName))
+			let nameSpace = path.basename(path.dirname(fileName));
 			let parameter = `/str:${ext},${nameSpace},,${resourceFileName}`
 			console.log('Parameter: ' + parameter);
 			const cli = childProcess.spawn('ResGen', [`${fileName}`, '/useSourcePath', parameter], { stdio: ['pipe'] });
@@ -163,6 +159,109 @@ export async function runResGenAsync(fileName: string): Promise<void> {
 				});
 			});
 			return promise;
+		}
+		else {
+			let filename = FileHelper.getFileName();
+			var csharpFileName = "Resources.cs";
+			if (filename !== null) {
+				csharpFileName = `${filename}.Designer.cs`;
+			}
+
+			let documentText = FileHelper.getActiveDocumentText();
+			if (documentText != "") {
+				var jsObj = xmljs.xml2js(documentText);
+				var resourceCSharpClassText = "";
+				let accessModifier = "public";
+				let workspacePath = FileHelper.getDirectory();
+
+				var namespace = PreviewEditPanel.namespace;
+				if (namespace === undefined || namespace === "" || namespace === null) {
+					if (workspacePath !== null) {
+						namespace = path.basename(workspacePath);
+					}
+				}
+				resourceCSharpClassText += `namespace ${namespace} 
+{
+	using System;
+
+
+	/// <summary>
+	///   A strongly-typed resource class, for looking up localized strings, etc.
+	/// </summary>
+	// This class was auto-generated by the VS Code Extension PrateekMahendrakar.resxpress
+	[global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+	[global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+	[global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+	${accessModifier} class ${filename} 
+	{
+		private static global::System.Resources.ResourceManager resourceMan;
+
+		private static global::System.Globalization.CultureInfo resourceCulture;
+
+		[global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
+		${accessModifier} ${filename}()
+		{
+		}
+
+		/// <summary>
+		///   Returns the cached ResourceManager instance used by this class.
+		/// </summary>
+		[global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
+		${accessModifier} static global::System.Resources.ResourceManager ResourceManager
+		{
+			get
+			{
+				if (object.ReferenceEquals(resourceMan, null))
+				{
+					global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("ConsoleApp3.Resource1", typeof(Resource1).Assembly);
+					resourceMan = temp;
+				}
+				return resourceMan;
+			}
+		}
+
+		/// <summary>
+		///   Overrides the current thread's CurrentUICulture property for all
+		///   resource lookups using this strongly typed resource class.
+		/// </summary>
+		[global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
+		${accessModifier} static global::System.Globalization.CultureInfo Culture
+		{
+			get
+			{
+				return resourceCulture;
+			}
+			set
+			{
+				resourceCulture = value;
+			}
+		}
+		
+		`;
+
+				jsObj.elements[0].elements.forEach((element: any) => {
+					if (element.name === "data") {
+						resourceCSharpClassText += `
+		/// <summary>
+		/// Looks up a localized string similar to ${element.elements[0].text}.
+		/// </summary>
+		${accessModifier} static string ${element.attributes.name} => ResourceManager.GetString("${element.attributes.name}", resourceCulture);
+	
+	`;
+					}
+
+				});
+
+				resourceCSharpClassText += `}
+}`;
+				console.log(resourceCSharpClassText);
+
+
+				if (workspacePath != null) {
+					let pathToWrite = path.join(workspacePath, csharpFileName);
+					await FileHelper.writeToFile(pathToWrite, resourceCSharpClassText);
+				}
+			}
 		}
 	}
 	catch (error) {
@@ -323,12 +422,8 @@ async function displayAsMarkdown() {
 					await vscode.commands.executeCommand("vscode.open", uri);
 					await vscode.commands.executeCommand("markdown.showPreview");
 					await vscode.commands.executeCommand("markdown.preview.refresh");
-					await vscode.commands.executeCommand(
-						"workbench.action.previousEditor"
-					);
-					await vscode.commands.executeCommand(
-						"workbench.action.closeActiveEditor"
-					);
+					await vscode.commands.executeCommand("workbench.action.previousEditor");
+					await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
 				}
 			}
 			else {
@@ -354,7 +449,7 @@ async function displayAsMarkdown() {
 
 async function displayJsonInHtml(jsonData: any[], filename: string) {
 	try {
-		var _content = "";
+		var htmlContent = "";
 
 		jsonData.forEach((element) => {
 			var valueStr = "";
@@ -367,7 +462,7 @@ async function displayJsonInHtml(jsonData: any[], filename: string) {
 					commentstr = subElement.elements[0].text;
 				}
 			});
-			_content += `<tr>
+			htmlContent += `<tr>
 				<td>${element.attributes.name}</td>
 				<td>${valueStr}</td>
 				<td>${commentstr}</td>
@@ -376,7 +471,7 @@ async function displayJsonInHtml(jsonData: any[], filename: string) {
 		var pathObj = path.parse(filename);
 		var title = pathObj.name + pathObj.ext;
 
-		PreviewEditPanel.createOrShow(currentContext.extensionUri, title, _content);
+		PreviewEditPanel.createOrShow(currentContext.extensionUri, title, htmlContent);
 	}
 	catch (error) {
 		var errorMessage = "";

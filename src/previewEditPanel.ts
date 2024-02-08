@@ -1,4 +1,6 @@
+import path = require('path');
 import * as vscode from 'vscode';
+import { getNonce } from './util';
 
 class PreviewEditPanel {
 
@@ -10,6 +12,8 @@ class PreviewEditPanel {
 	public content: string;
 	private disposables: vscode.Disposable[] = [];
 	private static title: string = "Resx Preview";
+
+	public static namespace: string = "";
 
 	public static createOrShow(extensionUri: vscode.Uri, title: string, content: string) {
 
@@ -34,8 +38,8 @@ class PreviewEditPanel {
 				// Enable javascript in the webview
 				enableScripts: true,
 
-				// And restrict the webview to only loading content from our extension's `media` directory.
-				localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'media')]
+				// And restrict the webview to only loading content from our extension's `webpanel` directory.
+				localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'webpanel')]
 			}
 		);
 
@@ -46,10 +50,11 @@ class PreviewEditPanel {
 		PreviewEditPanel.currentPanel = new PreviewEditPanel(panel, extensionUri, content);
 	}
 
+	private extensionUri: vscode.Uri;
 	private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, content: string) {
 		this.panel = panel;
 		this.content = content;
-
+		this.extensionUri = extensionUri;
 		// Set the webview's initial html content
 		this.update(content);
 
@@ -124,60 +129,41 @@ class PreviewEditPanel {
 
 	private updateKeyValues(webview: vscode.Webview, content: string) {
 		this.panel.title = PreviewEditPanel.title + " Preview";
-		this.panel.webview.html = this._getHtmlForWebview(webview, content);
+		this.panel.webview.html = this.getHtmlForWebview(webview, content);
 	}
 
-	private _getHtmlForWebview(webview: vscode.Webview, content: string) {
+	private getHtmlForWebview(webview: vscode.Webview, content: string) {
+		const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.extensionUri.path, 'webpanel', 'script.js')));
+		const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.extensionUri.path, 'webpanel', 'styles.css')));
+		const nonce = getNonce();
 
 		return `<!DOCTYPE html>
-			<html lang="en">
-			<head>
-				<meta charset="UTF-8">
-				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-				<title>${PreviewEditPanel.title}</title>
-				<style>
-					table 
-					{
-						border-collapse: collapse;
-						width: 75%;
-					}
-
-					th 
-					{
-						position: sticky;
-						background-color: var(--vscode-editor-background);
-						border: 1px solid;
-						text-align: center;
-						padding: 8px;
-					}
-
-					td 
-					{
-						padding: 8px;
-						border: 1px solid;
-
-					}
-
-					tr:nth-child(even) 
-					{
-						background-color: var(--vscode-sideBar-background);
-					}
-				</style>
-			</head>
-			<body>
-			<table>
-			<tr>
-			  <th>Key</th>
-			  <th>Value</th>
-			  <th>Comment</th>
-			</tr>
-			${content}
-			</table>
-			</body>
-			</html>`;
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta http-equiv="Content-Security-Policy"
+                content="default-src 'none'; img-src ${webview.cspSource}; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <link href="${styleUri}" rel="stylesheet" />
+            <title>ResxFileName</title>
+        </head>
+        <body>
+            <div id="container" class="topdiv">
+				<h2>${this.panel.title}</h2>
+            </div>
+            <table id="tbl">
+                <thead class="tableFixHead thead th">
+                    <th>Key</th>
+                    <th>Value</th>
+                    <th>Comment</th>
+                </thead>
+                ${content}
+            </table>
+			<script nonce="${nonce}" src="${scriptUri}"></script>
+        </body>
+        </html>
+        `;
 	}
-
-
 }
 
 

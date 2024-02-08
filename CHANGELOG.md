@@ -4,6 +4,14 @@ All notable changes to the **ResxPress** extension will be documented in this fi
 
 ---
 
+## 6.0.0 - 08-Feb-2024
+
+- Custom editor is set to *optional* now to be compatible with git diff. You can still open ResxEditor from editor context menu for resx files. Right click on file -> Open with -> select ResXpress Editor.
+- **Web Preview** now available in **editor/context** and **editor/title/context** menus too.
+- Added **Switch to Text Editor** button on resx editor.
+- Added implementation to generate strongly typed resource class files on non Windows platforms.
+- `yarn` upgrades.
+
 ## 5.8.0 - 31-Jan-2024
 
 - `yarn` upgrades.

@@ -1,92 +1,47 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { getNonce } from './util';
-import * as xmljs from 'xml-js';
-/**
- * Provider for Resx editors.
- * 
- * Resx editors are used for `.resx` files, which are just json files.
- * To get started, run this extension and open an empty `.resx` file in VS Code.
- * 
- * This provider demonstrates:
- * 
- * - Setting up the initial webview for a custom editor.
- * - Loading scripts and styles in a custom editor.
- * - Synchronizing changes between a text document and a custom editor.
- */
-export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
+import * as xmljs from "xml-js"
+import { ResxJsonHelper } from './resxJsonHelper';
+import { readFileSync } from 'fs';
+import { PreviewEditPanel } from './previewEditPanel';
+import { FileHelper } from './fileHelper';
 
-    public static register(context: vscode.ExtensionContext): vscode.Disposable {
-        const provider = new ResxEditorProvider(context);
-        const providerRegistration = vscode.window.registerCustomEditorProvider(ResxEditorProvider.viewType, provider);
-        return providerRegistration;
+export class ResxEditor {
+    private readonly context: vscode.ExtensionContext;
+    constructor(context: vscode.ExtensionContext) {
+        this.context = context;
     }
 
-    private static readonly viewType = 'resxpress.editor';
+    public async tryGetNamespace() {
+        try {
+            let fileName = FileHelper.getFileName();
+            let fileUrls = await vscode.workspace.findFiles(`**/${fileName}.Designer.cs`);
+            var namespace = "Unknown";
 
-    constructor(private readonly context: vscode.ExtensionContext) { }
+            if (fileUrls.length > 0) {
+                const fileContent = readFileSync(fileUrls[0].fsPath, 'utf-8');
 
-    /**
-     * Called when our custom editor is opened.
-     */
-    public async resolveCustomTextEditor(document: vscode.TextDocument,
-        webviewPanel: vscode.WebviewPanel,
-        _token: vscode.CancellationToken): Promise<void> {
-        // Setup initial content for the webview
-        webviewPanel.webview.options = {
-            enableScripts: true,
-        };
-
-        webviewPanel.webview.html = this.getHtmlForWebview(webviewPanel.webview);
-
-        function updateWebview() {
-
-            var jsonText = JSON.stringify(getDataJs(document.getText()));
-            webviewPanel.webview.postMessage({
-                type: 'update',
-                text: jsonText
-            });
-
+                if (fileContent && fileContent != "") {
+                    const lines = fileContent.split('\r\n');
+                    var newLines = lines.filter(x => x.startsWith("namespace ")).map(x => x.trim().replace("namespace ", "").replace(" ", "").replace("{", ""));
+                    if (newLines.length > 0) {
+                        namespace = newLines[0];
+                        PreviewEditPanel.namespace = namespace;
+                    }
+                }
+            }
+        } catch (error) {
+            if (error instanceof Error) {
+                console.log(error.message);
+            }
         }
-
-        const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(e => {
-            if (e.document.uri.toString() === document.uri.toString()) {
-                updateWebview();
-            }
-        });
-
-        // Make sure we get rid of the listener when our editor is closed.
-        webviewPanel.onDidDispose(() => {
-            changeDocumentSubscription.dispose();
-        });
-
-        // Receive message from the webview.
-        webviewPanel.webview.onDidReceiveMessage(e => {
-            switch (e.type) {
-                case 'update':
-                    this.updateTextDocument(document, e.json);
-                    return;
-                case 'add':
-                    this.addNewKeyValue(document, e.json);
-                    return;
-
-                case 'delete':
-                    this.deleteKeyValue(document, e.json);
-                    return;
-            }
-        });
-
-        updateWebview();
     }
 
-    content: string = '';
-    /**
-     * Get the static html used for the editor webviews.
-     */
-    private getHtmlForWebview(webview: vscode.Webview): string {
+    public getHtmlForWebview(webview: vscode.Webview): string {
 
-        const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'media', 'main.js')));
-        const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'media', 'main.css')));
+        const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'webpanel', 'script.js')));
+        const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'webpanel', 'styles.css')));
 
         const nonce = getNonce();
 
@@ -98,14 +53,21 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
                 content="default-src 'none'; img-src ${webview.cspSource}; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <link href="${styleUri}" rel="stylesheet" />
-            <title>ResxFileName</title>
+            <title>ResxFileName</title>    
         </head>
         <body>
-            <div class="topdiv">
-                <button class="buttoncss" id="addButton">Add New Resource</button>
-                <span>
+            <div id="container" class="topdiv">
+                <div id="leftThing">
+                    <button class="largeButtonStyle" id="addButton">Add New Resource</button>
+                </div>
+            
+                <div id="middleThing">
                     <div id="diverr" class="error"></div>
-                </span>
+                </div>
+                
+                <div id="rightThing">
+                    <button class="smallButtonStyle" id="switchToEditor">Switch to Text Editor</button>
+                </div>
             </div>
             <table id="tbl">
                 <thead class="tableFixHead thead th">
@@ -126,9 +88,9 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
     /**
      * Add a new key value back to text editor 
      */
-    private addNewKeyValue(document: vscode.TextDocument, json: any) {
+    public addNewKeyValue(document: vscode.TextDocument, json: any) {
         var newObj = JSON.parse(json);
-        var docDataList = getDataJs(document.getText());
+        var docDataList = ResxJsonHelper.getJsonData(document.getText());
 
         var pos = docDataList.map((x) => { return x?._attributes?.name; }).indexOf(newObj._attributes.name);
 
@@ -146,13 +108,13 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
     /**
      * Delete an existing scratch from a document.
      */
-    private deleteKeyValue(document: vscode.TextDocument, json: any) {
+    public deleteKeyValue(document: vscode.TextDocument, json: any) {
 
         console.log('deleteKeyValue start');
 
         var deletedJsObj = JSON.parse(json);
 
-        var currentData = getDataJs(document.getText());
+        var currentData = ResxJsonHelper.getJsonData(document.getText());
 
         console.log(`Datalist before deleting ${deletedJsObj._attributes.name} : ${JSON.stringify(currentData)}`);
 
@@ -164,7 +126,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
     }
 
 
-    private updateTextDocument(document: vscode.TextDocument, dataListJson: any) {
+    public updateTextDocument(document: vscode.TextDocument, dataListJson: any) {
         console.log('updateTextDocument start');
 
         var dataList = JSON.parse(dataListJson);
@@ -203,32 +165,4 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
         console.log('updateTextDocument end');
         return vscode.workspace.applyEdit(edit);
     }
-
-
-
-}
-function getDataJs(text: string): any[] {
-    var jsObj: any = xmljs.xml2js(text, { compact: true });
-
-    var dataList: any[] = [];
-    console.log(`Datalist before process :${JSON.stringify(jsObj?.root?.data)}`);
-    if (jsObj?.root?.data) {
-
-        if (jsObj.root.data instanceof Array) {
-            dataList = dataList.concat(jsObj.root.data);
-            console.log('its array so concat 2 two arrays');
-        }
-        else {
-            //check if empty object
-            if (jsObj.root.data?._attributes?.name) {
-                console.log('it is an object  so append to existing array');
-                dataList.push(jsObj.root.data);
-            }
-        }
-    }
-
-    console.log(`Datalist after process :${JSON.stringify(dataList)}`);
-
-    console.log('getDataJs end ');
-    return dataList;
 }
