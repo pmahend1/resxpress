@@ -111,7 +111,7 @@ function loadConfiguration() {
 
 export async function runResGenAsync(fileName: string): Promise<void> {
 	try {
-		if (process.platform != "win32") {
+		if (process.platform == "win32") {
 			let pathFile = path.parse(fileName);
 			let fileNameNoExt = pathFile.name;
 

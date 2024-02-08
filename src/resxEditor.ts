@@ -62,20 +62,12 @@ export class ResxEditor {
                 </div>
             
                 <div id="middleThing">
-                <!--
-                    <div id="namespace">
-                        <p>Namespace: ${PreviewEditPanel.namespace}</p>
-                    </div>
-                -->
+                    <div id="diverr" class="error"></div>
                 </div>
                 
                 <div id="rightThing">
                     <button class="smallButtonStyle" id="switchToEditor">Switch to Text Editor</button>
                 </div>
-                
-                <span>
-                    <div id="diverr" class="error"></div>
-                </span>
             </div>
             <table id="tbl">
                 <thead class="tableFixHead thead th">
