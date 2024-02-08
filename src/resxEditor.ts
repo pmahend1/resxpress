@@ -1,11 +1,12 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { getNonce } from './util';
-import * as xmljs from 'xml-js';
+import * as xmljs from "xml-js"
 import { ResxJsonHelper } from './resxJsonHelper';
 import { readFileSync } from 'fs';
-import { join } from 'path';
 import { PreviewEditPanel } from './previewEditPanel';
+import { FileHelper } from './fileHelper';
+
 export class ResxEditor {
     private readonly context: vscode.ExtensionContext;
     constructor(context: vscode.ExtensionContext) {
@@ -14,7 +15,8 @@ export class ResxEditor {
 
     public async tryGetNamespace() {
         try {
-            let fileUrls = await vscode.workspace.findFiles("**/*.Designer.cs");
+            let fileName = FileHelper.getFileName();
+            let fileUrls = await vscode.workspace.findFiles(`**/${fileName}.Designer.cs`);
             var namespace = "Unknown";
 
             if (fileUrls.length > 0) {
@@ -38,8 +40,8 @@ export class ResxEditor {
 
     public getHtmlForWebview(webview: vscode.Webview): string {
 
-        const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'out', 'main.js')));
-        const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'media', 'main.css')));
+        const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'out', 'webpanel', 'script.js')));
+        const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'src', 'webpanel', 'stylesheet.css')));
 
         const nonce = getNonce();
 

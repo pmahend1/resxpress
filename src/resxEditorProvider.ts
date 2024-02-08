@@ -68,7 +68,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
         });
 
         // Receive message from the webview.
-        webviewPanel.webview.onDidReceiveMessage(e => {
+        webviewPanel.webview.onDidReceiveMessage((e: any) => {
             switch (e.type) {
                 case 'update':
                     this.resxEditor.updateTextDocument(document, e.json);

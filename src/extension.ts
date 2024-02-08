@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { promises as fsPromises } from 'fs';
 import { PreviewEditPanel } from "./previewEditPanel";
 import * as path from "path";
-import * as xmljs from 'xml-js'
+import *  as xmljs from "xml-js";
 import { ResxEditorProvider } from './resxEditorProvider';
 import { NotificationService } from './notificationService';
 import * as childProcess from 'child_process';
@@ -138,7 +138,7 @@ export async function runResGenAsync(fileName: string): Promise<void> {
 				resourceFileName = `${path.join(pathFile.dir, pathFile.name)}.Designer.${ext}`
 			}
 
-			let nameSpace = path.basename(path.dirname(fileName))
+			let nameSpace = path.basename(path.dirname(fileName));
 			let parameter = `/str:${ext},${nameSpace},,${resourceFileName}`
 			console.log('Parameter: ' + parameter);
 			const cli = childProcess.spawn('ResGen', [`${fileName}`, '/useSourcePath', parameter], { stdio: ['pipe'] });
@@ -170,13 +170,26 @@ export async function runResGenAsync(fileName: string): Promise<void> {
 			return promise;
 		}
 		else {
-			let fileName = FileHelper.getFileName() ?? "Resources";
+			let filename = FileHelper.getFileName();
+			var csharpFileName = "Resources.cs";
+			if (filename !== null) {
+				csharpFileName = `${filename}.Designer.cs`;
+			}
+
 			let documentText = FileHelper.getActiveDocumentText();
 			if (documentText != "") {
 				var jsObj = xmljs.xml2js(documentText);
 				var resourceCSharpClassText = "";
-				let accessModifier = "public"
-				resourceCSharpClassText += `namespace ${PreviewEditPanel.namespace} 
+				let accessModifier = "public";
+				let workspacePath = FileHelper.getDirectory();
+
+				var namespace = PreviewEditPanel.namespace;
+				if (namespace === undefined || namespace === "" || namespace === null) {
+					if (workspacePath !== null) {
+						namespace = path.basename(workspacePath);
+					}
+				}
+				resourceCSharpClassText += `namespace ${namespace} 
 {
 	using System;
 
@@ -188,14 +201,14 @@ export async function runResGenAsync(fileName: string): Promise<void> {
 	[global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
 	[global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
 	[global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-	${accessModifier} class ${fileName} 
+	${accessModifier} class ${filename} 
 	{
 		private static global::System.Resources.ResourceManager resourceMan;
 
 		private static global::System.Globalization.CultureInfo resourceCulture;
 
 		[global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-		${accessModifier} ${fileName}()
+		${accessModifier} ${filename}()
 		{
 		}
 
@@ -238,18 +251,25 @@ export async function runResGenAsync(fileName: string): Promise<void> {
 				jsObj.elements[0].elements.forEach((element: any) => {
 					if (element.name === "data") {
 						resourceCSharpClassText += `
-	/// <summary>
-	/// Looks up a localized string similar to ${element.elements[0].text}.
-	/// </summary>
-	${accessModifier} static string ${element.attributes.name} => ResourceManager.GetString("${element.attributes.name}", resourceCulture);`;
+		/// <summary>
+		/// Looks up a localized string similar to ${element.elements[0].text}.
+		/// </summary>
+		${accessModifier} static string ${element.attributes.name} => ResourceManager.GetString("${element.attributes.name}", resourceCulture);
+	
+	`;
 					}
 
 				});
 
-
 				resourceCSharpClassText += `}
-    }`;
+}`;
 				console.log(resourceCSharpClassText);
+
+
+				if (workspacePath != null) {
+					let pathToWrite = path.join(workspacePath, csharpFileName);
+					await FileHelper.writeToFile(pathToWrite, resourceCSharpClassText);
+				}
 			}
 		}
 	}

@@ -117,8 +117,6 @@ let currentResxJS: any = [];
 
 				}
 
-
-
 				console.log('Input event : ' + JSON.stringify(currentResxJS));
 				vscode.setState({ text: JSON.stringify(currentResxJS) });
 				vscode.postMessage({
@@ -133,14 +131,15 @@ let currentResxJS: any = [];
 		console.log(`deleteEvent triggered with ${event.target}`);
 		const td = event.target as HTMLElement;
 		let table = document.getElementById("tbl");
+
 		if (errorContainer != null && table && td) {
 			let idstr: string = td.id;
 			console.log(`Triggered td.id : ${idstr}`);
 			errorContainer.innerText = '';
-		
+
 			if (idstr && idstr.trim()) {
 				let indices = idstr.split('.');
-				
+
 				if (indices.length > 0) {
 					let index = Number(indices[0]);
 					console.log(`index to be deleted: ${index}`)
@@ -152,7 +151,6 @@ let currentResxJS: any = [];
 						if (row) {
 							row.parentNode?.removeChild(row);
 						}
-
 
 						vscode.setState({ text: JSON.stringify(currentResxJS) });//always set the full list
 
@@ -169,8 +167,6 @@ let currentResxJS: any = [];
 					}
 				}
 			}
-
-
 		}
 	}
 	let namespace = document.getElementById("namespace");
@@ -182,14 +178,14 @@ let currentResxJS: any = [];
 
 	//content
 	let middleThing = document.getElementById("middleThing");
-	if (middleThing != null) {
+	if (middleThing && middleThing !== null) {
 		middleThing.addEventListener("click", () => {
 			console.log(`middleThing clicked`);
 			let namespace = document.getElementById("namespace");
 			let divElement = document.createElement("div");
-			
-			if (namespace){
-				middleThing.removeChild(namespace);
+
+			if (namespace) {
+				middleThing?.removeChild(namespace);
 				console.log(`removing namespace ${namespace}`);
 			}
 			let inputElement = document.createElement("input");
@@ -200,7 +196,7 @@ let currentResxJS: any = [];
 			inputElement.addEventListener("focusout", (ev) => {
 				const val = inputElement.value;
 				console.log(`removing inputElement ${inputElement.nodeType}`);
-				middleThing.removeChild(inputElement);
+				middleThing?.removeChild(inputElement);
 				divElement.id = "namespace";
 				divElement.innerHTML = `Namespace: ${val}`;
 
@@ -208,10 +204,10 @@ let currentResxJS: any = [];
 				divElement.addEventListener("click", (ev) => {
 
 				}, false);
-				middleThing.appendChild(divElement);
-			} , false);
+				middleThing?.appendChild(divElement);
+			}, false);
 
-			middleThing.appendChild(inputElement);
+			middleThing?.appendChild(inputElement);
 			inputElement.focus();
 		});
 	}
@@ -374,12 +370,6 @@ let currentResxJS: any = [];
 			}
 		}
 	}
-
-	let body = document.getElementById("body");
-	if (body) {
-
-	}
-
 
 	window.addEventListener('message', event => {
 		const message = event.data; // The json data that the extension sent
