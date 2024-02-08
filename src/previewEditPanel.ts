@@ -134,7 +134,7 @@ class PreviewEditPanel {
 
 	private getHtmlForWebview(webview: vscode.Webview, content: string) {
 		const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.extensionUri.path, 'webpanel', 'script.js')));
-		const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.extensionUri.path, 'webpanel', 'stylesheet.css')));
+		const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.extensionUri.path, 'webpanel', 'styles.css')));
 		const nonce = getNonce();
 
 		return `<!DOCTYPE html>
@@ -149,32 +149,13 @@ class PreviewEditPanel {
         </head>
         <body>
             <div id="container" class="topdiv">
-                <div id="leftThing">
-                    <button class="largeButtonStyle" id="addButton">Add New Resource</button>
-                </div>
-            
-                <div id="middleThing">
-                <!--
-                    <div id="namespace">
-                        <p>Namespace: ${PreviewEditPanel.namespace}</p>
-                    </div>
-                -->
-                </div>
-                
-                <div id="rightThing">
-                    <button class="smallButtonStyle" id="switchToEditor">Switch to Text Editor</button>
-                </div>
-                
-                <span>
-                    <div id="diverr" class="error"></div>
-                </span>
+				<h2>${this.panel.title}</h2>
             </div>
             <table id="tbl">
                 <thead class="tableFixHead thead th">
                     <th>Key</th>
                     <th>Value</th>
                     <th>Comment</th>
-                    <th> </th>
                 </thead>
                 ${content}
             </table>

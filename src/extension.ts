@@ -447,12 +447,6 @@ async function displayAsMarkdown() {
 	}
 }
 
-async function openResxEditorAsync() {
-	// var pathObj = path.parse(filename);
-	// var title = pathObj.name + pathObj.ext;
-	// PreviewEditPanel.createOrShow(currentContext.extensionUri, title, _content);
-}
-
 async function displayJsonInHtml(jsonData: any[], filename: string) {
 	try {
 		var htmlContent = "";
@@ -472,7 +466,6 @@ async function displayJsonInHtml(jsonData: any[], filename: string) {
 				<td>${element.attributes.name}</td>
 				<td>${valueStr}</td>
 				<td>${commentstr}</td>
-				<td>X</td>
 			</tr>`;
 		});
 		var pathObj = path.parse(filename);

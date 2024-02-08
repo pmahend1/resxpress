@@ -4,6 +4,7 @@ body {
   justify-content: center;
   align-items: center;
 }
+
 .error {
   color: red;
   display: inline-block;
@@ -46,16 +47,19 @@ body {
   position: sticky;
   position: -webkit-sticky;
 }
+
 #leftThing {
   width: 25%;
   position: sticky;
   position: -webkit-sticky;
 }
+
 #middleThing {
   width: 50%;
   position: sticky;
   position: -webkit-sticky;
 }
+
 #rightThing {
   width: 25%;
   position: sticky;
@@ -68,6 +72,7 @@ table {
   border-collapse: collapse;
   width: 90%;
 }
+
 th,
 td {
   padding: 0.25rem;
