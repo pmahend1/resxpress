@@ -40,8 +40,8 @@ export class ResxEditor {
 
     public getHtmlForWebview(webview: vscode.Webview): string {
 
-        const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'webpanel', 'script.js')));
-        const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'webpanel', 'styles.css')));
+        const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'out', 'webpanelScript.js')));
+        const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'styles', 'webpanel.css')));
 
         const nonce = getNonce();
 
