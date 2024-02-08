@@ -169,15 +169,15 @@ let currentResxJS: any = [];
 			}
 		}
 	}
-	let namespace = document.getElementById("namespace");
-	if (namespace) {
-		namespace.addEventListener("click", () => {
-			namespace?.removeAttribute("disabled");
-		});
-	}
+	// let namespace = document.getElementById("namespace");
+	// if (namespace) {
+	// 	namespace.addEventListener("click", () => {
+	// 		namespace?.removeAttribute("disabled");
+	// 	});
+	// }
 
-	//content
-	let middleThing = document.getElementById("middleThing");
+	//middleThing
+	/* let middleThing = document.getElementById("middleThing");
 	if (middleThing && middleThing !== null) {
 		middleThing.addEventListener("click", () => {
 			console.log(`middleThing clicked`);
@@ -210,7 +210,7 @@ let currentResxJS: any = [];
 			middleThing?.appendChild(inputElement);
 			inputElement.focus();
 		});
-	}
+	} */
 	var add = document.getElementById("addButton");
 
 	var switchToTextEditor = document.getElementById('switchToEditor');

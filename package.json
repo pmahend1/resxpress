@@ -76,13 +76,6 @@
                     "group": "3_preview",
                     "when": "resourceExtname == .resx"
                 }
-            ],
-            "explorer/context": [
-                {
-                    "command": "resxpress.newpreview",
-                    "group": "3_preview",
-                    "when": "resourceExtname == .resx"
-                }
             ]
         },
         "configuration": [

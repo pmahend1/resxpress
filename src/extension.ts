@@ -22,7 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
 	catch (error) {
 		console.error(error);
 	}
-	
+
 	currentContext = context;
 	loadConfiguration();
 
@@ -30,64 +30,53 @@ export function activate(context: vscode.ExtensionContext) {
 		loadConfiguration();
 	});
 
-	context.subscriptions.push(
-		vscode.commands.registerTextEditorCommand(
-			"resxpress.resxpreview",
-			async () => {
-				vscode.window.withProgress(
-					{
-						location: vscode.ProgressLocation.Notification,
-						cancellable: false,
-						title: "ResXpress",
-					},
-					async (p) => {
-						p.report({ message: "Showing Preview" });
-						await displayAsMarkdown();
-					}
-				);
-			}
-		)
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand("resxpress.resxpreview",
+		async () => {
+			vscode.window.withProgress(
+				{
+					location: vscode.ProgressLocation.Notification,
+					cancellable: false,
+					title: "ResXpress",
+				},
+				async (p) => {
+					p.report({ message: "Showing Preview" });
+					await displayAsMarkdown();
+				}
+			);
+		}));
+
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand("resxpress.sortbykeys",
+		async () => {
+			vscode.window.withProgress(
+				{
+					location: vscode.ProgressLocation.Notification,
+					cancellable: false,
+					title: "ResXpress",
+				},
+				async (p) => {
+					p.report({ message: "Sorting by keys" });
+					await sortByKeys();
+				}
+			);
+		}));
+
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand("resxpress.newpreview",
+		async () => {
+			vscode.window.withProgress(
+				{
+					location: vscode.ProgressLocation.Notification,
+					cancellable: false,
+					title: "ResXpress",
+				},
+				async (p) => {
+					p.report({ message: "Showing Web Preview" });
+					await newPreview();
+				}
+			);
+		}
+	)
 	);
 
-	context.subscriptions.push(
-		vscode.commands.registerTextEditorCommand(
-			"resxpress.sortbykeys",
-			async () => {
-				vscode.window.withProgress(
-					{
-						location: vscode.ProgressLocation.Notification,
-						cancellable: false,
-						title: "ResXpress",
-					},
-					async (p) => {
-						p.report({ message: "Sorting by keys" });
-						await sortByKeys();
-					}
-				);
-			}
-		)
-	);
-
-	context.subscriptions.push(
-		vscode.commands.registerTextEditorCommand(
-			"resxpress.newpreview",
-			async () => {
-				vscode.window.withProgress(
-					{
-						location: vscode.ProgressLocation.Notification,
-						cancellable: false,
-						title: "ResXpress",
-					},
-					async (p) => {
-						p.report({ message: "Showing Web Preview" });
-						await newPreview();
-					}
-				);
-			}
-		)
-	);
-
-	let resxEditor = new ResxEditor(context);
 	context.subscriptions.push(vscode.commands.registerTextEditorCommand("resxpress.resxeditor", async () => { await newPreview(); }));
 
 	context.subscriptions.push(ResxEditorProvider.register(context));
@@ -466,7 +455,7 @@ async function openResxEditorAsync() {
 
 async function displayJsonInHtml(jsonData: any[], filename: string) {
 	try {
-		var _content = "";
+		var htmlContent = "";
 
 		jsonData.forEach((element) => {
 			var valueStr = "";
@@ -479,16 +468,17 @@ async function displayJsonInHtml(jsonData: any[], filename: string) {
 					commentstr = subElement.elements[0].text;
 				}
 			});
-			_content += `<tr>
+			htmlContent += `<tr>
 				<td>${element.attributes.name}</td>
 				<td>${valueStr}</td>
 				<td>${commentstr}</td>
+				<td>X</td>
 			</tr>`;
 		});
 		var pathObj = path.parse(filename);
 		var title = pathObj.name + pathObj.ext;
 
-		PreviewEditPanel.createOrShow(currentContext.extensionUri, title, _content);
+		PreviewEditPanel.createOrShow(currentContext.extensionUri, title, htmlContent);
 	}
 	catch (error) {
 		var errorMessage = "";

@@ -32,7 +32,7 @@ export class ResxEditor {
                 }
             }
         } catch (error) {
-            if (error instanceof Error){
+            if (error instanceof Error) {
                 console.log(error.message);
             }
         }
@@ -40,8 +40,8 @@ export class ResxEditor {
 
     public getHtmlForWebview(webview: vscode.Webview): string {
 
-        const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'out', 'webpanel', 'script.js')));
-        const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'src', 'webpanel', 'stylesheet.css')));
+        const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'webpanel', 'script.js')));
+        const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath,'webpanel', 'stylesheet.css')));
 
         const nonce = getNonce();
 
@@ -53,7 +53,7 @@ export class ResxEditor {
                 content="default-src 'none'; img-src ${webview.cspSource}; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <link href="${styleUri}" rel="stylesheet" />
-            <title>ResxFileName</title>
+            <title>ResxFileName</title>    
         </head>
         <body>
             <div id="container" class="topdiv">
@@ -62,9 +62,11 @@ export class ResxEditor {
                 </div>
             
                 <div id="middleThing">
+                <!--
                     <div id="namespace">
                         <p>Namespace: ${PreviewEditPanel.namespace}</p>
                     </div>
+                -->
                 </div>
                 
                 <div id="rightThing">
