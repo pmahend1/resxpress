@@ -177,10 +177,10 @@ export async function runResGenAsync(fileName: string): Promise<void> {
 				var jsObj = xmljs.xml2js(document.getText() ?? "");
 
 				var sb = "";
-				var nameSpace = "ProjectNameSpace";
+				
 				let accessModifier = "public"
 				var fileName = parsedPath.name;//vscode.window.activeTextEditor?.document.fileName  ?? "Resources";
-				sb += `namespace ${nameSpace} 
+				sb += `namespace ${PreviewEditPanel.namespace} 
 {
 	using System;
 

@@ -11,6 +11,8 @@ class PreviewEditPanel {
 	private disposables: vscode.Disposable[] = [];
 	private static title: string = "Resx Preview";
 
+	public static namespace: string = "";
+
 	public static createOrShow(extensionUri: vscode.Uri, title: string, content: string) {
 
 		const column = vscode.window.activeTextEditor
@@ -124,10 +126,10 @@ class PreviewEditPanel {
 
 	private updateKeyValues(webview: vscode.Webview, content: string) {
 		this.panel.title = PreviewEditPanel.title + " Preview";
-		this.panel.webview.html = this._getHtmlForWebview(webview, content);
+		this.panel.webview.html = this.getHtmlForWebview(webview, content);
 	}
 
-	private _getHtmlForWebview(webview: vscode.Webview, content: string) {
+	private getHtmlForWebview(webview: vscode.Webview, content: string) {
 
 		return `<!DOCTYPE html>
 			<html lang="en">
@@ -176,8 +178,6 @@ class PreviewEditPanel {
 			</body>
 			</html>`;
 	}
-
-
 }
 
 
