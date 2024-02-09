@@ -1,11 +1,8 @@
-import * as path from 'path';
-import * as vscode from 'vscode';
-import { getNonce } from './util';
+import * as path from "path";
+import * as vscode from "vscode";
+import { getNonce } from "./util";
 import * as xmljs from "xml-js"
-import { ResxJsonHelper } from './resxJsonHelper';
-import { readFileSync } from 'fs';
-import { PreviewEditPanel } from './previewEditPanel';
-import { FileHelper } from './fileHelper';
+import { ResxJsonHelper } from "./resxJsonHelper";
 
 export class ResxEditor {
     private readonly context: vscode.ExtensionContext;
@@ -13,35 +10,10 @@ export class ResxEditor {
         this.context = context;
     }
 
-    public async tryGetNamespace() {
-        try {
-            let fileName = FileHelper.getFileName();
-            let fileUrls = await vscode.workspace.findFiles(`**/${fileName}.Designer.cs`);
-            var namespace = "Unknown";
-
-            if (fileUrls.length > 0) {
-                const fileContent = readFileSync(fileUrls[0].fsPath, 'utf-8');
-
-                if (fileContent && fileContent != "") {
-                    const lines = fileContent.split('\r\n');
-                    var newLines = lines.filter(x => x.startsWith("namespace ")).map(x => x.trim().replace("namespace ", "").replace(" ", "").replace("{", ""));
-                    if (newLines.length > 0) {
-                        namespace = newLines[0];
-                        PreviewEditPanel.namespace = namespace;
-                    }
-                }
-            }
-        } catch (error) {
-            if (error instanceof Error) {
-                console.log(error.message);
-            }
-        }
-    }
-
     public getHtmlForWebview(webview: vscode.Webview): string {
 
-        const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'out', 'webpanelScript.js')));
-        const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, 'styles', 'webpanel.css')));
+        const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "out", "webpanelScript.js")));
+        const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "webpanel.css")));
 
         const nonce = getNonce();
 
@@ -110,7 +82,7 @@ export class ResxEditor {
      */
     public deleteKeyValue(document: vscode.TextDocument, json: any) {
 
-        console.log('deleteKeyValue start');
+        console.log("deleteKeyValue start");
 
         var deletedJsObj = JSON.parse(json);
 
@@ -121,18 +93,18 @@ export class ResxEditor {
         var pos = currentData.map(function (e) { return e?._attributes?.name; }).indexOf(deletedJsObj._attributes.name);
 
         currentData.splice(pos, 1);
-        console.log('deleteKeyValue end');
+        console.log("deleteKeyValue end");
         return this.updateTextDocument(document, JSON.stringify(currentData));
     }
 
 
     public updateTextDocument(document: vscode.TextDocument, dataListJson: any) {
-        console.log('updateTextDocument start');
+        console.log("updateTextDocument start");
 
         var dataList = JSON.parse(dataListJson);
         const edit = new vscode.WorkspaceEdit();
 
-        var currentJs: any = xmljs.xml2js(document.getText(), { compact: true });
+        var currentJs: any = xmljs.xml2js(document.getText(), { compact: true })
 
         console.log(`Before datalist - ${JSON.stringify(currentJs.root.data)} `);
 
@@ -143,13 +115,14 @@ export class ResxEditor {
                     break;
                 case 1:
                     currentJs.root.data = dataList[0];
+                    break;
                 default:
                     currentJs.root.data = dataList;
                     break;
             }
         }
         else {
-            console.log('Empty data : red flag');
+            console.log("Empty data : red flag");
 
             currentJs.root.data = {};
         }
@@ -162,7 +135,7 @@ export class ResxEditor {
             new vscode.Range(0, 0, document.lineCount, 0),
             resx);
 
-        console.log('updateTextDocument end');
+        console.log("updateTextDocument end");
         return vscode.workspace.applyEdit(edit);
     }
 }

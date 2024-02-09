@@ -1,15 +1,13 @@
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
 
-import { promises as fsPromises } from 'fs';
+import { promises as fsPromises } from "fs";
 import { PreviewEditPanel } from "./previewEditPanel";
 import * as path from "path";
 import *  as xmljs from "xml-js";
-import { ResxEditorProvider } from './resxEditorProvider';
-import { NotificationService } from './notificationService';
-import * as childProcess from 'child_process';
-import { ResxEditor } from './resxEditor';
+import { ResxEditorProvider } from "./resxEditorProvider";
+import { NotificationService } from "./notificationService";
+import * as childProcess from "child_process";
 import { FileHelper } from "./fileHelper";
-
 
 let currentContext: vscode.ExtensionContext;
 var shouldGenerateStronglyTypedResourceClassOnSave: boolean = false
@@ -26,7 +24,7 @@ export function activate(context: vscode.ExtensionContext) {
 	currentContext = context;
 	loadConfiguration();
 
-	vscode.workspace.onDidChangeConfiguration((configChangeEvent: vscode.ConfigurationChangeEvent) => {
+	vscode.workspace.onDidChangeConfiguration(() => {
 		loadConfiguration();
 	});
 
@@ -110,77 +108,60 @@ function loadConfiguration() {
 }
 
 export async function runResGenAsync(fileName: string): Promise<void> {
-	try {
-		if (process.platform == "win32") {
-			let pathFile = path.parse(fileName);
-			let fileNameNoExt = pathFile.name;
+	let filename = FileHelper.getFileName();
+	let csharpFileName = "Resources.cs";
+	if (filename !== null) {
+		csharpFileName = `${filename}.Designer.cs`;
+	}
 
-			//best effort to get existing resource class file name
-			let files = await vscode.workspace.findFiles(`**/${fileNameNoExt}.Designer.*`, '**/*.dll', 1)
+	let nameSpace = await FileHelper.tryGetNamespace();
+	if (nameSpace === null || nameSpace === "") {
+		nameSpace = path.basename(path.dirname(fileName));
+	}
 
-			var resourceFileName = "";
-			var ext = "cs"
-			if (files.length === 1) {
-				let filePath = path.parse(files[0].path);
-				ext = filePath.ext.substring(1)
-				resourceFileName = `${path.join(pathFile.dir, filePath.name)}.${ext}`
-			}
-			else {
-				resourceFileName = `${path.join(pathFile.dir, pathFile.name)}.Designer.${ext}`
-			}
+	if (process.platform == "win32") {
 
-			let nameSpace = path.basename(path.dirname(fileName));
-			let parameter = `/str:${ext},${nameSpace},,${resourceFileName}`
-			console.log('Parameter: ' + parameter);
-			const cli = childProcess.spawn('ResGen', [`${fileName}`, '/useSourcePath', parameter], { stdio: ['pipe'] });
+		var ext = "cs";
 
-			var stdOutData = "";
-			var stdErrData = "";
-			cli.stdout.setEncoding("utf8");
-			cli.stdout.on("data", data => {
-				stdOutData += data;
-			});
+		let parameter = `/str:${ext},${nameSpace},,${csharpFileName}`
+		console.log("Parameter: " + parameter);
+		const cli = childProcess.spawn("ResGen", [`${fileName}`, "/useSourcePath", parameter], { stdio: ["pipe"] });
 
-			cli.stderr.setEncoding("utf8");
-			cli.stderr.on("data", data => {
-				stdErrData += data;
-			});
+		var stdOutData = "";
+		var stdErrData = "";
+		cli.stdout.setEncoding("utf8");
+		cli.stdout.on("data", data => {
+			stdOutData += data;
+		});
 
-			let promise = new Promise<void>((resolve, reject) => {
-				cli.on("close", (exitCode: Number) => {
-					if (exitCode !== 0) {
-						reject();
-						console.log(stdErrData)
-					}
-					else {
-						resolve();
-						console.log(stdOutData)
-					}
-				});
-			});
-			return promise;
-		}
-		else {
-			let filename = FileHelper.getFileName();
-			var csharpFileName = "Resources.cs";
-			if (filename !== null) {
-				csharpFileName = `${filename}.Designer.cs`;
-			}
+		cli.stderr.setEncoding("utf8");
+		cli.stderr.on("data", data => {
+			stdErrData += data;
+		});
 
-			let documentText = FileHelper.getActiveDocumentText();
-			if (documentText != "") {
-				var jsObj = xmljs.xml2js(documentText);
-				var resourceCSharpClassText = "";
-				let accessModifier = "public";
-				let workspacePath = FileHelper.getDirectory();
-
-				var namespace = PreviewEditPanel.namespace;
-				if (namespace === undefined || namespace === "" || namespace === null) {
-					if (workspacePath !== null) {
-						namespace = path.basename(workspacePath);
-					}
+		let promise = new Promise<void>((resolve, reject) => {
+			cli.on("close", (exitCode: number) => {
+				if (exitCode !== 0) {
+					reject();
+					console.log(stdErrData)
 				}
-				resourceCSharpClassText += `namespace ${namespace} 
+				else {
+					resolve();
+					console.log(stdOutData)
+				}
+			});
+		});
+		return promise;
+	}
+	else {
+		let documentText = FileHelper.getActiveDocumentText();
+		if (documentText != "") {
+			var jsObj = xmljs.xml2js(documentText);
+			var resourceCSharpClassText = "";
+			let accessModifier = "public";
+			let workspacePath = FileHelper.getDirectory();
+
+			resourceCSharpClassText += `namespace ${nameSpace} 
 {
 	using System;
 
@@ -239,33 +220,31 @@ export async function runResGenAsync(fileName: string): Promise<void> {
 		
 		`;
 
-				jsObj.elements[0].elements.forEach((element: any) => {
-					if (element.name === "data") {
-						resourceCSharpClassText += `
+			jsObj.elements[0].elements.forEach((element: any) => {
+				if (element.name === "data") {
+					let name = element.attributes.name.replace(" ", "_");
+					resourceCSharpClassText += `
+
 		/// <summary>
 		/// Looks up a localized string similar to ${element.elements[0].text}.
 		/// </summary>
-		${accessModifier} static string ${element.attributes.name} => ResourceManager.GetString("${element.attributes.name}", resourceCulture);
+		${accessModifier} static string ${name} => ResourceManager.GetString("${element.attributes.name}", resourceCulture);
 	
 	`;
-					}
-
-				});
-
-				resourceCSharpClassText += `}
-}`;
-				console.log(resourceCSharpClassText);
-
-
-				if (workspacePath != null) {
-					let pathToWrite = path.join(workspacePath, csharpFileName);
-					await FileHelper.writeToFile(pathToWrite, resourceCSharpClassText);
 				}
+
+			});
+
+			resourceCSharpClassText += `}
+}`;
+			console.log(resourceCSharpClassText);
+
+
+			if (workspacePath != null) {
+				let pathToWrite = path.join(workspacePath, csharpFileName);
+				await FileHelper.writeToFile(pathToWrite, resourceCSharpClassText);
 			}
 		}
-	}
-	catch (error) {
-		throw error;
 	}
 }
 
@@ -306,8 +285,8 @@ function sortKeyValuesResx(reverse?: boolean) {
 		var text = vscode.window.activeTextEditor?.document?.getText() ?? "";
 		var jsObj = xmljs.xml2js(text);
 
-		var dataList = new Array();
-		var sorted = new Array();
+		var dataList: any = [];
+		var sorted: any = [];
 		jsObj.elements[0].elements.forEach((x: any) => {
 			if (x.name === "data") {
 				dataList.push(x);
@@ -318,14 +297,23 @@ function sortKeyValuesResx(reverse?: boolean) {
 		});
 
 		var dataListsorted = dataList.sort((x1: any, x2: any) => {
-			return x1.attributes.name < x2.attributes.name
-				? -1
-				: x1.attributes.name > x2.attributes.name
-					? 1
-					: 0;
+			if (reverse) {
+				return x1.attributes.name > x2.attributes.name
+					? -1
+					: x1.attributes.name < x2.attributes.name
+						? 1
+						: 0;
+			} else {
+				return x1.attributes.name < x2.attributes.name
+					? -1
+					: x1.attributes.name > x2.attributes.name
+						? 1
+						: 0;
+			}
+
 		});
 
-		sorted.push.apply(sorted, dataListsorted);
+		sorted.push(...dataListsorted);
 		jsObj.elements[0].elements = sorted;
 
 		var xml = xmljs.js2xml(jsObj, { spaces: 4 });
@@ -353,8 +341,8 @@ function getDataJs(): any[] {
 async function newPreview() {
 	var text = vscode.window.activeTextEditor?.document?.getText() ?? "";
 	var jsObj = xmljs.xml2js(text);
-	var dataList = new Array();
-	var sorted = new Array();
+	var dataList: any = [];
+	var sorted = [];
 	jsObj.elements[0].elements.forEach((x: any) => {
 		if (x.name === "data") {
 			dataList.push(x);

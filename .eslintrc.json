@@ -1,0 +1,27 @@
+{
+    "root": true,
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "project": [
+            "./tsconfig.json"
+        ]
+    },
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "rules": {
+        "no-var": "off",
+        "prefer-const": "off",
+        "quotes": "error",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/ban-ts-comment": "off"
+    },
+    "ignorePatterns": [
+        "src/**/*.test.ts",
+        "src/test/**/*ts"
+    ]
+}
