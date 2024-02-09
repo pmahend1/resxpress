@@ -1,12 +1,12 @@
-import path = require('path');
-import * as vscode from 'vscode';
-import { getNonce } from './util';
+import path = require("path");
+import * as vscode from "vscode";
+import { getNonce } from "./util";
 
 class PreviewEditPanel {
 
 	public static currentPanel: PreviewEditPanel | undefined;
 
-	public static readonly viewType = 'previewEdit';
+	public static readonly viewType = "previewEdit";
 
 	private readonly panel: vscode.WebviewPanel;
 	public content: string;
@@ -32,14 +32,14 @@ class PreviewEditPanel {
 		// Otherwise, create a new panel.
 		const panel = vscode.window.createWebviewPanel(
 			PreviewEditPanel.viewType,
-			'PreviewEdit',
+			"PreviewEdit",
 			column || vscode.ViewColumn.One,
 			{
 				// Enable javascript in the webview
 				enableScripts: true,
 
 				// And restrict the webview to only loading content from our extension's `webpanel` directory.
-				localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'styles'), vscode.Uri.joinPath(extensionUri, 'out')]
+				localResourceRoots: [vscode.Uri.joinPath(extensionUri, "styles"), vscode.Uri.joinPath(extensionUri, "out")]
 			}
 		);
 
@@ -64,8 +64,8 @@ class PreviewEditPanel {
 
 		// Update the content based on view changes
 		this.panel.onDidChangeViewState(
-			e => {
-				if (this.panel.visible) {
+			(e : vscode.WebviewPanelOnDidChangeViewStateEvent) => {
+				if (this.panel.visible || e.webviewPanel.visible) {
 					this.update(this.content);
 				}
 			},
@@ -77,7 +77,7 @@ class PreviewEditPanel {
 		this.panel.webview.onDidReceiveMessage(
 			message => {
 				switch (message.command) {
-					case 'alert':
+					case "alert":
 						vscode.window.showErrorMessage(message.text);
 						return;
 				}
@@ -90,7 +90,7 @@ class PreviewEditPanel {
 	public doRefactor() {
 		// Send a message to the webview webview.
 		// You can send any JSON serializable data.
-		this.panel.webview.postMessage({ command: 'refactor' });
+		this.panel.webview.postMessage({ command: "refactor" });
 	}
 
 	public dispose() {
@@ -133,8 +133,8 @@ class PreviewEditPanel {
 	}
 
 	private getHtmlForWebview(webview: vscode.Webview, content: string) {
-		const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.extensionUri.path, 'out', 'webpanelScript.js')));
-		const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.extensionUri.path, 'styles', 'webpanel.css')));
+		const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.extensionUri.path, "out", "webpanelScript.js")));
+		const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.extensionUri.path, "styles", "webpanel.css")));
 		const nonce = getNonce();
 
 		return `<!DOCTYPE html>

@@ -1,4 +1,4 @@
-import * as xmljs from 'xml-js';
+import * as xmljs from "xml-js";
 export class ResxJsonHelper {
     /**
      *
@@ -12,12 +12,12 @@ export class ResxJsonHelper {
     
             if (jsObj.root.data instanceof Array) {
                 dataList = dataList.concat(jsObj.root.data);
-                console.log('its array so concat 2 two arrays');
+                console.log("its array so concat 2 two arrays");
             }
             else {
                 //check if empty object
                 if (jsObj.root.data?._attributes?.name) {
-                    console.log('it is an object  so append to existing array');
+                    console.log("it is an object  so append to existing array");
                     dataList.push(jsObj.root.data);
                 }
             }
@@ -25,7 +25,7 @@ export class ResxJsonHelper {
     
         console.log(`Datalist after process :${JSON.stringify(dataList)}`);
     
-        console.log('getDataJs end ');
+        console.log("getDataJs end ");
         return dataList;
     }
 }

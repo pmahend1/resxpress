@@ -4,6 +4,11 @@ All notable changes to the **ResxPress** extension will be documented in this fi
 
 ---
 
+## 6.0.1 - 08-Feb-2024
+
+- Fixed an issue where webpack did not export webpanelScript.js
+- Updated es-lint
+  
 ## 6.0.0 - 08-Feb-2024
 
 - Custom editor is set to *optional* now to be compatible with git diff. You can still open ResxEditor from editor context menu for resx files. Right click on file -> Open with -> select ResXpress Editor.

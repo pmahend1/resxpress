@@ -1,6 +1,7 @@
-import * as vscode from 'vscode';
-import { ResxEditor } from './resxEditor';
-import { ResxJsonHelper } from './resxJsonHelper';
+import * as vscode from "vscode";
+import { ResxEditor } from "./resxEditor";
+import { ResxJsonHelper } from "./resxJsonHelper";
+import { FileHelper } from "./fileHelper";
 
 /**
  * Provider for Resx editors.
@@ -24,7 +25,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
 
     private readonly context: vscode.ExtensionContext;
 
-    private static readonly viewType = 'resxpress.editor';
+    private static readonly viewType = "resxpress.editor";
     private readonly resxEditor: ResxEditor;
 
     constructor(context: vscode.ExtensionContext) {
@@ -43,14 +44,18 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
             enableScripts: true,
         };
 
-        await this.resxEditor.tryGetNamespace();
+        if (_token.isCancellationRequested) {
+            return;
+        }
+
+        await FileHelper.tryGetNamespace();
         webviewPanel.webview.html = this.resxEditor.getHtmlForWebview(webviewPanel.webview);
 
         function updateWebview() {
 
             var jsonText = JSON.stringify(ResxJsonHelper.getJsonData(document.getText()));
             webviewPanel.webview.postMessage({
-                type: 'update',
+                type: "update",
                 text: jsonText
             });
 
@@ -70,17 +75,17 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
         // Receive message from the webview.
         webviewPanel.webview.onDidReceiveMessage((e: any) => {
             switch (e.type) {
-                case 'update':
+                case "update":
                     this.resxEditor.updateTextDocument(document, e.json);
                     return;
-                case 'add':
+                case "add":
                     this.resxEditor.addNewKeyValue(document, e.json);
                     return;
 
-                case 'delete':
+                case "delete":
                     this.resxEditor.deleteKeyValue(document, e.json);
                     return;
-                case 'switch':
+                case "switch":
                     vscode.window.showTextDocument(document, vscode.ViewColumn.Active);
             }
         });
@@ -88,7 +93,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
         updateWebview();
     }
 
-    content: string = '';
+    content: string = "";
     /**
      * Get the static html used for the editor webviews.
      */
