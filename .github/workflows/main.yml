@@ -17,7 +17,7 @@ jobs:
 
       - name: Install vsce and open vsx
         run: |
-          npm install -g vsce
+          npm install -g @vscode/vsce
           npm install -g ovsx
 
       - name: yarn
