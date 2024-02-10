@@ -4,7 +4,11 @@ All notable changes to the **ResxPress** extension will be documented in this fi
 
 ---
 
-## 6.0.1 - 08-Feb-2024
+## 6.0.2 - 10-Feb-2024
+
+- Fixed an issue which generated `undefined` string in strongly typed resource file name.
+
+## 6.0.1 - 09-Feb-2024
 
 - Fixed an issue where webpack did not export webpanelScript.js
 - Updated es-lint

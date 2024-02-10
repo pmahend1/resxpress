@@ -119,7 +119,7 @@ export async function runResGenAsync(fileName: string): Promise<void> {
 		nameSpace = path.basename(path.dirname(fileName));
 	}
 
-	if (process.platform == "win32") {
+	if (process.platform != "win32") {
 
 		var ext = "cs";
 
@@ -222,13 +222,17 @@ export async function runResGenAsync(fileName: string): Promise<void> {
 
 			jsObj.elements[0].elements.forEach((element: any) => {
 				if (element.name === "data") {
-					let name = element.attributes.name.replace(" ", "_");
+					const resourceKey = element.attributes.name;
+					let valueElementParent = element.elements.filter((x: any) => x.name == "value")?.[0];
+					let value = valueElementParent?.elements?.length > 0 ? valueElementParent.elements[0].text : "";
+					
+					const propertyName = resourceKey.replace(/ /g, "_");
 					resourceCSharpClassText += `
 
 		/// <summary>
-		/// Looks up a localized string similar to ${element.elements[0].text}.
+		/// Looks up a localized string similar to ${value}.
 		/// </summary>
-		${accessModifier} static string ${name} => ResourceManager.GetString("${element.attributes.name}", resourceCulture);
+		${accessModifier} static string ${propertyName} => ResourceManager.GetString("${resourceKey}", resourceCulture);
 	
 	`;
 				}
