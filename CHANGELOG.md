@@ -1,8 +1,9 @@
 # Change Log
 
-All notable changes to the **ResxPress** extension will be documented in this file.
+## 6.1.0 - 17-Apr-2024
 
----
+- `yarn` upgrades.
+- Added sponsorship.
 
 ## 6.0.2 - 10-Feb-2024
 
