@@ -45,7 +45,7 @@ jobs:
         run: |
           $version = ((Get-Content .\package.json | ConvertFrom-Json).version).ToString()
           Write-Host 'Current version from package.json: ' $version
-          Write-Host "::set-output name=VERSION::$version"
+          Write-Host "currentVersion=$version" >> $GITHUB_OUTPUT
 
       - name: Get published version from VS Code extension REST API
         id: getPublishedVersion
@@ -58,13 +58,13 @@ jobs:
           $response = Invoke-RestMethod 'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery' -Method Post -Headers $headers -Body $body
           $publishedVersion= ($response.results[0].extensions.versions.version).ToString()
           Write-Host 'Last Published version: '$publishedVersion 
-          Write-Host "::set-output name=PUB_VERSION::$publishedVersion"
+          Write-Host "publishedVersion=$publishedVersion" >> $GITHUB_OUTPUT
 
       - name: Compare local version with marketplace version
         id: compare
         run: |
           Import-Module PoshSemanticVersion
-          $com = Compare-SemanticVersion ${{ steps.getpackageversion.outputs.VERSION }} ${{ steps.getPublishedVersion.outputs.PUB_VERSION }}
+          $com = Compare-SemanticVersion ${{ steps.getpackageversion.outputs.currentVersion }} ${{ steps.getPublishedVersion.outputs.publishedVersion }}
 
           if ($com.Precedence -eq '>') {
             Write-Host "Version in package.json is higher than latest published version"
