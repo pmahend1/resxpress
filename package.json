@@ -129,7 +129,7 @@
         "ts-loader": "^9.2.3",
         "typescript": "*",
         "vscode-test": "^1.5.1",
-        "webpack": "^5.23.0",
+        "webpack": "^5.94.0",
         "webpack-cli": "^5.0.1",
         "xml-js": "^1.6.11"
     }
