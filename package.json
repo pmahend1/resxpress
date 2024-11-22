@@ -53,6 +53,10 @@
             {
                 "command": "resxpress.newpreview",
                 "title": "ResXpress: Web Preview"
+            },
+            {
+                "command": "resxpress.setNameSpace",
+                "title": "ResXpress: Set Namespace"
             }
         ],
         "snippets": [
@@ -73,6 +77,13 @@
             "editor/title/context": [
                 {
                     "command": "resxpress.newpreview",
+                    "group": "3_preview",
+                    "when": "resourceExtname == .resx"
+                }
+            ],
+            "explorer/context": [
+                {
+                    "command": "resxpress.setNameSpace",
                     "group": "3_preview",
                     "when": "resourceExtname == .resx"
                 }

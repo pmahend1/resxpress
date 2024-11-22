@@ -3,7 +3,7 @@
 ## 6.1.1 - 18-Jun-2024
 
 - `yarn` upgrades.
--  Fixes [braces vulnerability](https://github.com/advisories/GHSA-grv7-fg5c-xmjg)
+- Fixes [braces vulnerability](https://github.com/advisories/GHSA-grv7-fg5c-xmjg)
 
 ## 6.1.0 - 17-Apr-2024
 

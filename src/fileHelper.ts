@@ -1,7 +1,8 @@
 import * as vscode from "vscode";
 import path = require("path");
 import { writeFile } from "fs/promises";
-import { readFileSync } from "fs";
+import {  existsSync, mkdirSync, readFileSync } from "fs";
+
 
 export class FileHelper {
     public static getFileName(): (string | null) {
@@ -21,6 +22,8 @@ export class FileHelper {
         return null;
     }
 
+    
+
     public static getActiveDocumentText(): string {
         var text = "";
         if (vscode.window.activeTextEditor?.document) {
@@ -31,6 +34,11 @@ export class FileHelper {
 
     public static async writeToFile(filePath: string, text: string) {
         if (filePath != "") {
+            const dir = path.dirname(filePath);
+            if (!existsSync(dir)){
+                mkdirSync(dir, { recursive: true });
+            }
+            
             await writeFile(filePath, text);
         }
     }

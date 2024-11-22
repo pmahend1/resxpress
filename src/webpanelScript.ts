@@ -314,7 +314,7 @@ let currentResxJS: any = [];
 						const keyInput = document.createElement("input");
 						keyInput.type = "text";
 						keyInput.value = node._attributes.name ?? "";
-						console.log("key : " + node._attributes.name ?? "");
+						console.log("key : " + node._attributes.name);
 
 						keyInput.id = `${index}.key`;
 						keyInput.addEventListener("focusout", inputEvent, false);
@@ -326,7 +326,7 @@ let currentResxJS: any = [];
 						valueInput.value = node.value._text ?? "";
 						valueInput.type = "text";
 						valueInput.id = `${index}.value`;
-						console.log("Value : " + node.value._text ?? "");
+						console.log("Value : " + node.value._text);
 						valueInput.addEventListener("focusout", inputEvent, false);
 						value.appendChild(valueInput);
 
@@ -337,7 +337,7 @@ let currentResxJS: any = [];
 						commentInput.type = "text";
 						commentInput.value = node?.comment?._text ?? "";
 
-						console.log("comment : " + node?.comment?._text ?? "");
+						console.log("comment : " + node?.comment?._text);
 						commentInput.addEventListener("focusout", inputEvent, false);
 						comment.appendChild(commentInput);
 

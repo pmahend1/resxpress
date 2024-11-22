@@ -7,9 +7,13 @@ import *  as xmljs from "xml-js";
 import { ResxEditorProvider } from "./resxEditorProvider";
 import { NotificationService } from "./notificationService";
 import { FileHelper } from "./fileHelper";
+import { TextInputBoxOptions } from "./textInputBoxOptions";
+
 
 let currentContext: vscode.ExtensionContext;
 var shouldGenerateStronglyTypedResourceClassOnSave: boolean = false
+
+const resxpress = "resxpress";
 
 export function activate(context: vscode.ExtensionContext) {
 	try {
@@ -73,6 +77,8 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	)
 	);
+
+	context.subscriptions.push(vscode.commands.registerCommand(`${resxpress}.setNameSpace`, () => setNamespace()))
 
 	context.subscriptions.push(vscode.commands.registerTextEditorCommand("resxpress.resxeditor", async () => { await newPreview(); }));
 
@@ -213,8 +219,8 @@ namespace ${nameSpace}
 				if (propertyNameReg !== null) {
 
 					var propertyName: string = propertyNameReg.toString();
-					
-					
+
+
 
 					propertyName = convertToPascalCase(propertyName);
 					if (startsWithNumber(propertyName)) {
@@ -473,3 +479,29 @@ async function displayJsonInHtml(jsonData: any[], filename: string) {
 		console.error(error);
 	}
 }
+async function  setNamespace() {
+	console.log("setNamespace started");
+	let fileName = FileHelper.getFileName();
+	if (fileName !== null) {
+		const inputBoxOptions = new TextInputBoxOptions("Namespace", "",
+			undefined,
+			"Enter namespace",
+			"Namespace",
+			true
+		)
+		const namespaceValue = await vscode.window.showInputBox(inputBoxOptions);
+		console.log(`namespace entered : ${namespaceValue}`);
+		if (namespaceValue) {
+			let rec: Record<string, string> = {fileName, namespaceValue}; 
+			
+			let workspacePath = FileHelper.getDirectory();
+			if(workspacePath){
+				let pathToWrite = path.join(workspacePath, ".resxpress/namespacemapping.json");
+				FileHelper.writeToFile(pathToWrite, JSON.stringify(rec))
+			}
+
+		}
+
+	}
+}
+
