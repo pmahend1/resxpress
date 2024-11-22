@@ -149,6 +149,7 @@ export async function runResGenAsync(fileName: string): Promise<void> {
 	}
 
 	let nameSpace = await FileHelper.tryGetNamespace();
+
 	if (nameSpace === null || nameSpace === "") {
 		nameSpace = path.basename(path.dirname(fileName));
 	}
@@ -161,9 +162,7 @@ export async function runResGenAsync(fileName: string): Promise<void> {
 		let accessModifier = "public";
 		let workspacePath = FileHelper.getDirectory();
 
-		resourceCSharpClassText += `using System;
-		
-namespace ${nameSpace}
+		resourceCSharpClassText += `namespace ${nameSpace}
 {
 	/// <summary>
 	///   A strongly-typed resource class, for looking up localized strings, etc.
@@ -175,8 +174,6 @@ namespace ${nameSpace}
 	${accessModifier} class ${filename} 
 	{
 		private static global::System.Resources.ResourceManager resourceMan;
-
-		private static global::System.Globalization.CultureInfo resourceCulture;
 
 		[global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
 		${accessModifier} ${filename}()
@@ -193,7 +190,7 @@ namespace ${nameSpace}
 			{
 				if (object.ReferenceEquals(resourceMan, null))
 				{
-					global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("${nameSpace}.${fileName}}", typeof(Resource1).Assembly);
+					global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("${nameSpace}.${filename}", typeof(${filename}).Assembly);
 					resourceMan = temp;
 				}
 				return resourceMan;
@@ -205,9 +202,7 @@ namespace ${nameSpace}
 		///   resource lookups using this strongly typed resource class.
 		/// </summary>
 		[global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-		${accessModifier} static global::System.Globalization.CultureInfo Culture { get; set; }
-		
-		`;
+		${accessModifier} static global::System.Globalization.CultureInfo Culture { get; set; }`;
 
 		jsObj.elements[0].elements.forEach((element: any) => {
 			if (element.name === "data") {
@@ -217,11 +212,7 @@ namespace ${nameSpace}
 
 				var propertyNameReg = resourceKey.replace(/ /g, "_");
 				if (propertyNameReg !== null) {
-
 					var propertyName: string = propertyNameReg.toString();
-
-
-
 					propertyName = convertToPascalCase(propertyName);
 					if (startsWithNumber(propertyName)) {
 						propertyName = `_${propertyName}`;
@@ -231,14 +222,9 @@ namespace ${nameSpace}
 		/// <summary>
 		/// Looks up a localized string similar to ${value}.
 		/// </summary>
-		${accessModifier} static string ${propertyName} => ResourceManager.GetString("${propertyName}", resourceCulture);
-	
-	`;
+		${accessModifier} static string ${propertyName} => ResourceManager.GetString("${resourceKey}", Culture);`;
 				}
-
-
 			}
-
 		});
 
 		resourceCSharpClassText += `}
@@ -479,7 +465,7 @@ async function displayJsonInHtml(jsonData: any[], filename: string) {
 		console.error(error);
 	}
 }
-async function  setNamespace() {
+async function setNamespace() {
 	console.log("setNamespace started");
 	let fileName = FileHelper.getFileName();
 	if (fileName !== null) {
@@ -492,16 +478,15 @@ async function  setNamespace() {
 		const namespaceValue = await vscode.window.showInputBox(inputBoxOptions);
 		console.log(`namespace entered : ${namespaceValue}`);
 		if (namespaceValue) {
-			let rec: Record<string, string> = {fileName, namespaceValue}; 
-			
+			let rec: Record<string, string> = {};
+			rec[fileName] = namespaceValue;
+
 			let workspacePath = FileHelper.getDirectory();
-			if(workspacePath){
+			if (workspacePath) {
 				let pathToWrite = path.join(workspacePath, ".resxpress/namespacemapping.json");
 				FileHelper.writeToFile(pathToWrite, JSON.stringify(rec))
 			}
-
 		}
-
 	}
 }
 

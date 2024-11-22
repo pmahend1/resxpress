@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import path = require("path");
-import { writeFile } from "fs/promises";
-import {  existsSync, mkdirSync, readFileSync } from "fs";
+import { readFile, writeFile } from "fs/promises";
+import { existsSync, mkdirSync, readFileSync } from "fs";
 
 
 export class FileHelper {
@@ -22,7 +22,7 @@ export class FileHelper {
         return null;
     }
 
-    
+
 
     public static getActiveDocumentText(): string {
         var text = "";
@@ -35,10 +35,10 @@ export class FileHelper {
     public static async writeToFile(filePath: string, text: string) {
         if (filePath != "") {
             const dir = path.dirname(filePath);
-            if (!existsSync(dir)){
+            if (!existsSync(dir)) {
                 mkdirSync(dir, { recursive: true });
             }
-            
+
             await writeFile(filePath, text);
         }
     }
@@ -49,7 +49,7 @@ export class FileHelper {
             var namespace = "Unknown";
             if (fileName != null && fileName != "") {
                 let fileUrls = await vscode.workspace.findFiles(`**/${fileName}.Designer.cs`, null, 1);
-                
+
 
                 if (fileUrls.length > 0) {
                     const fileContent = readFileSync(fileUrls[0].fsPath, "utf-8");
@@ -62,10 +62,26 @@ export class FileHelper {
                         var newLines = lines.filter(x => x.startsWith("namespace ")).map(x => x.trim().replace("namespace ", "").replace(" ", "").replace("{", ""));
                         if (newLines.length > 0) {
                             namespace = newLines[0];
-                            return namespace;
+                            //return namespace;
                         }
                     }
                 }
+            }
+            if (namespace === "Unknown") {
+                let workspacePath = FileHelper.getDirectory();
+                if (workspacePath) {
+                    let pathToRead = path.join(workspacePath, ".resxpress/namespacemapping.json");
+                    let content = await this.getFileText(pathToRead);
+                    if(content.length > 0){
+                        
+                          
+                        var x = JSON.parse(content);
+                        if (x && fileName && x[fileName]) {
+                            return x[fileName];
+                        }
+                    }
+                }
+                
             }
             return namespace;
 
@@ -75,5 +91,14 @@ export class FileHelper {
             }
             return null;
         }
+    }
+
+    public static async getFileText(filepath: string): Promise<string> {
+        if (existsSync(filepath)) {
+            //
+            let content = await readFile(filepath, { encoding: "utf-8" });
+            return content;
+        }
+        return "";
     }
 }
