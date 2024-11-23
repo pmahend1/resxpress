@@ -12,8 +12,7 @@ import { TextInputBoxOptions } from "./textInputBoxOptions";
 
 let currentContext: vscode.ExtensionContext;
 var shouldGenerateStronglyTypedResourceClassOnSave: boolean = false
-
-const resxpress = "resxpress";
+export const resxpress = "resxpress";
 
 export function activate(context: vscode.ExtensionContext) {
 	try {
@@ -74,11 +73,9 @@ export function activate(context: vscode.ExtensionContext) {
 					await newPreview();
 				}
 			);
-		}
-	)
-	);
+		}));
 
-	context.subscriptions.push(vscode.commands.registerCommand(`${resxpress}.setNameSpace`, () => setNamespace()))
+	context.subscriptions.push(vscode.commands.registerCommand(`${resxpress}.setNameSpace`, async () => await setNamespace()))
 
 	context.subscriptions.push(vscode.commands.registerTextEditorCommand("resxpress.resxeditor", async () => { await newPreview(); }));
 
@@ -330,6 +327,7 @@ function getDataJs(): any[] {
 	var jsObj: any = xmljs.xml2js(text, { compact: true });
 	return jsObj.root.data;
 }
+
 async function newPreview() {
 	var text = vscode.window.activeTextEditor?.document?.getText() ?? "";
 	var jsObj = xmljs.xml2js(text);
@@ -465,6 +463,23 @@ async function displayJsonInHtml(jsonData: any[], filename: string) {
 		console.error(error);
 	}
 }
+
+function isStringRecord(obj: any): obj is Record<string, string> {
+	if (obj === null)
+		return false;
+
+	if (typeof obj !== "object")
+		return false;
+
+	if (Array.isArray(obj))
+		return false;
+
+	if (Object.getOwnPropertySymbols(obj).length > 0)
+		return false;
+
+	return Object.getOwnPropertyNames(obj).every(p => typeof obj[p] === "string");
+}
+
 async function setNamespace() {
 	console.log("setNamespace started");
 	let fileName = FileHelper.getFileName();
@@ -478,15 +493,27 @@ async function setNamespace() {
 		const namespaceValue = await vscode.window.showInputBox(inputBoxOptions);
 		console.log(`namespace entered : ${namespaceValue}`);
 		if (namespaceValue) {
-			let rec: Record<string, string> = {};
-			rec[fileName] = namespaceValue;
+
 
 			let workspacePath = FileHelper.getDirectory();
 			if (workspacePath) {
-				let pathToWrite = path.join(workspacePath, ".resxpress/namespacemapping.json");
-				FileHelper.writeToFile(pathToWrite, JSON.stringify(rec))
+				let pathToWrite = path.join(workspacePath, `.${resxpress}/namespace-mapping.json`);
+				let content = await FileHelper.getFileText(pathToWrite);
+				var didWrite = false;
+				if (content.length > 0) {
+					let namespaceMaps = JSON.parse(content);
+					if (isStringRecord(namespaceMaps)) {
+						namespaceMaps[fileName] = namespaceValue;
+						await FileHelper.writeToFile(pathToWrite, JSON.stringify(namespaceMaps))
+						didWrite = true;
+					}
+				}
+				if (didWrite === false) {
+					let rec: Record<string, string> = {};
+					rec[fileName] = namespaceValue;
+					await FileHelper.writeToFile(pathToWrite, JSON.stringify(rec))
+				}
 			}
 		}
 	}
 }
-

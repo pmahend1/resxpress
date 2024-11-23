@@ -61,8 +61,8 @@ export class ResxEditor {
      * Add a new key value back to text editor 
      */
     public addNewKeyValue(document: vscode.TextDocument, json: any) {
-        var newObj = JSON.parse(json);
-        var docDataList = ResxJsonHelper.getJsonData(document.getText());
+        const newObj = JSON.parse(json);
+        const docDataList = ResxJsonHelper.getJsonData(document.getText());
 
         var pos = docDataList.map((x) => { return x?._attributes?.name; }).indexOf(newObj._attributes.name);
 

@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import path = require("path");
 import { readFile, writeFile } from "fs/promises";
 import { existsSync, mkdirSync, readFileSync } from "fs";
+import { resxpress } from "./extension";
 
 
 export class FileHelper {
@@ -22,8 +23,6 @@ export class FileHelper {
         return null;
     }
 
-
-
     public static getActiveDocumentText(): string {
         var text = "";
         if (vscode.window.activeTextEditor?.document) {
@@ -38,7 +37,6 @@ export class FileHelper {
             if (!existsSync(dir)) {
                 mkdirSync(dir, { recursive: true });
             }
-
             await writeFile(filePath, text);
         }
     }
@@ -47,14 +45,31 @@ export class FileHelper {
         try {
             let fileName = FileHelper.getFileName();
             var namespace = "Unknown";
-            if (fileName != null && fileName != "") {
-                let fileUrls = await vscode.workspace.findFiles(`**/${fileName}.Designer.cs`, null, 1);
 
+            let workspacePath = FileHelper.getDirectory();
+            if (workspacePath) {
+                let pathToRead = path.join(workspacePath, `.${resxpress}/namespace-mapping.json`);
+                let content = await this.getFileText(pathToRead);
+                if (content.length > 0) {
+                    try {
+                        var namespaceMappingRec = JSON.parse(content);
+                        if (namespaceMappingRec && fileName && namespaceMappingRec[fileName]) {
+                            namespace = namespaceMappingRec[fileName];
+                        }
+                    } catch (error) {
+                        if (error instanceof Error) {
+                            console.log(error.message);
+                        }
+                    }
+                }
+            }
+            if ((namespace === "Unknown" || namespace.length === 0) && fileName !== null && fileName.length > 0) {
+                let fileUrls = await vscode.workspace.findFiles(`**/${fileName}.Designer.cs`, null, 1);
 
                 if (fileUrls.length > 0) {
                     const fileContent = readFileSync(fileUrls[0].fsPath, "utf-8");
 
-                    if (fileContent && fileContent != "") {
+                    if (fileContent && fileContent.length > 0) {
                         var lines = fileContent.split("\r\n");
                         if (lines.length == 1) {
                             lines = fileContent.split("\n");
@@ -62,26 +77,9 @@ export class FileHelper {
                         var newLines = lines.filter(x => x.startsWith("namespace ")).map(x => x.trim().replace("namespace ", "").replace(" ", "").replace("{", ""));
                         if (newLines.length > 0) {
                             namespace = newLines[0];
-                            //return namespace;
                         }
                     }
                 }
-            }
-            if (namespace === "Unknown") {
-                let workspacePath = FileHelper.getDirectory();
-                if (workspacePath) {
-                    let pathToRead = path.join(workspacePath, ".resxpress/namespacemapping.json");
-                    let content = await this.getFileText(pathToRead);
-                    if(content.length > 0){
-                        
-                          
-                        var x = JSON.parse(content);
-                        if (x && fileName && x[fileName]) {
-                            return x[fileName];
-                        }
-                    }
-                }
-                
             }
             return namespace;
 
@@ -95,7 +93,6 @@ export class FileHelper {
 
     public static async getFileText(filepath: string): Promise<string> {
         if (existsSync(filepath)) {
-            //
             let content = await readFile(filepath, { encoding: "utf-8" });
             return content;
         }
