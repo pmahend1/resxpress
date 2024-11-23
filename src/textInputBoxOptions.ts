@@ -17,10 +17,8 @@ export class TextInputBoxOptions implements vscode.InputBoxOptions {
     }
 
     validateInput(value: string): string | vscode.InputBoxValidationMessage | undefined | null | Thenable<string | vscode.InputBoxValidationMessage | undefined | null> {
-        if(value.length === 0)
-        {
-            return {message: "Should not be empty!", severity: vscode.InputBoxValidationSeverity.Error};
+        if (value.length === 0) {
+            return { message: "Should not be empty!", severity: vscode.InputBoxValidationSeverity.Error };
         }
-        
     }
 }

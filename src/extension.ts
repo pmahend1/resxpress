@@ -11,7 +11,8 @@ import { TextInputBoxOptions } from "./textInputBoxOptions";
 
 
 let currentContext: vscode.ExtensionContext;
-var shouldGenerateStronglyTypedResourceClassOnSave: boolean = false
+var shouldGenerateStronglyTypedResourceClassOnSave: boolean = false;
+
 export const resxpress = "resxpress";
 
 export function activate(context: vscode.ExtensionContext) {
@@ -26,18 +27,15 @@ export function activate(context: vscode.ExtensionContext) {
 	currentContext = context;
 	loadConfiguration();
 
-	vscode.workspace.onDidChangeConfiguration(() => {
-		loadConfiguration();
-	});
+	vscode.workspace.onDidChangeConfiguration(loadConfiguration);
 
-	context.subscriptions.push(vscode.commands.registerTextEditorCommand("resxpress.resxpreview",
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand(`${resxpress}.resxpreview`,
 		async () => {
-			vscode.window.withProgress(
-				{
-					location: vscode.ProgressLocation.Notification,
-					cancellable: false,
-					title: "ResXpress",
-				},
+			vscode.window.withProgress({
+				location: vscode.ProgressLocation.Notification,
+				cancellable: false,
+				title: "ResXpress",
+			},
 				async (p) => {
 					p.report({ message: "Showing Preview" });
 					await displayAsMarkdown();
@@ -45,47 +43,41 @@ export function activate(context: vscode.ExtensionContext) {
 			);
 		}));
 
-	context.subscriptions.push(vscode.commands.registerTextEditorCommand("resxpress.sortbykeys",
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand(`${resxpress}.sortbykeys`,
 		async () => {
-			vscode.window.withProgress(
-				{
-					location: vscode.ProgressLocation.Notification,
-					cancellable: false,
-					title: "ResXpress",
-				},
-				async (p) => {
-					p.report({ message: "Sorting by keys" });
-					await sortByKeys();
-				}
-			);
+			vscode.window.withProgress({
+				location: vscode.ProgressLocation.Notification,
+				cancellable: false,
+				title: "ResXpress",
+			}, async (p) => {
+				p.report({ message: "Sorting by keys" });
+				await sortByKeys();
+			});
 		}));
 
-	context.subscriptions.push(vscode.commands.registerTextEditorCommand("resxpress.newpreview",
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand(`${resxpress}.newpreview`,
 		async () => {
-			vscode.window.withProgress(
-				{
-					location: vscode.ProgressLocation.Notification,
-					cancellable: false,
-					title: "ResXpress",
-				},
-				async (p) => {
-					p.report({ message: "Showing Web Preview" });
-					await newPreview();
-				}
-			);
+			vscode.window.withProgress({
+				location: vscode.ProgressLocation.Notification,
+				cancellable: false,
+				title: "ResXpress"
+			}, async (progress) => {
+				progress.report({ message: "Showing Web Preview" });
+				await newPreview();
+			});
 		}));
 
 	context.subscriptions.push(vscode.commands.registerCommand(`${resxpress}.setNameSpace`, async () => await setNamespace()))
 
-	context.subscriptions.push(vscode.commands.registerTextEditorCommand("resxpress.resxeditor", async () => { await newPreview(); }));
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand(`${resxpress}.resxeditor`, async () => await newPreview()));
 
 	context.subscriptions.push(ResxEditorProvider.register(context));
 
-	vscode.workspace.onDidSaveTextDocument(async (documentSavedEvent) => {
+	vscode.workspace.onDidSaveTextDocument(async (document) => {
 		try {
-			var isResx = documentSavedEvent.fileName.endsWith(".resx");
+			var isResx = document.fileName.endsWith(".resx");
 			if (isResx && shouldGenerateStronglyTypedResourceClassOnSave) {
-				await runResGenAsync(documentSavedEvent.fileName);
+				await runResGenAsync(document);
 			}
 		}
 		catch (error) {
@@ -108,9 +100,10 @@ function loadConfiguration() {
 	let resxConfig = vscode.workspace.getConfiguration("resxpress.configuration");
 	shouldGenerateStronglyTypedResourceClassOnSave = resxConfig.get<boolean>("generateStronglyTypedResourceClassOnSave") ?? false;
 }
+
 function startsWithNumber(str: string): boolean {
 	if (str.length === 0) {
-		return false; // Handle empty strings
+		return false;
 	}
 
 	const firstChar = str[0];
@@ -138,17 +131,17 @@ function convertToPascalCase(str: string): string {
 }
 
 
-export async function runResGenAsync(fileName: string): Promise<void> {
-	let filename = FileHelper.getFileName();
+export async function runResGenAsync(document: vscode.TextDocument): Promise<void> {
+	let filename = FileHelper.getFileNameNoExt(document);
 	let csharpFileName = "Resources.cs";
 	if (filename !== null) {
 		csharpFileName = `${filename}.Designer.cs`;
 	}
 
-	let nameSpace = await FileHelper.tryGetNamespace();
+	let nameSpace = await FileHelper.tryGetNamespace(document);
 
 	if (nameSpace === null || nameSpace === "") {
-		nameSpace = path.basename(path.dirname(fileName));
+		nameSpace = path.basename(path.dirname(filename));
 	}
 
 
@@ -157,7 +150,7 @@ export async function runResGenAsync(fileName: string): Promise<void> {
 		var jsObj = xmljs.xml2js(documentText);
 		var resourceCSharpClassText = "";
 		let accessModifier = "public";
-		let workspacePath = FileHelper.getDirectory();
+		let workspacePath = FileHelper.getDirectory(document);
 
 		resourceCSharpClassText += `namespace ${nameSpace}
 {
@@ -237,8 +230,9 @@ export async function runResGenAsync(fileName: string): Promise<void> {
 }
 
 
-// this method is called when your extension is deactivated
-export function deactivate() { }
+export function deactivate() {
+	console.log(`${resxpress} deactivated`);
+}
 
 async function sortByKeys() {
 	try {
@@ -287,19 +281,10 @@ function sortKeyValuesResx(reverse?: boolean) {
 
 		var dataListsorted = dataList.sort((x1: any, x2: any) => {
 			if (reverse) {
-				return x1.attributes.name > x2.attributes.name
-					? -1
-					: x1.attributes.name < x2.attributes.name
-						? 1
-						: 0;
+				return x1.attributes.name > x2.attributes.name ? -1 : x1.attributes.name < x2.attributes.name ? 1 : 0;
 			} else {
-				return x1.attributes.name < x2.attributes.name
-					? -1
-					: x1.attributes.name > x2.attributes.name
-						? 1
-						: 0;
+				return x1.attributes.name < x2.attributes.name ? -1 : x1.attributes.name > x2.attributes.name ? 1 : 0;
 			}
-
 		});
 
 		sorted.push(...dataListsorted);
@@ -482,7 +467,9 @@ function isStringRecord(obj: any): obj is Record<string, string> {
 
 async function setNamespace() {
 	console.log("setNamespace started");
-	let fileName = FileHelper.getFileName();
+	let document = vscode.window.activeTextEditor?.document;
+	if (document) {
+		let fileName = FileHelper.getFileNameNoExt(document);
 	if (fileName !== null) {
 		const inputBoxOptions = new TextInputBoxOptions("Namespace", "",
 			undefined,
@@ -495,7 +482,7 @@ async function setNamespace() {
 		if (namespaceValue) {
 
 
-			let workspacePath = FileHelper.getDirectory();
+			let workspacePath = FileHelper.getDirectory(document);
 			if (workspacePath) {
 				let pathToWrite = path.join(workspacePath, `.${resxpress}/namespace-mapping.json`);
 				let content = await FileHelper.getFileText(pathToWrite);
@@ -516,4 +503,6 @@ async function setNamespace() {
 			}
 		}
 	}
+	}
+	
 }

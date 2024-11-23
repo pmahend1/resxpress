@@ -2,6 +2,8 @@ import * as vscode from "vscode";
 import { ResxEditor } from "./resxEditor";
 import { ResxJsonHelper } from "./resxJsonHelper";
 import { FileHelper } from "./fileHelper";
+import { WebpanelPostMessageKind } from "./webpanelMessageKind";
+import { resxpress } from "./extension";
 
 /**
  * Provider for Resx editors.
@@ -17,15 +19,7 @@ import { FileHelper } from "./fileHelper";
  */
 export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
 
-    public static register(context: vscode.ExtensionContext): vscode.Disposable {
-        const provider = new ResxEditorProvider(context);
-        const providerRegistration = vscode.window.registerCustomEditorProvider(ResxEditorProvider.viewType, provider);
-        return providerRegistration;
-    }
-
     private readonly context: vscode.ExtensionContext;
-
-    private static readonly viewType = "resxpress.editor";
     private readonly resxEditor: ResxEditor;
 
     constructor(context: vscode.ExtensionContext) {
@@ -33,32 +27,57 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
         this.resxEditor = new ResxEditor(this.context);
     }
 
+    public static register(context: vscode.ExtensionContext): vscode.Disposable {
+        const provider = new ResxEditorProvider(context);
+        const providerRegistration = vscode.window.registerCustomEditorProvider(`${resxpress}.editor`, provider);
+        return providerRegistration;
+    }
+
     /**
      * Called when our custom editor is opened.
      */
-    public async resolveCustomTextEditor(document: vscode.TextDocument,
-        webviewPanel: vscode.WebviewPanel,
-        _token: vscode.CancellationToken): Promise<void> {
+    public async resolveCustomTextEditor(document: vscode.TextDocument, webviewPanel: vscode.WebviewPanel, _token: vscode.CancellationToken): Promise<void> {
         // Setup initial content for the webview
         webviewPanel.webview.options = {
-            enableScripts: true,
+            enableScripts: true
         };
 
         if (_token.isCancellationRequested) {
             return;
         }
+        const namespace = await FileHelper.tryGetNamespace(document);
+        webviewPanel.webview.html = this.resxEditor.getHtmlForWebview(webviewPanel.webview, namespace ?? "");
 
-        await FileHelper.tryGetNamespace();
-        webviewPanel.webview.html = this.resxEditor.getHtmlForWebview(webviewPanel.webview);
+        // Receive message from the webview.
+        webviewPanel.webview.onDidReceiveMessage(e => {
+            console.log(`webviewPanel.webview.onDidReceiveMessage: ${e}`);
+            switch (e.type) {
+                case WebpanelPostMessageKind.Update:
+                    this.resxEditor.updateTextDocument(document, e.json);
+                    break;
+                case WebpanelPostMessageKind.Add:
+                    this.resxEditor.addNewKeyValue(document, e.json);
+                    break;
+
+                case WebpanelPostMessageKind.Delete:
+                    this.resxEditor.deleteKeyValue(document, e.json);
+                    break;
+                case WebpanelPostMessageKind.Switch:
+                    vscode.window.showTextDocument(document, vscode.ViewColumn.Active);
+                    break;
+                case WebpanelPostMessageKind.NamespaceUpdate:
+                    vscode.commands.executeCommand(`${resxpress}.setNamespace`);
+                    break;
+            }
+        });
 
         function updateWebview() {
 
             var jsonText = JSON.stringify(ResxJsonHelper.getJsonData(document.getText()));
             webviewPanel.webview.postMessage({
-                type: "update",
-                text: jsonText
+                type: WebpanelPostMessageKind.Update,
+                json: jsonText
             });
-
         }
 
         const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(e => {
@@ -72,30 +91,10 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
             changeDocumentSubscription.dispose();
         });
 
-        // Receive message from the webview.
-        webviewPanel.webview.onDidReceiveMessage((e: any) => {
-            switch (e.type) {
-                case "update":
-                    this.resxEditor.updateTextDocument(document, e.json);
-                    return;
-                case "add":
-                    this.resxEditor.addNewKeyValue(document, e.json);
-                    return;
 
-                case "delete":
-                    this.resxEditor.deleteKeyValue(document, e.json);
-                    return;
-                case "switch":
-                    vscode.window.showTextDocument(document, vscode.ViewColumn.Active);
-            }
-        });
 
         updateWebview();
     }
 
     content: string = "";
-    /**
-     * Get the static html used for the editor webviews.
-     */
-
 }

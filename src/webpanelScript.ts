@@ -1,3 +1,5 @@
+import { WebpanelPostMessageKind } from "./webpanelMessageKind";
+
 // @ts-check
 let currentResxJS: any = [];
 
@@ -54,7 +56,7 @@ let currentResxJS: any = [];
 
 							vscode.setState({ text: JSON.stringify(currentResxJS) });
 							vscode.postMessage({
-								type: "add",
+								type: WebpanelPostMessageKind.Add,
 								json: JSON.stringify(newObj)
 							});
 						}
@@ -120,7 +122,7 @@ let currentResxJS: any = [];
 				console.log("Input event : " + JSON.stringify(currentResxJS));
 				vscode.setState({ text: JSON.stringify(currentResxJS) });
 				vscode.postMessage({
-					type: "update",
+					type: WebpanelPostMessageKind.Update,
 					json: JSON.stringify(currentResxJS)
 				});
 			}
@@ -155,7 +157,7 @@ let currentResxJS: any = [];
 						vscode.setState({ text: JSON.stringify(currentResxJS) });//always set the full list
 
 						vscode.postMessage({
-							type: "delete",
+							type: WebpanelPostMessageKind.Delete,
 							json: JSON.stringify(deleteableObj)
 						});
 					}
@@ -169,59 +171,26 @@ let currentResxJS: any = [];
 			}
 		}
 	}
-	// let namespace = document.getElementById("namespace");
-	// if (namespace) {
-	// 	namespace.addEventListener("click", () => {
-	// 		namespace?.removeAttribute("disabled");
-	// 	});
-	// }
 
-	//middleThing
-	/* let middleThing = document.getElementById("middleThing");
-	if (middleThing && middleThing !== null) {
-		middleThing.addEventListener("click", () => {
-			console.log(`middleThing clicked`);
-			let namespace = document.getElementById("namespace");
-			let divElement = document.createElement("div");
-
-			if (namespace) {
-				middleThing?.removeChild(namespace);
-				console.log(`removing namespace ${namespace}`);
-			}
-			let inputElement = document.createElement("input");
-			inputElement.id = "namespace";
-			inputElement.type = "text"
-			inputElement.placeholder = "Enter namespace";
-
-			inputElement.addEventListener("focusout", (ev) => {
-				const val = inputElement.value;
-				console.log(`removing inputElement ${inputElement.nodeType}`);
-				middleThing?.removeChild(inputElement);
-				divElement.id = "namespace";
-				divElement.innerHTML = `Namespace: ${val}`;
-
-
-				divElement.addEventListener("click", (ev) => {
-
-				}, false);
-				middleThing?.appendChild(divElement);
-			}, false);
-
-			middleThing?.appendChild(inputElement);
-			inputElement.focus();
+	let changeNamespaceButton = document.getElementById("changeNamespaceButton");
+	if (changeNamespaceButton) {
+		changeNamespaceButton.addEventListener("click", ()=> {
+			vscode.postMessage({
+				type: WebpanelPostMessageKind.NamespaceUpdate,
+				json: JSON.stringify("")
+			});
 		});
-	} */
-	var add = document.getElementById("addButton");
+	}
+	let add = document.getElementById("addButton");
 
 	var switchToTextEditor = document.getElementById("switchToEditor");
 
 	if (switchToTextEditor) {
 		switchToTextEditor.addEventListener("click", async () => {
 			vscode.postMessage({
-				type: "switch",
+				type: WebpanelPostMessageKind.Switch,
 				json: JSON.stringify("")
 			});
-
 		});
 	}
 
@@ -375,7 +344,7 @@ let currentResxJS: any = [];
 		const message = event.data; // The json data that the extension sent
 		const text = message.text;
 		switch (message.type) {
-			case "update":
+			case WebpanelPostMessageKind.Update:
 				var sentDataListJs = JSON.parse(text) ?? [];
 
 				if (sentDataListJs.length !== currentResxJS.length) {

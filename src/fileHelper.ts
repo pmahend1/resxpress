@@ -6,21 +6,18 @@ import { resxpress } from "./extension";
 
 
 export class FileHelper {
-    public static getFileName(): (string | null) {
-        if (vscode.window.activeTextEditor?.document) {
-            let parsedPath = path.parse(vscode.window.activeTextEditor.document.fileName);
-            var fileName = parsedPath.name;
-            return fileName;
-        }
-        return null;
+
+    public static getFileNameNoExt(document: vscode.TextDocument): string {
+        let parsedPath = path.parse(document.fileName);
+        var fileName = parsedPath.name;
+        return fileName;
     }
 
-    public static getDirectory(): (string | null) {
-        if (vscode.window.activeTextEditor?.document) {
-            let parsedPath = path.parse(vscode.window.activeTextEditor.document.fileName);
-            return parsedPath.dir
-        }
-        return null;
+    public static getDirectory(document: vscode.TextDocument): string {
+
+        let parsedPath = path.parse(document.fileName);
+        return parsedPath.dir
+
     }
 
     public static getActiveDocumentText(): string {
@@ -41,20 +38,19 @@ export class FileHelper {
         }
     }
 
-    public static async tryGetNamespace(): Promise<string | null> {
+    public static async tryGetNamespace(document: vscode.TextDocument): Promise<string | null> {
         try {
-            let fileName = FileHelper.getFileName();
             var namespace = "Unknown";
-
-            let workspacePath = FileHelper.getDirectory();
+            let fileNameNoExt = FileHelper.getFileNameNoExt(document);
+            let workspacePath = FileHelper.getDirectory(document);
             if (workspacePath) {
                 let pathToRead = path.join(workspacePath, `.${resxpress}/namespace-mapping.json`);
                 let content = await this.getFileText(pathToRead);
                 if (content.length > 0) {
                     try {
                         var namespaceMappingRec = JSON.parse(content);
-                        if (namespaceMappingRec && fileName && namespaceMappingRec[fileName]) {
-                            namespace = namespaceMappingRec[fileName];
+                        if (namespaceMappingRec && fileNameNoExt && namespaceMappingRec[fileNameNoExt]) {
+                            namespace = namespaceMappingRec[fileNameNoExt];
                         }
                     } catch (error) {
                         if (error instanceof Error) {
@@ -63,8 +59,8 @@ export class FileHelper {
                     }
                 }
             }
-            if ((namespace === "Unknown" || namespace.length === 0) && fileName !== null && fileName.length > 0) {
-                let fileUrls = await vscode.workspace.findFiles(`**/${fileName}.Designer.cs`, null, 1);
+            if ((namespace === "Unknown" || namespace.length === 0) && fileNameNoExt.length > 0) {
+                let fileUrls = await vscode.workspace.findFiles(`**/${fileNameNoExt}.Designer.cs`, null, 1);
 
                 if (fileUrls.length > 0) {
                     const fileContent = readFileSync(fileUrls[0].fsPath, "utf-8");

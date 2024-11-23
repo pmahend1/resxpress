@@ -63,15 +63,11 @@ class PreviewEditPanel {
 		this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
 
 		// Update the content based on view changes
-		this.panel.onDidChangeViewState(
-			(e : vscode.WebviewPanelOnDidChangeViewStateEvent) => {
-				if (this.panel.visible || e.webviewPanel.visible) {
-					this.update(this.content);
-				}
-			},
-			null,
-			this.disposables
-		);
+		this.panel.onDidChangeViewState((e: vscode.WebviewPanelOnDidChangeViewStateEvent) => {
+			if (this.panel.visible || e.webviewPanel.visible) {
+				this.update(this.content);
+			}
+		}, null, this.disposables);
 
 		// Handle messages from the webview
 		this.panel.webview.onDidReceiveMessage(

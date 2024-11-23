@@ -10,13 +10,13 @@ export class ResxEditor {
         this.context = context;
     }
 
-    public getHtmlForWebview(webview: vscode.Webview): string {
+    public getHtmlForWebview(webview: vscode.Webview, namespace: string): string {
 
         const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "out", "webpanelScript.js")));
         const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "webpanel.css")));
 
         const nonce = getNonce();
-
+  
         return `<!DOCTYPE html>
         <html lang="en">
         <head>
@@ -40,6 +40,10 @@ export class ResxEditor {
                 <div id="rightThing">
                     <button class="smallButtonStyle" id="switchToEditor">Switch to Text Editor</button>
                 </div>
+            </div>
+            <div id="container2" class="namespaceDiv">
+                <h2>namepace</h2><h3>${namespace}</h3>
+                <button class="smallButtonStyle" id="changeNamespaceButton">Change namespace</button>
             </div>
             <table id="tbl">
                 <thead class="tableFixHead thead th">
