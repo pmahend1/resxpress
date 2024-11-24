@@ -533,10 +533,10 @@ async function createResxFile(uri: vscode.Uri | null) {
 			const workspaceEdit = new vscode.WorkspaceEdit();
 			let thisWorkspace = "";
 			if (uri) {
-				thisWorkspace = uri.toString();
+				thisWorkspace = uri.fsPath;
 			}
-			else if (vscode.workspace.workspaceFolders) {
-				thisWorkspace = vscode.workspace.workspaceFolders[0].uri.toString();
+			else if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+				thisWorkspace = vscode.workspace.workspaceFolders[0].uri.fsPath;
 			}
 			else {
 				vscode.window.showErrorMessage("Cannot create resx file!");
@@ -573,7 +573,7 @@ async function createResxFile(uri: vscode.Uri | null) {
 			let document = await vscode.workspace.openTextDocument(newUri);
 			await vscode.window.showTextDocument(document);
 			let workspaceFolder = vscode.workspace.getWorkspaceFolder(newUri);
-			
+
 			if (workspaceFolder) {
 				const fileNameNoExt = fileName.replace(".resx", "");
 				await createOrUpdateNamespaceMappingFile(workspaceFolder, fileNameNoExt, namespace);
