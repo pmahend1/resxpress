@@ -497,7 +497,7 @@ async function createOrUpdateNamespaceMappingFile(workspaceFolder: vscode.Worksp
 	}
 }
 
-async function setNamespace(uri: vscode.Uri) {
+export async function setNamespace(uri: vscode.Uri) {
 	if (uri) {
 		let parsedPath = path.parse(uri.fsPath);
 		const fileName = parsedPath.name;

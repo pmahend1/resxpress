@@ -10,7 +10,7 @@ export class ResxEditor {
         this.context = context;
     }
 
-    public getHtmlForWebview(webview: vscode.Webview, namespace: string): string {
+    public getHtmlForWebview(webview: vscode.Webview, namespace: string, content: string): string {
 
         const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "out", "webpanelScript.js")));
         const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "webpanel.css")));
@@ -62,6 +62,7 @@ export class ResxEditor {
                     <th> </th>
                 </thead>
                 <tbody>
+                 ${content}
                 </tbody>
             </table>
             <script nonce="${nonce}" src="${scriptUri}"></script>

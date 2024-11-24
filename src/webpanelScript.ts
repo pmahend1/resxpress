@@ -1,4 +1,5 @@
 import { WebpanelPostMessageKind } from "./webpanelMessageKind";
+import { WebpanelPostMessage } from "./wevpanelPostMessage";
 
 // @ts-check
 let currentResxJS: any = [];
@@ -55,10 +56,10 @@ let currentResxJS: any = [];
 							errorContainer.style.display = "";
 
 							vscode.setState({ text: JSON.stringify(currentResxJS) });
-							vscode.postMessage({
-								type: WebpanelPostMessageKind.Add,
-								json: JSON.stringify(newObj)
-							});
+							vscode.postMessage(new WebpanelPostMessage(
+								WebpanelPostMessageKind.Add,
+								JSON.stringify(newObj)
+							));
 						}
 						else {
 							console.log("has dupes ");
@@ -121,10 +122,10 @@ let currentResxJS: any = [];
 
 				console.log("Input event : " + JSON.stringify(currentResxJS));
 				vscode.setState({ text: JSON.stringify(currentResxJS) });
-				vscode.postMessage({
-					type: WebpanelPostMessageKind.Update,
-					json: JSON.stringify(currentResxJS)
-				});
+				vscode.postMessage(new WebpanelPostMessage(
+					WebpanelPostMessageKind.Update,
+					JSON.stringify(currentResxJS)
+				));
 			}
 		}
 	}
@@ -156,10 +157,10 @@ let currentResxJS: any = [];
 
 						vscode.setState({ text: JSON.stringify(currentResxJS) });//always set the full list
 
-						vscode.postMessage({
-							type: WebpanelPostMessageKind.Delete,
-							json: JSON.stringify(deleteableObj)
-						});
+						vscode.postMessage(new WebpanelPostMessage(
+							WebpanelPostMessageKind.Delete,
+							JSON.stringify(deleteableObj)
+						));
 					}
 					else {
 						let row = td.parentNode;
@@ -174,11 +175,10 @@ let currentResxJS: any = [];
 
 	let changeNamespaceButton = document.getElementById("changeNamespaceButton");
 	if (changeNamespaceButton) {
-		changeNamespaceButton.addEventListener("click", ()=> {
-			vscode.postMessage({
-				type: WebpanelPostMessageKind.NamespaceUpdate,
-				json: JSON.stringify("")
-			});
+		changeNamespaceButton.addEventListener("click", () => {
+			vscode.postMessage(new WebpanelPostMessage(
+				WebpanelPostMessageKind.NamespaceUpdate,
+				JSON.stringify("")));
 		});
 	}
 	let add = document.getElementById("addButton");
@@ -187,10 +187,9 @@ let currentResxJS: any = [];
 
 	if (switchToTextEditor) {
 		switchToTextEditor.addEventListener("click", async () => {
-			vscode.postMessage({
-				type: WebpanelPostMessageKind.Switch,
-				json: JSON.stringify("")
-			});
+			vscode.postMessage(new WebpanelPostMessage(
+				WebpanelPostMessageKind.Switch,
+				JSON.stringify("")));
 		});
 	}
 
