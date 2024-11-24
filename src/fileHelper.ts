@@ -14,10 +14,8 @@ export class FileHelper {
     }
 
     public static getDirectory(document: vscode.TextDocument): string {
-
         let parsedPath = path.parse(document.fileName);
         return parsedPath.dir
-
     }
 
     public static getActiveDocumentText(): string {

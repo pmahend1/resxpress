@@ -57,6 +57,10 @@
             {
                 "command": "resxpress.setNameSpace",
                 "title": "ResXpress: Set Namespace"
+            },
+            {
+                "command": "resxpress.createResxFile",
+                "title": "ResXpress: Create a Resx Resources file"
             }
         ],
         "snippets": [

@@ -69,6 +69,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand(`${resxpress}.setNameSpace`, async () => await setNamespace()))
 
+	context.subscriptions.push(vscode.commands.registerCommand(`${resxpress}.createResxFile`, async () => await createResxFile()))
+
 	context.subscriptions.push(vscode.commands.registerTextEditorCommand(`${resxpress}.resxeditor`, async () => await newPreview()));
 
 	context.subscriptions.push(ResxEditorProvider.register(context));
@@ -194,30 +196,38 @@ export async function runResGenAsync(document: vscode.TextDocument): Promise<voi
 		[global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
 		${accessModifier} static global::System.Globalization.CultureInfo Culture { get; set; }`;
 
-		jsObj.elements[0].elements.forEach((element: any) => {
-			if (element.name === "data") {
-				const resourceKey = element.attributes.name;
-				let valueElementParent = element.elements.filter((x: any) => x.name === "value")?.[0];
-				let value = valueElementParent?.elements?.length > 0 ? valueElementParent.elements[0].text : "";
+		if (jsObj.elements[0].elements.length > 0) {
+			jsObj.elements[0].elements.forEach((element: any) => {
+				if (element.name === "data") {
+					const resourceKey = element.attributes.name;
+					let valueElementParent = element.elements.filter((x: any) => x.name === "value")?.[0];
+					let value = valueElementParent?.elements?.length > 0 ? valueElementParent.elements[0].text : "";
 
-				var propertyNameReg = resourceKey.replace(/ /g, "_");
-				if (propertyNameReg !== null) {
-					var propertyName: string = propertyNameReg.toString();
-					propertyName = convertToPascalCase(propertyName);
-					if (startsWithNumber(propertyName)) {
-						propertyName = `_${propertyName}`;
+					var propertyNameReg = resourceKey.replace(/ /g, "_");
+					if (propertyNameReg !== null) {
+						var propertyName: string = propertyNameReg.toString();
+						propertyName = convertToPascalCase(propertyName);
+						if (startsWithNumber(propertyName)) {
+							propertyName = `_${propertyName}`;
+						}
+						resourceCSharpClassText += `
+	
+			/// <summary>
+			/// Looks up a localized string similar to ${value}.
+			/// </summary>
+			${accessModifier} static string ${propertyName} => ResourceManager.GetString("${resourceKey}", Culture);`;
 					}
-					resourceCSharpClassText += `
-
-		/// <summary>
-		/// Looks up a localized string similar to ${value}.
-		/// </summary>
-		${accessModifier} static string ${propertyName} => ResourceManager.GetString("${resourceKey}", Culture);`;
 				}
-			}
-		});
+			});
+		}
+		else {
+			resourceCSharpClassText += `
+	}`;
+		}
 
-		resourceCSharpClassText += `}
+
+		resourceCSharpClassText += `
+	}
 }`;
 		console.log(resourceCSharpClassText);
 
@@ -470,39 +480,112 @@ async function setNamespace() {
 	let document = vscode.window.activeTextEditor?.document;
 	if (document) {
 		let fileName = FileHelper.getFileNameNoExt(document);
-	if (fileName !== null) {
-		const inputBoxOptions = new TextInputBoxOptions("Namespace", "",
-			undefined,
-			"Enter namespace",
-			"Namespace",
-			true
-		)
-		const namespaceValue = await vscode.window.showInputBox(inputBoxOptions);
-		console.log(`namespace entered : ${namespaceValue}`);
-		if (namespaceValue) {
-
-
-			let workspacePath = FileHelper.getDirectory(document);
-			if (workspacePath) {
-				let pathToWrite = path.join(workspacePath, `.${resxpress}/namespace-mapping.json`);
-				let content = await FileHelper.getFileText(pathToWrite);
-				var didWrite = false;
-				if (content.length > 0) {
-					let namespaceMaps = JSON.parse(content);
-					if (isStringRecord(namespaceMaps)) {
-						namespaceMaps[fileName] = namespaceValue;
-						await FileHelper.writeToFile(pathToWrite, JSON.stringify(namespaceMaps))
-						didWrite = true;
+		if (fileName !== null) {
+			const inputBoxOptions = new TextInputBoxOptions("Namespace", "",
+				undefined,
+				"Enter namespace",
+				"Namespace",
+				true
+			)
+			const namespaceValue = await vscode.window.showInputBox(inputBoxOptions);
+			console.log(`namespace entered : ${namespaceValue}`);
+			if (namespaceValue) {
+				let workspacePath = FileHelper.getDirectory(document);
+				if (workspacePath) {
+					let pathToWrite = path.join(workspacePath, `.${resxpress}/namespace-mapping.json`);
+					let content = await FileHelper.getFileText(pathToWrite);
+					var didWrite = false;
+					if (content.length > 0) {
+						let namespaceMaps = JSON.parse(content);
+						if (isStringRecord(namespaceMaps)) {
+							namespaceMaps[fileName] = namespaceValue;
+							await FileHelper.writeToFile(pathToWrite, JSON.stringify(namespaceMaps))
+							didWrite = true;
+						}
 					}
-				}
-				if (didWrite === false) {
-					let rec: Record<string, string> = {};
-					rec[fileName] = namespaceValue;
-					await FileHelper.writeToFile(pathToWrite, JSON.stringify(rec))
+					if (didWrite === false) {
+						let rec: Record<string, string> = {};
+						rec[fileName] = namespaceValue;
+						await FileHelper.writeToFile(pathToWrite, JSON.stringify(rec))
+					}
 				}
 			}
 		}
 	}
+}
+
+async function createResxFile() {
+	const resxFileNameOptions = new TextInputBoxOptions("New Resx File", "", undefined, "Enter Resx file name", ".resx", true);
+	let fileName = await vscode.window.showInputBox(resxFileNameOptions);
+	if (fileName && fileName.length > 0) {
+		if (fileName.endsWith(".resx") === false) {
+			fileName = `${fileName}.resx`;
+		}
+		const newResxFileNamespaceOptions = new TextInputBoxOptions(`namespace for ${fileName}`, "", undefined, `Enter namespace for ${fileName}`, "", true);
+		const namespace = await vscode.window.showInputBox(newResxFileNamespaceOptions);
+		if (namespace && namespace.length > 0) {
+			const workspaceEdit = new vscode.WorkspaceEdit();
+
+			if (vscode.workspace.workspaceFolders) {
+				const thisWorkspace = vscode.workspace.workspaceFolders[0].uri.toString();
+
+				const resxFilePath = path.join(thisWorkspace, fileName);
+				// create a Uri for a file to be created
+				const newUri = vscode.Uri.parse(resxFilePath);
+				const content = `<?xml version="1.0" encoding="utf-8"?>
+<root>
+	<resheader name="resmimetype">
+		<value>text/microsoft-resx</value>
+	</resheader>
+	<resheader name="version">
+		<value>2.0</value>
+	</resheader>
+	<resheader name="reader">
+		<value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+	</resheader>
+	<resheader name="writer">
+		<value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+	</resheader>
+	<!--Data-->
+</root>`;
+
+				let encoder = new TextEncoder();
+				let uInt8Array = encoder.encode(content);
+				// create an edit that will create a file
+				workspaceEdit.createFile(newUri, { ignoreIfExists: false, overwrite: true, contents: uInt8Array });
+
+				//Create file
+				await vscode.workspace.applyEdit(workspaceEdit);
+
+				let document = await vscode.workspace.openTextDocument(newUri);
+				await vscode.window.showTextDocument(document);
+				let workspacePath = FileHelper.getDirectory(document);
+				const fileNameNoExt = fileName.replace(".resx", "");
+				if (workspacePath) {
+					let pathToWrite = path.join(workspacePath, `.${resxpress}/namespace-mapping.json`);
+					let content = await FileHelper.getFileText(pathToWrite);
+					var didWrite = false;
+					if (content.length > 0) {
+						let namespaceMaps = JSON.parse(content);
+						if (isStringRecord(namespaceMaps)) {
+							namespaceMaps[fileNameNoExt] = namespace;
+							await FileHelper.writeToFile(pathToWrite, JSON.stringify(namespaceMaps))
+							didWrite = true;
+						}
+					}
+					if (didWrite === false) {
+						let rec: Record<string, string> = {};
+						rec[fileNameNoExt] = namespace;
+						await FileHelper.writeToFile(pathToWrite, JSON.stringify(rec))
+					}
+				}
+			}
+			else {
+				vscode.window.showErrorMessage(`Invalid namespace entered for ${fileName}`);
+			}
+		}
 	}
-	
+	else {
+		vscode.window.showErrorMessage("Invalid resx file name entered");
+	}
 }
