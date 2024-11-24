@@ -16,7 +16,7 @@ export class ResxEditor {
         const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "webpanel.css")));
 
         const nonce = getNonce();
-  
+
         return `<!DOCTYPE html>
         <html lang="en">
         <head>
@@ -41,9 +41,18 @@ export class ResxEditor {
                     <button class="smallButtonStyle" id="switchToEditor">Switch to Text Editor</button>
                 </div>
             </div>
-            <div id="container2" class="namespaceDiv">
-                <h2>namepace</h2><h3>${namespace}</h3>
-                <button class="smallButtonStyle" id="changeNamespaceButton">Change namespace</button>
+            <div id="container-namespace" class="topdiv">
+                <div id="leftThing">
+                    <h2>namepace</h2>
+                </div>
+            
+                <div id="middleThing">
+                     <h3>${namespace}</h3>
+                </div>
+                
+                <div id="rightThing">
+                    <button class="smallButtonStyle" id="changeNamespaceButton">Change namespace</button>
+                </div>
             </div>
             <table id="tbl">
                 <thead class="tableFixHead thead th">

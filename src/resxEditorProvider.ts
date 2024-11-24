@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
 import { ResxEditor } from "./resxEditor";
 import { ResxJsonHelper } from "./resxJsonHelper";
-import { FileHelper } from "./fileHelper";
 import { WebpanelPostMessageKind } from "./webpanelMessageKind";
 import { resxpress } from "./extension";
+import { FileHelper } from "./fileHelper";
 
 /**
  * Provider for Resx editors.
@@ -36,7 +36,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
     /**
      * Called when our custom editor is opened.
      */
-    public async resolveCustomTextEditor(document: vscode.TextDocument, webviewPanel: vscode.WebviewPanel, _token: vscode.CancellationToken): Promise<void> {
+    public async resolveCustomTextEditor(document: vscode.TextDocument, webviewPanel: vscode.WebviewPanel, _token: vscode.CancellationToken) {
         // Setup initial content for the webview
         webviewPanel.webview.options = {
             enableScripts: true
@@ -66,7 +66,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
                     vscode.window.showTextDocument(document, vscode.ViewColumn.Active);
                     break;
                 case WebpanelPostMessageKind.NamespaceUpdate:
-                    vscode.commands.executeCommand(`${resxpress}.setNamespace`);
+                    vscode.commands.executeCommand(`${resxpress}.setNamespace`, document.uri);
                     break;
             }
         });

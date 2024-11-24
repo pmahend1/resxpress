@@ -1,7 +1,8 @@
-export enum WebpanelPostMessageKind  {
-    Switch  = "switch",
+export enum WebpanelPostMessageKind {
+    Switch = "switch",
     Add = "add",
     Delete = "delete",
     Update = "update",
-    NamespaceUpdate = "namespace-update"
+    NamespaceUpdate = "namespace-update",
+    Alert = "alert"
 }
