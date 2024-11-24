@@ -90,6 +90,11 @@
                     "command": "resxpress.setNameSpace",
                     "group": "3_preview",
                     "when": "resourceExtname == .resx"
+                },
+                {
+                    "command": "resxpress.createResxFile",
+                    "group": "3_preview",
+                    "when": "foldersViewVisible"
                 }
             ]
         },

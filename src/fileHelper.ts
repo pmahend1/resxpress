@@ -40,9 +40,9 @@ export class FileHelper {
         try {
             var namespace = "Unknown";
             let fileNameNoExt = FileHelper.getFileNameNoExt(document);
-            let workspacePath = FileHelper.getDirectory(document);
+            let workspacePath = vscode.workspace.getWorkspaceFolder(document.uri);
             if (workspacePath) {
-                let pathToRead = path.join(workspacePath, `.${resxpress}/namespace-mapping.json`);
+                let pathToRead = path.join(workspacePath.uri.fsPath, `.${resxpress}/namespace-mapping.json`);
                 let content = await this.getFileText(pathToRead);
                 if (content.length > 0) {
                     try {
