@@ -342,6 +342,9 @@ let currentResxJS: any = [];
 	window.addEventListener("message", event => {
 		const message = event.data; // The json data that the extension sent
 		const text = message.text;
+		console.log(`window.addEventListener.message : ${message}`);
+		console.log(`window.addEventListener.text : ${text}`);
+		
 		switch (message.type) {
 			case WebpanelPostMessageKind.Update:
 				var sentDataListJs = JSON.parse(text) ?? [];

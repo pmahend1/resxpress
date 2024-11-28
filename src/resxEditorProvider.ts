@@ -37,10 +37,11 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
     /**
      * Called when our custom editor is opened.
      */
-    public async resolveCustomTextEditor(document: vscode.TextDocument, webviewPanel: vscode.WebviewPanel, _token: vscode.CancellationToken) {
+    public async resolveCustomTextEditor(document: vscode.TextDocument, webviewPanel: vscode.WebviewPanel, _token: vscode.CancellationToken) : Promise<void> {
         // Setup initial content for the webview
         webviewPanel.webview.options = {
-            enableScripts: true
+            enableScripts: true,
+            enableForms: true,
         };
 
         if (_token.isCancellationRequested) {
@@ -62,6 +63,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
         
         let htmlContent = "";
 
+        let i = 0;
 		jsonData.forEach((element:any) => {
 			var valueStr = "";
 			var commentstr = "";
@@ -74,10 +76,12 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
 				}
 			});
 			htmlContent += `<tr>
-				<td>${element.attributes.name}</td>
-				<td>${valueStr}</td>
-				<td>${commentstr}</td>
+				<td><input value="${element.attributes.name}" id="key${i}"/></td>
+				<td><input value="${valueStr}" id="value${i}"/></td>
+				<td><input value="${commentstr}" id="comment${i}"/></td>
+                <td style="text-align:center;" id="delete${i}"> x </td>
 			</tr>`;
+            i = i + 1;
 		});
         webviewPanel.webview.html = this.resxEditor.getHtmlForWebview(webviewPanel.webview, namespace ?? "", htmlContent);
 
@@ -104,7 +108,6 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
                         break;
                 }
             }
-            
         });
 
         function updateWebview() {

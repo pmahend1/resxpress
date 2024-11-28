@@ -132,7 +132,6 @@ function convertToPascalCase(str: string): string {
 	}).join("");
 }
 
-
 export async function runResGenAsync(document: vscode.TextDocument): Promise<void> {
 	let filename = FileHelper.getFileNameNoExt(document);
 	let csharpFileName = "Resources.cs";
