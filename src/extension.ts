@@ -14,6 +14,7 @@ let currentContext: vscode.ExtensionContext;
 var shouldGenerateStronglyTypedResourceClassOnSave: boolean = false;
 
 export const resxpress = "resxpress";
+const extensionName = "ResXpress";
 
 export function activate(context: vscode.ExtensionContext) {
 	try {
@@ -34,7 +35,7 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.window.withProgress({
 				location: vscode.ProgressLocation.Notification,
 				cancellable: false,
-				title: "ResXpress",
+				title: extensionName,
 			},
 				async (p) => {
 					p.report({ message: "Showing Preview" });
@@ -48,7 +49,7 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.window.withProgress({
 				location: vscode.ProgressLocation.Notification,
 				cancellable: false,
-				title: "ResXpress",
+				title: extensionName,
 			}, async (p) => {
 				p.report({ message: "Sorting by keys" });
 				await sortByKeys();
@@ -60,7 +61,7 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.window.withProgress({
 				location: vscode.ProgressLocation.Notification,
 				cancellable: false,
-				title: "ResXpress"
+				title: extensionName
 			}, async (progress) => {
 				progress.report({ message: "Showing Web Preview" });
 				await newPreview();
