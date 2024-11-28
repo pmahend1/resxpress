@@ -14,7 +14,7 @@ export class ResxEditor {
 
         const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "out", "webpanelScript.js")));
         const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "webpanel.css")));
-        const faPlus = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "fa-plus.svg")));
+        const maPlusThick = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "ma-plus-thick.svg")));
         const faPenToSquare = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "fa-pen-to-square.svg")));
         const faRightLeft = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "fa-right-left.svg")));
         const nonce = getNonce();
@@ -34,16 +34,16 @@ export class ResxEditor {
 <body>
     <div class="sticky-div">
         <button id="addButton" class="btn primary">
-           <img src="${faPlus}" alt="Add Icon" class="icon"> Add New Resource
+           <img src="${maPlusThick}" alt="Add Icon" class="icon filter-fefefe"> Add New Resource
         </button>
         <p id="errorBlock" class="error-block"></p>
         <button id="switchToTextEditorButton" class="btn secondary">
-            <img src="${faRightLeft}" alt="Switch Icon" class="icon"> Switch to Text Editor
+            <img src="${faRightLeft}" alt="Switch Icon" class="icon filter-fefefe"> Switch to Text Editor
         </button>
         <div class="namespace-section">
             <span>Namespace: <strong>${namespace}</strong></span>
             <button id="changeNamespaceButton" class="btn secondary">
-                <img src="${faPenToSquare}" alt="Edit Icon" class="icon"> Change Namespace
+                <img src="${faPenToSquare}" alt="Edit Icon" class="icon filter-fefefe"> Change Namespace
             </button>
         </div>
     </div>
