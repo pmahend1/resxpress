@@ -18,16 +18,8 @@ export class FileHelper {
         return parsedPath.dir
     }
 
-    public static getActiveDocumentText(): string {
-        var text = "";
-        if (vscode.window.activeTextEditor?.document) {
-            text = vscode.window.activeTextEditor.document.getText();
-        }
-        return text;
-    }
-
     public static async writeToFile(filePath: string, text: string) {
-        if (filePath != "") {
+        if (filePath !== "") {
             const dir = path.dirname(filePath);
             if (!existsSync(dir)) {
                 mkdirSync(dir, { recursive: true });
@@ -65,7 +57,7 @@ export class FileHelper {
 
                     if (fileContent && fileContent.length > 0) {
                         var lines = fileContent.split("\r\n");
-                        if (lines.length == 1) {
+                        if (lines.length === 1) {
                             lines = fileContent.split("\n");
                         }
                         var newLines = lines.filter(x => x.startsWith("namespace ")).map(x => x.trim().replace("namespace ", "").replace(" ", "").replace("{", ""));

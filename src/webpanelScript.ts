@@ -18,7 +18,7 @@ let currentResxJS: any = [];
 	function inputEvent(event: FocusEvent) {
 		let currentElement = event.target;
 
-		if (errorContainer != null && currentElement instanceof HTMLInputElement) {
+		if (errorContainer !== null && currentElement instanceof HTMLInputElement) {
 			errorContainer.innerText = "";
 			let idstr = currentElement.id;
 			console.log("input event for id = " + idstr);
@@ -135,7 +135,7 @@ let currentResxJS: any = [];
 		const td = event.target as HTMLElement;
 		let table = document.getElementById("tbl");
 
-		if (errorContainer != null && table && td) {
+		if (errorContainer !== null && table && td) {
 			let idstr: string = td.id;
 			console.log(`Triggered td.id : ${idstr}`);
 			errorContainer.innerText = "";
@@ -252,7 +252,7 @@ let currentResxJS: any = [];
 	}
 
 	function updateContent(text: string) {
-		if (errorContainer != null) {
+		if (errorContainer !== null) {
 			if (text) {
 				let json;
 				try {

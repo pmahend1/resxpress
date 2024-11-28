@@ -146,8 +146,8 @@ export async function runResGenAsync(document: vscode.TextDocument): Promise<voi
 	}
 
 
-	let documentText = FileHelper.getActiveDocumentText();
-	if (documentText != "") {
+	let documentText = document.getText();
+	if (documentText.length > 0) {
 		var jsObj = xmljs.xml2js(documentText);
 		var resourceCSharpClassText = "";
 		let accessModifier = "public";
@@ -230,8 +230,7 @@ export async function runResGenAsync(document: vscode.TextDocument): Promise<voi
 }`;
 		console.log(resourceCSharpClassText);
 
-
-		if (workspacePath != null) {
+		if (workspacePath.length > 0) {
 			let pathToWrite = path.join(workspacePath, csharpFileName);
 			await FileHelper.writeToFile(pathToWrite, resourceCSharpClassText);
 		}
