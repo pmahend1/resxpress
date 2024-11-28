@@ -341,7 +341,7 @@ let currentResxJS: any = [];
 
 	window.addEventListener("message", event => {
 		const message = event.data; // The json data that the extension sent
-		const text = message.text;
+		const text = message.json;
 		console.log(`window.addEventListener.message : ${message}`);
 		console.log(`window.addEventListener.text : ${text}`);
 		

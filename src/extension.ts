@@ -509,8 +509,6 @@ export async function setNamespace(uri: vscode.Uri) {
 				if (workspaceFolder) {
 					await createOrUpdateNamespaceMappingFile(workspaceFolder, fileName, namespaceValue);
 				}
-			} else {
-				vscode.window.showErrorMessage("Invalid path for resx file. Cannot set namespace.")
 			}
 		}
 	}

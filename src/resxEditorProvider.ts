@@ -37,7 +37,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
     /**
      * Called when our custom editor is opened.
      */
-    public async resolveCustomTextEditor(document: vscode.TextDocument, webviewPanel: vscode.WebviewPanel, _token: vscode.CancellationToken) : Promise<void> {
+    public async resolveCustomTextEditor(document: vscode.TextDocument, webviewPanel: vscode.WebviewPanel, _token: vscode.CancellationToken): Promise<void> {
         // Setup initial content for the webview
         webviewPanel.webview.options = {
             enableScripts: true,
@@ -60,58 +60,58 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
                 sorted.push(x);
             }
         });
-        
+
         let htmlContent = "";
 
         let i = 0;
-		jsonData.forEach((element:any) => {
-			var valueStr = "";
-			var commentstr = "";
-			element.elements.forEach((subElement: any) => {
-				if (subElement.name === "value" && subElement.elements?.length > 0) {
-					valueStr = subElement.elements[0].text;
-				}
-				else if (subElement.name === "comment" && subElement.elements?.length > 0) {
-					commentstr = subElement.elements[0].text;
-				}
-			});
-			htmlContent += `<tr>
-				<td><input value="${element.attributes.name}" id="key${i}"/></td>
-				<td><input value="${valueStr}" id="value${i}"/></td>
-				<td><input value="${commentstr}" id="comment${i}"/></td>
-                <td style="text-align:center;" id="delete${i}"> x </td>
+        jsonData.forEach((element: any) => {
+            var valueStr = "";
+            var commentstr = "";
+            element.elements.forEach((subElement: any) => {
+                if (subElement.name === "value" && subElement.elements?.length > 0) {
+                    valueStr = subElement.elements[0].text;
+                }
+                else if (subElement.name === "comment" && subElement.elements?.length > 0) {
+                    commentstr = subElement.elements[0].text;
+                }
+            });
+            htmlContent += `<tr>
+				<td><input value="${element.attributes.name}" id="${i}.key"/></td>
+				<td><input value="${valueStr}" id="${i}.value"/></td>
+				<td><input value="${commentstr}" id="${i}.comment"/></td>
+                <td style="text-align:center;" id="${i}.delete.p"><p>X</p></td>
 			</tr>`;
             i = i + 1;
-		});
+        });
         webviewPanel.webview.html = this.resxEditor.getHtmlForWebview(webviewPanel.webview, namespace ?? "", htmlContent);
 
         // Receive message from the webview.
-        webviewPanel.webview.onDidReceiveMessage(e => {
+        webviewPanel.webview.onDidReceiveMessage(async (e) => {
             console.log(`webviewPanel.webview.onDidReceiveMessage: ${JSON.stringify(e)}`);
             switch (e.type) {
-                    case WebpanelPostMessageKind.Update:
-                        this.resxEditor.updateTextDocument(document, e.json);
-                        break;
-                    case WebpanelPostMessageKind.Add:
-                        this.resxEditor.addNewKeyValue(document, e.json);
-                        break;
-    
-                    case WebpanelPostMessageKind.Delete:
-                        this.resxEditor.deleteKeyValue(document, e.json);
-                        break;
-                    case WebpanelPostMessageKind.Switch:
-                        vscode.window.showTextDocument(document, vscode.ViewColumn.Active);
-                        break;
-                    case WebpanelPostMessageKind.NamespaceUpdate:
-                        setNamespace(document.uri);
-                        break;
-                }
-            });
+                case WebpanelPostMessageKind.Update:
+                    this.resxEditor.updateTextDocument(document, e.json);
+                    break;
+                case WebpanelPostMessageKind.Add:
+                    this.resxEditor.addNewKeyValue(document, e.json);
+                    break;
+
+                case WebpanelPostMessageKind.Delete:
+                    this.resxEditor.deleteKeyValue(document, e.json);
+                    break;
+                case WebpanelPostMessageKind.Switch:
+                    vscode.window.showTextDocument(document, vscode.ViewColumn.Active);
+                    break;
+                case WebpanelPostMessageKind.NamespaceUpdate:
+                    await setNamespace(document.uri);
+                    break;
+            }
+        });
 
         function updateWebview() {
 
             var jsonText = JSON.stringify(ResxJsonHelper.getJsonData(document.getText()));
-            webviewPanel.webview.postMessage(new WebpanelPostMessage(WebpanelPostMessageKind.Update,jsonText));
+            webviewPanel.webview.postMessage(new WebpanelPostMessage(WebpanelPostMessageKind.Update, jsonText));
         }
 
         const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(e => {
