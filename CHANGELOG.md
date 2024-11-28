@@ -1,5 +1,10 @@
 # Change Log
 
+## 7.0.0 - 27-Nov-2024
+
+- `yarn` upgrades.
+- Improvements to C# resource file generation. No longer needs resgen.
+
 ## 6.1.1 - 18-Jun-2024
 
 - `yarn` upgrades.

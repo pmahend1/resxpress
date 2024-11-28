@@ -183,7 +183,7 @@ let currentResxJS: any = [];
 	}
 	let add = document.getElementById("addButton");
 
-	var switchToTextEditor = document.getElementById("switchToEditor");
+	var switchToTextEditor = document.getElementById("switchToTextEditorButton");
 
 	if (switchToTextEditor) {
 		switchToTextEditor.addEventListener("click", async () => {

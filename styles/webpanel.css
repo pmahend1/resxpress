@@ -121,3 +121,92 @@ p {
   position: -webkit-sticky;
   padding: -chrome-sticky;
 }
+
+.sticky-div {
+  position: sticky;
+  top: 0;
+  background-color: var(--vscode-editor-background);
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px; /* Space between elements */
+  align-items: center;
+  z-index: 1000;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  background-color: #007bff;
+  color: var(--vscode-editor-background);
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 18px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+  white-space: nowrap;
+}
+
+.btn svg {
+  margin-right: 6px; /* Spacing between icon and text */
+  fill: currentColor; /* Matches text color dynamically */
+}
+
+.btn:hover {
+  background-color: #0056b3;
+}
+
+.btn.primary {
+  background-color: #123456;
+  color: #ffffff;
+}
+
+.btn.primary:hover {
+  background-color: #0f2e4a;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Secondary Button Style */
+.btn.secondary {
+  background-color: #5A9BD5; /* Light blue for secondary buttons */
+  color: #ffffff;
+}
+
+.btn.secondary:hover {
+  background-color: #4A89C3;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.error-block {
+  color: #ff4d4f; /* Error red */
+  font-size: 14px;
+  margin: 0;
+  flex-grow: 1; /* Fills remaining space */
+}
+
+.namespace-section {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Spacing between text and button */
+  flex-grow: 1; /* Ensures alignment */
+}
+
+.namespace-section span {
+  font-size: 14px;
+  color: #333;
+}
+
+.namespace-section strong {
+  font-weight: bold;
+  color: #007bff;
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 6px; /* Space between icon and text */
+  color: white;
+}

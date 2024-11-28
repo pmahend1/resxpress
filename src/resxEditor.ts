@@ -14,60 +14,54 @@ export class ResxEditor {
 
         const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "out", "webpanelScript.js")));
         const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "webpanel.css")));
-
+        const faPlus = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "fa-plus.svg")));
+        const faPenToSquare = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "fa-pen-to-square.svg")));
+        const faRightLeft = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "fa-right-left.svg")));
         const nonce = getNonce();
 
         return `<!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta http-equiv="Content-Security-Policy"
-                content="default-src 'none'; img-src ${webview.cspSource}; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';" />
-            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <link href="${styleUri}" rel="stylesheet" />
-            <title>ResxFileName</title>    
-        </head>
-        <body>
-            <div id="container" class="topdiv">
-                <div id="leftThing">
-                    <button class="largeButtonStyle" id="addButton">Add New Resource</button>
-                </div>
-            
-                <div id="middleThing">
-                    <div id="diverr" class="error"></div>
-                </div>
-                
-                <div id="rightThing">
-                    <button class="smallButtonStyle" id="switchToEditor">Switch to Text Editor</button>
-                </div>
-            </div>
-            <div id="container-namespace" class="topdiv">
-                <div id="leftThing">
-                    <h2>namepace</h2>
-                </div>
-            
-                <div id="middleThing">
-                     <h3>${namespace}</h3>
-                </div>
-                
-                <div id="rightThing">
-                    <button class="smallButtonStyle" id="changeNamespaceButton">Change namespace</button>
-                </div>
-            </div>
-            <table id="tbl">
-                <thead class="tableFixHead thead th">
-                    <th>Key</th>
-                    <th>Value</th>
-                    <th>Comment</th>
-                    <th> </th>
-                </thead>
-                <tbody>
-                 ${content}
-                </tbody>
-            </table>
-            <script nonce="${nonce}" src="${scriptUri}"></script>
-        </body>
-        </html>`;
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; img-src ${webview.cspSource}; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="${styleUri}" rel="stylesheet" />
+    <title>ResxFileName</title>
+</head>
+
+<body>
+    <div class="sticky-div">
+        <button id="addButton" class="btn primary">
+           <img src="${faPlus}" alt="Add Icon" class="icon"> Add New Resource
+        </button>
+        <p id="errorBlock" class="error-block"></p>
+        <button id="switchToTextEditorButton" class="btn secondary">
+            <img src="${faRightLeft}" alt="Switch Icon" class="icon"> Switch to Text Editor
+        </button>
+        <div class="namespace-section">
+            <span>Namespace: <strong>${namespace}</strong></span>
+            <button id="changeNamespaceButton" class="btn secondary">
+                <img src="${faPenToSquare}" alt="Edit Icon" class="icon"> Change Namespace
+            </button>
+        </div>
+    </div>
+
+    <table id="tbl">
+        <thead class="tableFixHead thead th">
+            <th>Key</th>
+            <th>Value</th>
+            <th>Comment</th>
+            <th> </th>
+        </thead>
+        <tbody>
+            ${content}
+        </tbody>
+    </table>
+    <script nonce="${nonce}" src="${scriptUri}"></script>
+</body>
+</html>`;
     }
 
     /**
