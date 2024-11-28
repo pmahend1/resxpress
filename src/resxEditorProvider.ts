@@ -88,8 +88,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
         // Receive message from the webview.
         webviewPanel.webview.onDidReceiveMessage(e => {
             console.log(`webviewPanel.webview.onDidReceiveMessage: ${JSON.stringify(e)}`);
-            if (e instanceof WebpanelPostMessage) {
-                switch (e.type) {
+            switch (e.type) {
                     case WebpanelPostMessageKind.Update:
                         this.resxEditor.updateTextDocument(document, e.json);
                         break;
@@ -107,8 +106,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
                         setNamespace(document.uri);
                         break;
                 }
-            }
-        });
+            });
 
         function updateWebview() {
 
