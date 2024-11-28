@@ -211,10 +211,10 @@ export async function runResGenAsync(document: vscode.TextDocument): Promise<voi
 						}
 						resourceCSharpClassText += `
 	
-			/// <summary>
-			/// Looks up a localized string similar to ${value}.
-			/// </summary>
-			${accessModifier} static string ${propertyName} => ResourceManager.GetString("${resourceKey}", Culture);`;
+		/// <summary>
+		/// Looks up a localized string similar to ${value}.
+		/// </summary>
+		${accessModifier} static string ${propertyName} => ResourceManager.GetString("${resourceKey}", Culture);`;
 					}
 				}
 			});
