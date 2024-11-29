@@ -5,11 +5,13 @@
 	"tasks": [
 		{
 			"type": "npm",
-			"script": "watch",
-			"problemMatcher": "$tsc-watch",
+			"script": "watch", // this is from package.json
+			"problemMatcher": "$ts-checker-webpack-watch", //connor4312.esbuild-problem-matchers
 			"isBackground": true,
 			"presentation": {
-				"reveal": "never"
+				"reveal": "never",
+				"showReuseMessage": true,
+				"panel": "dedicated"
 			},
 			"group": {
 				"kind": "build",
