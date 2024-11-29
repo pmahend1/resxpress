@@ -515,9 +515,6 @@ export async function setNamespace(uri: vscode.Uri) {
 }
 
 async function createResxFile(uri: vscode.Uri | null) {
-	// if (uri) {
-	// 	console.log(uri.fsPath);
-	// }
 	const resxFileNameOptions = new TextInputBoxOptions("New Resx File", "", undefined, "Enter Resx file name", ".resx", true);
 	let fileName = await vscode.window.showInputBox(resxFileNameOptions);
 	if (fileName && fileName.length > 0) {
