@@ -100,37 +100,33 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 function loadConfiguration() {
-	let resxConfig = vscode.workspace.getConfiguration("resxpress.configuration");
+	let resxConfig = vscode.workspace.getConfiguration(`${resxpress}.configuration`);
 	shouldGenerateStronglyTypedResourceClassOnSave = resxConfig.get<boolean>("generateStronglyTypedResourceClassOnSave") ?? false;
 }
 
-function startsWithNumber(str: string): boolean {
-	if (str.length === 0) {
-		return false;
-	}
+function convertToPascalCase(input: string): string {
+    // Remove special characters and keep alphanumeric characters and spaces
+    const sanitized = input.replace(/[^a-zA-Z0-9 ]/g, "");
 
-	const firstChar = str[0];
+    // Split the string into words by spaces
+    const words = sanitized.split(" ");
 
-	// Check if the first character is a digit
-	if (!isNaN(Number(firstChar))) {
-		return true;
-	}
-	return false;
-}
+    // PascalCase
+    const pascalCaseWords = words.map(word => {
+        if (word.length === 0) return "";
+        // If word starts with uppercase, keep it; otherwise, capitalize
+        return word[0].toUpperCase() + word.slice(1);
+    });
 
-function convertToPascalCase(str: string): string {
-	// Add an underscore before the first numeric character
-	const modifiedStr = str.replace(/^(\d+)/, "_$1");
-	// Remove invalid characters and replace spaces with underscores
-	const cleanedStr = modifiedStr.replace(/[^a-zA-Z0-9_]/g, "").replace(/\s+/g, "_");
+    // Join all the words
+    let pascalCaseString = pascalCaseWords.join("");
 
-	// Split the string into words
-	const words = cleanedStr.split("_");
+    // If the resulting string starts with a digit, prefix it with an underscore
+    if (/^\d/.test(pascalCaseString)) {
+        pascalCaseString = "_" + pascalCaseString;
+    }
 
-	// Convert each word to PascalCase and concatenate
-	return words.map(word => {
-		return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-	}).join("");
+    return pascalCaseString;
 }
 
 export async function runResGenAsync(document: vscode.TextDocument): Promise<void> {
@@ -203,13 +199,8 @@ export async function runResGenAsync(document: vscode.TextDocument): Promise<voi
 					let valueElementParent = element.elements.filter((x: any) => x.name === "value")?.[0];
 					let value = valueElementParent?.elements?.length > 0 ? valueElementParent.elements[0].text : "";
 
-					var propertyNameReg = resourceKey.replace(/ /g, "_");
-					if (propertyNameReg !== null) {
-						var propertyName: string = propertyNameReg.toString();
-						propertyName = convertToPascalCase(propertyName);
-						if (startsWithNumber(propertyName)) {
-							propertyName = `_${propertyName}`;
-						}
+					if (resourceKey) {
+						let propertyName = convertToPascalCase(resourceKey);
 						resourceCSharpClassText += `
 	
 		/// <summary>

@@ -38,7 +38,7 @@
                         "filenamePattern": "*.resx"
                     }
                 ],
-                "priority": "option"
+                "priority": "default"
             }
         ],
         "commands": [
