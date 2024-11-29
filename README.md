@@ -60,11 +60,11 @@ Preview resx file as a nice Webview table.
 
 ### Adding new resx file
 
-![Adding resx file](./images/createNewResxFile.mov)
+![Adding resx file](./images/createNewResxFile.gif)
 
 ### Updating resx C# namespace
 
-![Resx namespace](./images/updateResxNamespace.mov)
+![Resx namespace](./images/updateResxNamespace.gif)
 
 ### Resx Data Snippet
 

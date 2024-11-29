@@ -1,6 +1,6 @@
 # Change Log
 
-## 7.0.0 - 28-Nov-2024
+## 7.0.0 - 29-Nov-2024
 
 - Added feature to add a new resx file.
 - Added feature to add/update resx namespace.
