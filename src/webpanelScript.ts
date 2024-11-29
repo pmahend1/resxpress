@@ -13,7 +13,7 @@ let currentResxJS: any = [];
 	let table = document.querySelector("tbody")!;
 
 
-	const errorContainer = document.getElementById("diverr");
+	const errorContainer = document.getElementById("errorBlock");
 
 	function inputEvent(event: FocusEvent) {
 		let currentElement = event.target;

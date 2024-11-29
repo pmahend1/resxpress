@@ -70,7 +70,7 @@ table {
   text-align: left;
   position: relative;
   border-collapse: collapse;
-  width: 90%;
+  width: 100%;
 }
 
 th,
@@ -112,22 +112,14 @@ p {
   text-align: center;
 }
 
-.topdiv {
-  width: 100%;
-  background-color: var(--vscode-editor-background);
-  z-index: 200;
-  top: 0px;
-  position: sticky;
-  position: -webkit-sticky;
-  padding: -chrome-sticky;
-}
 
 .sticky-div {
   position: sticky;
   top: 0;
   background-color: var(--vscode-editor-background);
   padding: 10px;
-  border-bottom: 1px solid #ddd;
+  padding-bottom: 20px;
+  border-bottom: none;
   display: flex;
   flex-wrap: wrap;
   gap: 10px; /* Space between elements */
@@ -138,11 +130,11 @@ p {
 .btn {
   display: inline-flex;
   align-items: center;
-  background-color: #007bff;
+  background-color: #067ab8;
   color: var(--vscode-editor-background);
   padding: 8px 12px;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 18px;
   cursor: pointer;
   text-decoration: none;
@@ -156,35 +148,36 @@ p {
 }
 
 .btn:hover {
-  background-color: #0056b3;
+  background-color: #005b98;
 }
 
 .btn.primary {
-  background-color: #123456;
+  background-color: #067ab8;
   color: #ffffff;
+  font-weight: 500;
 }
 
 .btn.primary:hover {
-  background-color: #0f2e4a;
+  background-color: #005b98;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 /* Secondary Button Style */
 .btn.secondary {
-  background-color: #5A9BD5; /* Light blue for secondary buttons */
+  background-color: #5A9BD5;
   color: #ffffff;
 }
 
 .btn.secondary:hover {
-  background-color: #4A89C3;
+  background-color: #1976D2;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .error-block {
-  color: #ff4d4f; /* Error red */
+  color: #dc3e36; 
   font-size: 14px;
   margin: 0;
-  flex-grow: 1; /* Fills remaining space */
+  flex-grow: 1; 
 }
 
 .namespace-section {
@@ -194,14 +187,14 @@ p {
   flex-grow: 1; /* Ensures alignment */
 }
 
-.namespace-section span {
-  font-size: 14px;
+.namespace-section span {  
   color: var(--vscode-editor-foreground);
 }
 
 .namespace-section strong {
+  font-size: large;
   font-weight: bold;
-  color: #007bff;
+  color: #5A9BD5;
 }
 
 .icon {

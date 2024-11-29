@@ -140,11 +140,11 @@ class PreviewEditPanel {
             <title>ResxFileName</title>
         </head>
         <body>
-            <div id="container" class="topdiv">
+            <div id="container" class="sticky-div">
 				<h2>${this.panel.title}</h2>
             </div>
             <table id="tbl">
-                <thead class="tableFixHead thead th">
+                <thead class="thead th">
                     <th>Key</th>
                     <th>Value</th>
                     <th>Comment</th>

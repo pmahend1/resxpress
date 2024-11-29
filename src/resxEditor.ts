@@ -36,7 +36,7 @@ export class ResxEditor {
         <button id="addButton" class="btn primary">
            <img src="${maPlusThick}" alt="Add Icon" class="icon filter-fefefe"> Add New Resource
         </button>
-        <p id="errorBlock" class="error-block"></p>
+        
         <button id="switchToTextEditorButton" class="btn secondary">
             <img src="${faRightLeft}" alt="Switch Icon" class="icon filter-fefefe"> Switch to Text Editor
         </button>
@@ -46,10 +46,11 @@ export class ResxEditor {
                 <img src="${faPenToSquare}" alt="Edit Icon" class="icon filter-fefefe"> Change Namespace
             </button>
         </div>
+        <p id="errorBlock" class="error-block"></p>
     </div>
 
     <table id="tbl">
-        <thead class="tableFixHead thead th">
+        <thead class="thead th">
             <th>Key</th>
             <th>Value</th>
             <th>Comment</th>
