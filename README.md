@@ -58,6 +58,14 @@ Preview resx file as a nice Webview table.
 
 ![Screenshot3](./images/webPreview.gif)
 
+### Adding new resx file
+
+![Adding resx file](./images/createNewResxFile.mov)
+
+### Updating resx C# namespace
+
+![Resx namespace](./images/updateResxNamespace.mov)
+
 ### Resx Data Snippet
 
 - Type `resx` and snippet will pop up.
