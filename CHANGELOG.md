@@ -1,9 +1,18 @@
 # Change Log
 
+## 7.0.0 - 29-Nov-2024
+
+- Added feature to add a new resx file.
+- Added feature to add/update resx namespace.
+- Improvements to C# resource file generation. No longer needs resgen.
+- Fixed some issues with generation of C# resource file.
+- Webview Resx editor is default now.
+- `yarn` upgrades.
+
 ## 6.1.1 - 18-Jun-2024
 
 - `yarn` upgrades.
--  Fixes [braces vulnerability](https://github.com/advisories/GHSA-grv7-fg5c-xmjg)
+- Fixes [braces vulnerability](https://github.com/advisories/GHSA-grv7-fg5c-xmjg)
 
 ## 6.1.0 - 17-Apr-2024
 

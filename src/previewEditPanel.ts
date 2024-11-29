@@ -1,6 +1,7 @@
 import path = require("path");
 import * as vscode from "vscode";
 import { getNonce } from "./util";
+import { WebpanelPostMessageKind } from "./webpanelMessageKind";
 
 class PreviewEditPanel {
 
@@ -37,7 +38,7 @@ class PreviewEditPanel {
 			{
 				// Enable javascript in the webview
 				enableScripts: true,
-
+				enableForms: true,
 				// And restrict the webview to only loading content from our extension's `webpanel` directory.
 				localResourceRoots: [vscode.Uri.joinPath(extensionUri, "styles"), vscode.Uri.joinPath(extensionUri, "out")]
 			}
@@ -63,21 +64,18 @@ class PreviewEditPanel {
 		this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
 
 		// Update the content based on view changes
-		this.panel.onDidChangeViewState(
-			(e : vscode.WebviewPanelOnDidChangeViewStateEvent) => {
-				if (this.panel.visible || e.webviewPanel.visible) {
-					this.update(this.content);
-				}
-			},
-			null,
-			this.disposables
-		);
+		this.panel.onDidChangeViewState((e: vscode.WebviewPanelOnDidChangeViewStateEvent) => {
+			if (this.panel.visible || e.webviewPanel.visible) {
+				this.update(this.content);
+			}
+		}, null, this.disposables);
 
 		// Handle messages from the webview
 		this.panel.webview.onDidReceiveMessage(
 			message => {
-				switch (message.command) {
-					case "alert":
+				console.log(message);
+				switch (message.type) {
+					case WebpanelPostMessageKind.Alert:
 						vscode.window.showErrorMessage(message.text);
 						return;
 				}
@@ -85,12 +83,6 @@ class PreviewEditPanel {
 			null,
 			this.disposables
 		);
-	}
-
-	public doRefactor() {
-		// Send a message to the webview webview.
-		// You can send any JSON serializable data.
-		this.panel.webview.postMessage({ command: "refactor" });
 	}
 
 	public dispose() {
@@ -148,11 +140,11 @@ class PreviewEditPanel {
             <title>ResxFileName</title>
         </head>
         <body>
-            <div id="container" class="topdiv">
+            <div id="container" class="sticky-div">
 				<h2>${this.panel.title}</h2>
             </div>
             <table id="tbl">
-                <thead class="tableFixHead thead th">
+                <thead class="thead th">
                     <th>Key</th>
                     <th>Value</th>
                     <th>Comment</th>

@@ -1,3 +1,6 @@
+import { WebpanelPostMessageKind } from "./webpanelMessageKind";
+import { WebpanelPostMessage } from "./wevpanelPostMessage";
+
 // @ts-check
 let currentResxJS: any = [];
 
@@ -10,12 +13,12 @@ let currentResxJS: any = [];
 	let table = document.querySelector("tbody")!;
 
 
-	const errorContainer = document.getElementById("diverr");
+	const errorContainer = document.getElementById("errorBlock");
 
 	function inputEvent(event: FocusEvent) {
 		let currentElement = event.target;
 
-		if (errorContainer != null && currentElement instanceof HTMLInputElement) {
+		if (errorContainer !== null && currentElement instanceof HTMLInputElement) {
 			errorContainer.innerText = "";
 			let idstr = currentElement.id;
 			console.log("input event for id = " + idstr);
@@ -53,10 +56,10 @@ let currentResxJS: any = [];
 							errorContainer.style.display = "";
 
 							vscode.setState({ text: JSON.stringify(currentResxJS) });
-							vscode.postMessage({
-								type: "add",
-								json: JSON.stringify(newObj)
-							});
+							vscode.postMessage(new WebpanelPostMessage(
+								WebpanelPostMessageKind.Add,
+								JSON.stringify(newObj)
+							));
 						}
 						else {
 							console.log("has dupes ");
@@ -71,8 +74,6 @@ let currentResxJS: any = [];
 						return;
 					}
 				}
-
-
 			}
 			else {
 				var editingObj = currentResxJS[index];
@@ -114,15 +115,13 @@ let currentResxJS: any = [];
 						errorContainer.style.display = "";
 						return;
 					}
-
 				}
-
 				console.log("Input event : " + JSON.stringify(currentResxJS));
 				vscode.setState({ text: JSON.stringify(currentResxJS) });
-				vscode.postMessage({
-					type: "update",
-					json: JSON.stringify(currentResxJS)
-				});
+				vscode.postMessage(new WebpanelPostMessage(
+					WebpanelPostMessageKind.Update,
+					JSON.stringify(currentResxJS)
+				));
 			}
 		}
 	}
@@ -132,7 +131,7 @@ let currentResxJS: any = [];
 		const td = event.target as HTMLElement;
 		let table = document.getElementById("tbl");
 
-		if (errorContainer != null && table && td) {
+		if (errorContainer !== null && table && td) {
 			let idstr: string = td.id;
 			console.log(`Triggered td.id : ${idstr}`);
 			errorContainer.innerText = "";
@@ -154,10 +153,10 @@ let currentResxJS: any = [];
 
 						vscode.setState({ text: JSON.stringify(currentResxJS) });//always set the full list
 
-						vscode.postMessage({
-							type: "delete",
-							json: JSON.stringify(deleteableObj)
-						});
+						vscode.postMessage(new WebpanelPostMessage(
+							WebpanelPostMessageKind.Delete,
+							JSON.stringify(deleteableObj)
+						));
 					}
 					else {
 						let row = td.parentNode;
@@ -169,59 +168,24 @@ let currentResxJS: any = [];
 			}
 		}
 	}
-	// let namespace = document.getElementById("namespace");
-	// if (namespace) {
-	// 	namespace.addEventListener("click", () => {
-	// 		namespace?.removeAttribute("disabled");
-	// 	});
-	// }
 
-	//middleThing
-	/* let middleThing = document.getElementById("middleThing");
-	if (middleThing && middleThing !== null) {
-		middleThing.addEventListener("click", () => {
-			console.log(`middleThing clicked`);
-			let namespace = document.getElementById("namespace");
-			let divElement = document.createElement("div");
-
-			if (namespace) {
-				middleThing?.removeChild(namespace);
-				console.log(`removing namespace ${namespace}`);
-			}
-			let inputElement = document.createElement("input");
-			inputElement.id = "namespace";
-			inputElement.type = "text"
-			inputElement.placeholder = "Enter namespace";
-
-			inputElement.addEventListener("focusout", (ev) => {
-				const val = inputElement.value;
-				console.log(`removing inputElement ${inputElement.nodeType}`);
-				middleThing?.removeChild(inputElement);
-				divElement.id = "namespace";
-				divElement.innerHTML = `Namespace: ${val}`;
-
-
-				divElement.addEventListener("click", (ev) => {
-
-				}, false);
-				middleThing?.appendChild(divElement);
-			}, false);
-
-			middleThing?.appendChild(inputElement);
-			inputElement.focus();
+	let changeNamespaceButton = document.getElementById("changeNamespaceButton");
+	if (changeNamespaceButton) {
+		changeNamespaceButton.addEventListener("click", () => {
+			vscode.postMessage(new WebpanelPostMessage(
+				WebpanelPostMessageKind.NamespaceUpdate,
+				JSON.stringify("")));
 		});
-	} */
-	var add = document.getElementById("addButton");
+	}
+	let add = document.getElementById("addButton");
 
-	var switchToTextEditor = document.getElementById("switchToEditor");
+	var switchToTextEditor = document.getElementById("switchToTextEditorButton");
 
 	if (switchToTextEditor) {
 		switchToTextEditor.addEventListener("click", async () => {
-			vscode.postMessage({
-				type: "switch",
-				json: JSON.stringify("")
-			});
-
+			vscode.postMessage(new WebpanelPostMessage(
+				WebpanelPostMessageKind.Switch,
+				JSON.stringify("")));
 		});
 	}
 
@@ -284,7 +248,7 @@ let currentResxJS: any = [];
 	}
 
 	function updateContent(text: string) {
-		if (errorContainer != null) {
+		if (errorContainer !== null) {
 			if (text) {
 				let json;
 				try {
@@ -314,7 +278,7 @@ let currentResxJS: any = [];
 						const keyInput = document.createElement("input");
 						keyInput.type = "text";
 						keyInput.value = node._attributes.name ?? "";
-						console.log("key : " + node._attributes.name ?? "");
+						console.log("key : " + node._attributes.name);
 
 						keyInput.id = `${index}.key`;
 						keyInput.addEventListener("focusout", inputEvent, false);
@@ -326,7 +290,7 @@ let currentResxJS: any = [];
 						valueInput.value = node.value._text ?? "";
 						valueInput.type = "text";
 						valueInput.id = `${index}.value`;
-						console.log("Value : " + node.value._text ?? "");
+						console.log("Value : " + node.value._text);
 						valueInput.addEventListener("focusout", inputEvent, false);
 						value.appendChild(valueInput);
 
@@ -337,7 +301,7 @@ let currentResxJS: any = [];
 						commentInput.type = "text";
 						commentInput.value = node?.comment?._text ?? "";
 
-						console.log("comment : " + node?.comment?._text ?? "");
+						console.log("comment : " + node?.comment?._text);
 						commentInput.addEventListener("focusout", inputEvent, false);
 						comment.appendChild(commentInput);
 
@@ -373,9 +337,12 @@ let currentResxJS: any = [];
 
 	window.addEventListener("message", event => {
 		const message = event.data; // The json data that the extension sent
-		const text = message.text;
+		const text = message.json;
+		console.log(`window.addEventListener.message : ${message}`);
+		console.log(`window.addEventListener.text : ${text}`);
+
 		switch (message.type) {
-			case "update":
+			case WebpanelPostMessageKind.Update:
 				var sentDataListJs = JSON.parse(text) ?? [];
 
 				if (sentDataListJs.length !== currentResxJS.length) {
