@@ -74,8 +74,6 @@ let currentResxJS: any = [];
 						return;
 					}
 				}
-
-
 			}
 			else {
 				var editingObj = currentResxJS[index];
@@ -117,9 +115,7 @@ let currentResxJS: any = [];
 						errorContainer.style.display = "";
 						return;
 					}
-
 				}
-
 				console.log("Input event : " + JSON.stringify(currentResxJS));
 				vscode.setState({ text: JSON.stringify(currentResxJS) });
 				vscode.postMessage(new WebpanelPostMessage(
@@ -344,7 +340,7 @@ let currentResxJS: any = [];
 		const text = message.json;
 		console.log(`window.addEventListener.message : ${message}`);
 		console.log(`window.addEventListener.text : ${text}`);
-		
+
 		switch (message.type) {
 			case WebpanelPostMessageKind.Update:
 				var sentDataListJs = JSON.parse(text) ?? [];

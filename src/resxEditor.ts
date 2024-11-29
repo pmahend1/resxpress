@@ -21,7 +21,6 @@ export class ResxEditor {
 
         return `<!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy"
@@ -30,7 +29,6 @@ export class ResxEditor {
     <link href="${styleUri}" rel="stylesheet" />
     <title>ResxFileName</title>
 </head>
-
 <body>
     <div class="sticky-div">
         <button id="addButton" class="btn primary">
@@ -104,7 +102,6 @@ export class ResxEditor {
         console.log("deleteKeyValue end");
         return this.updateTextDocument(document, JSON.stringify(currentData));
     }
-
 
     public updateTextDocument(document: vscode.TextDocument, dataListJson: any) {
         console.log("updateTextDocument start");

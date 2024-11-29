@@ -6,18 +6,7 @@ import { resxpress, setNamespace } from "./extension";
 import { FileHelper } from "./fileHelper";
 import { WebpanelPostMessage } from "./wevpanelPostMessage";
 import *  as xmljs from "xml-js";
-/**
- * Provider for Resx editors.
- * 
- * Resx editors are used for `.resx` files, which are just json files.
- * To get started, run this extension and open an empty `.resx` file in VS Code.
- * 
- * This provider demonstrates:
- * 
- * - Setting up the initial webview for a custom editor.
- * - Loading scripts and styles in a custom editor.
- * - Synchronizing changes between a text document and a custom editor.
- */
+
 export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
 
     private readonly context: vscode.ExtensionContext;
@@ -109,7 +98,6 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
         });
 
         function updateWebview() {
-
             var jsonText = JSON.stringify(ResxJsonHelper.getJsonData(document.getText()));
             webviewPanel.webview.postMessage(new WebpanelPostMessage(WebpanelPostMessageKind.Update, jsonText));
         }
