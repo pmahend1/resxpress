@@ -1,9 +1,12 @@
 # Change Log
 
-## 7.0.0 - 27-Nov-2024
+## 7.0.0 - 28-Nov-2024
 
-- `yarn` upgrades.
+- Added feature to add a new resx file.
+- Added feature to add/update resx namespace.
 - Improvements to C# resource file generation. No longer needs resgen.
+- Fixed some issues with generation of C# resource file.
+- `yarn` upgrades.
 
 ## 6.1.1 - 18-Jun-2024
 
