@@ -105,28 +105,28 @@ function loadConfiguration() {
 }
 
 function convertToPascalCase(input: string): string {
-    // Remove special characters and keep alphanumeric characters and spaces
-    const sanitized = input.replace(/[^a-zA-Z0-9 ]/g, "");
+	// Remove special characters and keep alphanumeric characters and spaces
+	const sanitized = input.replace(/[^a-zA-Z0-9 ]/g, "");
 
-    // Split the string into words by spaces
-    const words = sanitized.split(" ");
+	// Split the string into words by spaces
+	const words = sanitized.split(" ");
 
-    // PascalCase
-    const pascalCaseWords = words.map(word => {
-        if (word.length === 0) return "";
-        // If word starts with uppercase, keep it; otherwise, capitalize
-        return word[0].toUpperCase() + word.slice(1);
-    });
+	// PascalCase
+	const pascalCaseWords = words.map(word => {
+		if (word.length === 0) return "";
+		// If word starts with uppercase, keep it; otherwise, capitalize
+		return word[0].toUpperCase() + word.slice(1);
+	});
 
-    // Join all the words
-    let pascalCaseString = pascalCaseWords.join("");
+	// Join all the words
+	let pascalCaseString = pascalCaseWords.join("");
 
-    // If the resulting string starts with a digit, prefix it with an underscore
-    if (/^\d/.test(pascalCaseString)) {
-        pascalCaseString = "_" + pascalCaseString;
-    }
+	// If the resulting string starts with a digit, prefix it with an underscore
+	if (/^\d/.test(pascalCaseString)) {
+		pascalCaseString = "_" + pascalCaseString;
+	}
 
-    return pascalCaseString;
+	return pascalCaseString;
 }
 
 export async function runResGenAsync(document: vscode.TextDocument): Promise<void> {
@@ -197,8 +197,8 @@ export async function runResGenAsync(document: vscode.TextDocument): Promise<voi
 				if (element.name === "data") {
 					const resourceKey = element.attributes.name;
 					let valueElementParent = element.elements.filter((x: any) => x.name === "value")?.[0];
-					let value = valueElementParent?.elements?.length > 0 ? valueElementParent.elements[0].text : "";
-
+					let value: string = valueElementParent?.elements?.length > 0 ? valueElementParent.elements[0].text : "";
+					value = value.toString().replace(/(?:\r\n|\r|\n)/g, "\n		/// ");
 					if (resourceKey) {
 						let propertyName = convertToPascalCase(resourceKey);
 						resourceCSharpClassText += `
@@ -527,9 +527,11 @@ async function createResxFile(uri: vscode.Uri | null) {
 				vscode.window.showErrorMessage("Cannot create resx file!");
 				return;
 			}
+			console.log(`Creating file at ${thisWorkspace}`)
 			const resxFilePath = path.join(thisWorkspace, fileName);
+			console.log(`Filename to be created: ${resxFilePath}`)
 			// create a Uri for a file to be created
-			const newUri = vscode.Uri.parse(resxFilePath);
+			const resxFileUri = vscode.Uri.file(resxFilePath);
 			const content = `<?xml version="1.0" encoding="utf-8"?>
 <root>
 	<resheader name="resmimetype">
@@ -550,21 +552,25 @@ async function createResxFile(uri: vscode.Uri | null) {
 			let encoder = new TextEncoder();
 			let uInt8Array = encoder.encode(content);
 			// create an edit that will create a file
-			workspaceEdit.createFile(newUri, { ignoreIfExists: true, overwrite: false, contents: uInt8Array });
+			workspaceEdit.createFile(resxFileUri, { ignoreIfExists: false, overwrite: false, contents: uInt8Array });
 
 			//Create file
-			await vscode.workspace.applyEdit(workspaceEdit);
+			const didApplyEdit = await vscode.workspace.applyEdit(workspaceEdit);
+			if (didApplyEdit) {
+				let document = await vscode.workspace.openTextDocument(resxFileUri);
+				await vscode.window.showTextDocument(document);
+				let workspaceFolder = vscode.workspace.getWorkspaceFolder(resxFileUri);
 
-			let document = await vscode.workspace.openTextDocument(newUri);
-			await vscode.window.showTextDocument(document);
-			let workspaceFolder = vscode.workspace.getWorkspaceFolder(newUri);
-
-			if (workspaceFolder) {
-				const fileNameNoExt = fileName.replace(".resx", "");
-				await createOrUpdateNamespaceMappingFile(workspaceFolder, fileNameNoExt, namespace);
+				if (workspaceFolder) {
+					const fileNameNoExt = fileName.replace(".resx", "");
+					await createOrUpdateNamespaceMappingFile(workspaceFolder, fileNameNoExt, namespace);
+				}
+				else {
+					console.error(`Unable to locate workspaceFolder for ${resxFileUri.fsPath}`)
+				}
 			}
 			else {
-				console.error(`Unable to locate workspaceFolder for ${newUri.fsPath}`)
+				vscode.window.showErrorMessage("Unable to add resx content");
 			}
 		}
 		else {
