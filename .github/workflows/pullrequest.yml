@@ -36,7 +36,7 @@ jobs:
                   Write-Host "Pass ✅"
 
             - name: Get current version from package.json
-              id: getpackageversion
+              id: getPackageVersion
               shell: pwsh
               run: |
                   $package = Get-Content .\package.json | ConvertFrom-Json
@@ -45,7 +45,7 @@ jobs:
                   "VERSION=$version" >> $env:GITHUB_OUTPUT
 
             - name: Get published version from VS Code extension REST API
-              id: get-published-version
+              id: getPublishedVersion
               run: |
                   $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
                   $headers.Add("VSMarketplaceBadge", "1.0")
@@ -61,7 +61,7 @@ jobs:
               id: compare
               shell: pwsh
               run: |
-                  $localVersion = [System.Version]('${{ steps.getpackageversion.outputs.VERSION }}')
+                  $localVersion = [System.Version]('${{ steps.getPackageVersion.outputs.VERSION }}')
                   $storeVersion = [System.Version]('${{ steps.getPublishedVersion.outputs.PUB_VERSION }}')
 
                   if ($localVersion -gt $storeVersion) {
