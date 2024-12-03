@@ -1,78 +1,73 @@
 name: Version Check
 
 on:
-  pull_request:
-    branches:
-      - main
-      - dev
-  workflow_dispatch:
+    pull_request:
+        branches:
+            - main
+            - dev
+    workflow_dispatch:
 
 jobs:
-  versioncheck:
-    runs-on: windows-latest
-    steps:
-      - name: Checkout branch
-        uses: actions/checkout@v4.1.2
+    versioncheck:
+        runs-on: windows-latest
+        steps:
+            - name: Checkout branch
+              uses: actions/checkout@v4.1.2
 
-      - name: "Get changed files"
-        id: getChangedFiles
-        uses: jitterbit/get-changed-files@v1
-        with:
-          format: "json"
+            - name: "Get changed files"
+              id: getChangedFiles
+              uses: jitterbit/get-changed-files@v1
+              with:
+                  format: "json"
 
-      - name: "Verify ChangeLog.md and package.json files have changes"
-        shell: pwsh
-        run: |
-          $fileFilters=@('package.json', 'CHANGELOG*')
-          $changesJson='${{ steps.getChangedFiles.outputs.all }}'
-          $changes=ConvertFrom-Json -InputObject $changesJson
-          foreach ($filter in $fileFilters) {
-            if ($changes -match $filter){
-                Write-Host "$filter file is modified."
-            } else {
-                throw [System.Exception]("Files with filter $filter are not modified. ❌")
-            }
-          }
-          Write-Host "Pass ✅"
+            - name: "Verify ChangeLog.md and package.json files have changes"
+              shell: pwsh
+              run: |
+                  $fileFilters=@('package.json', 'CHANGELOG*')
+                  $changesJson='${{ steps.getChangedFiles.outputs.all }}'
+                  $changes=ConvertFrom-Json -InputObject $changesJson
+                  foreach ($filter in $fileFilters) {
+                    if ($changes -match $filter){
+                        Write-Host "$filter file is modified."
+                    } else {
+                        throw [System.Exception]("Files with filter $filter are not modified. ❌")
+                    }
+                  }
+                  Write-Host "Pass ✅"
 
-      - name: Install SemVer PS modules
-        run: |
-          Set-PSRepository PSGallery -InstallationPolicy Trusted
-          Install-Module -Name PoshSemanticVersion
+            - name: Get current version from package.json
+              id: getpackageversion
+              shell: pwsh
+              run: |
+                  $package = Get-Content .\package.json | ConvertFrom-Json
+                  $version = $package.version
+                  Write-Host 'Current version from package.json: ' $version
+                  "VERSION=$version" >> $env:GITHUB_OUTPUT
 
-      - name: Get current version from package.json
-        id: get-package-version
-        run: |
-          $version = ((Get-Content .\package.json | ConvertFrom-Json).version).ToString()
-          Write-Host 'Current version from package.json: ' $version
-          "currentVersion=$version" >> $env:GITHUB_OUTPUT
+            - name: Get published version from VS Code extension REST API
+              id: get-published-version
+              run: |
+                  $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+                  $headers.Add("VSMarketplaceBadge", "1.0")
+                  $headers.Add("Accept", "application/json;api-version=3.0-preview.1")
+                  $headers.Add("Content-Type", "application/json")
+                  $body = "{`"filters`":[{`"criteria`":[{`"filterType`":7,`"value`":`"PrateekMahendrakar.resxpress`"},{`"filterType`":12,`"value`":4096}]}],`"flags`":914}"
+                  $response = Invoke-RestMethod 'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery' -Method Post -Headers $headers -Body $body
+                  $publishedVersion= ($response.results[0].extensions.versions.version).ToString()
+                  Write-Host 'Last Published version: '$publishedVersion 
+                  "PUB_VERSION=$publishedVersion" >> $env:GITHUB_OUTPUT
 
-      - name: Get published version from VS Code extension REST API
-        id: get-published-version
-        run: |
-          $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
-          $headers.Add("VSMarketplaceBadge", "1.0")
-          $headers.Add("Accept", "application/json;api-version=3.0-preview.1")
-          $headers.Add("Content-Type", "application/json")
-          $body = "{`"filters`":[{`"criteria`":[{`"filterType`":7,`"value`":`"PrateekMahendrakar.resxpress`"},{`"filterType`":12,`"value`":4096}]}],`"flags`":914}"
-          $response = Invoke-RestMethod 'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery' -Method Post -Headers $headers -Body $body
-          $publishedVersion= ($response.results[0].extensions.versions.version).ToString()
-          Write-Host 'Last Published version: '$publishedVersion 
-          "publishedVersion=$publishedVersion" >> $env:GITHUB_OUTPUT
+            - name: Compare local version with marketplace version
+              id: compare
+              shell: pwsh
+              run: |
+                  $localVersion = [System.Version]('${{ steps.getpackageversion.outputs.VERSION }}')
+                  $storeVersion = [System.Version]('${{ steps.getPublishedVersion.outputs.PUB_VERSION }}')
 
-      - name: Compare local version with marketplace version
-        id: compare
-        run: |
-          Import-Module PoshSemanticVersion
-          $com = Compare-SemanticVersion ${{ steps.get-package-version.outputs.currentVersion }} ${{ steps.get-published-version.outputs.publishedVersion }}
-
-          if ($com.Precedence -eq '>') {
-            Write-Host "Version in package.json is higher than latest published version"
-            Write-Host "Pass"
-          }
-          elseif ($com.Precedence -eq '<') {
-            throw [System.Exception]("Version can not be lesser than latest published version. Update package version")
-          }
-          else {
-            throw [System.Exception]("Version can not be same as latest published version. Update package version")
-          }
+                  if ($localVersion -gt $storeVersion) {
+                    Write-Host "Version in package.json is higher than latest published version"
+                    Write-Host "Pass"
+                  }
+                  else {
+                    throw [System.Exception]("Version can not be same as latest published version ❌! Update package version.")
+                  }
