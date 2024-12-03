@@ -1,5 +1,11 @@
 # Change Log
 
+## 7.1.1 - 03-Dec-2024
+
+- [Allows `_` in C# resource property name.](https://github.com/pmahend1/resxpress/issues/98)
+  Thanks to [@manugparedes](https://github.com/manugparedes) for contribution.
+- Some package updates.
+
 ## 7.1.0 - 02-Dec-2024
 
 - Fixed a bug with unable to create file URI on windows and linux.
