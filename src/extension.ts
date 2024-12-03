@@ -106,7 +106,7 @@ function loadConfiguration() {
 
 function convertToPascalCase(input: string): string {
 	// Remove special characters and keep alphanumeric characters and spaces
-	const sanitized = input.replace(/[^a-zA-Z0-9 ]/g, "");
+	const sanitized = input.replace(/[^a-zA-Z0-9_ ]/g, "");
 
 	// Split the string into words by spaces
 	const words = sanitized.split(" ");
