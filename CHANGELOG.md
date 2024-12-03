@@ -1,5 +1,11 @@
 # Change Log
 
+## 7.1.0 - 02-Dec-2024
+
+- Fixed a bug with unable to create file URI on windows and linux.
+- Switched to pnpm from yarn.
+- Package updates to latest.
+
 ## 7.0.0 - 29-Nov-2024
 
 - Added feature to add a new resx file.
