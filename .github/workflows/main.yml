@@ -29,6 +29,7 @@ jobs:
         run: pnpm install
 
       - name: VSCE Publish
+        id: vsce
         run: |
           vsce publish --no-dependencies -p $env:VSCE_PAT
           $VsixName = Get-ChildItem -Filter *.vsix | Select-Object -First 1 -ExpandProperty Name
