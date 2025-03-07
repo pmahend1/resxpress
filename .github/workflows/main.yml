@@ -11,14 +11,14 @@ jobs:
         uses: actions/checkout@v4.2.2
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@v4.1.0
+        uses: actions/setup-node@v4.2.0
         with:
           node-version: 22
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10
 
       - name: Install vsce and open vsx
         run: |
@@ -29,11 +29,16 @@ jobs:
         run: pnpm install
 
       - name: VSCE Publish
-        run: vsce publish -p $env:VSCE_PAT
+        run: |
+          vsce publish --no-dependencies -p $env:VSCE_PAT
+          $VsixName = Get-ChildItem -Filter *.vsix | Select-Object -First 1 -ExpandProperty Name
+          "VSIX_FILENAME=$VsixName" >> $env:GITHUB_OUTPUT
         env:
           VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
 
       - name: Open VSX Publish
-        run: npx ovsx publish -p $env:OPEN_VSX_PAT
+        run: |
+          Write-Host "Running npx ovsx publish --packagePath ${{ steps.vsce.outputs.VSIX_FILENAME }} -p $env:OPEN_VSX_PAT"
+          npx ovsx publish --packagePath ${{ steps.vsce.outputs.VSIX_FILENAME }} -p $env:OPEN_VSX_PAT
         env:
           OPEN_VSX_PAT: ${{ secrets.OPENVSX }}
