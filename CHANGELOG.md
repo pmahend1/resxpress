@@ -1,6 +1,6 @@
 # Change Log
 
-## 7.2.0 - 07-Mar-2025
+## 7.2.1 - 07-Mar-2025
 
 - [Fixed an issue where multiple resources C# file was getting created for different cultures#101](https://github.com/pmahend1/resxpress/issues/101)
 - Added setting to choose between file-scoped vs block-scoped namespace for C# resource file
