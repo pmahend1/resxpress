@@ -74,15 +74,16 @@ Preview resx file as a nice Webview table.
 
 ![Snippet](./images/snippet.png)
 
-## Requirements
-
-- Built in markdown support
-- VS code 1.69+
-
 ### Settings
 
-`generateStronglyTypedResourceClassOnSave`: Generate/update strongly typed resource class files when updates to resx files are made.  Default is **`false`**.  
+1. `generateStronglyTypedResourceClassOnSave`: Generate/update strongly typed resource class files when updates to resx files are made.  
+Default is **`false`**.  
 Ex: Resource1.resx → Resource1.Designer.cs  
+
+2. `useFileScopedNamespace`: Use File Scoped Namespace.  
+Default is **`true`**  
+    **true**: File scoped namespaces.  
+    **false**: Block scoped namespaces.  
 
 ## Known Issues
 
