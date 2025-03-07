@@ -135,6 +135,10 @@ export async function runResGenAsync(document: vscode.TextDocument): Promise<voi
 	let filename = FileHelper.getFileNameNoExt(document);
 	let csharpFileName = "Resources.cs";
 	if (filename !== null) {
+		if (filename.includes(".")) {
+			//Dont create separate C# resources file for different cultures
+			return;
+		}
 		csharpFileName = `${filename}.Designer.cs`;
 	}
 
