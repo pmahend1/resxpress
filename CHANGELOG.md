@@ -1,5 +1,11 @@
 # Change Log
 
+## 7.2.2 - 08-Mar-2025
+
+- Fixes [namespace contains ;](https://github.com/pmahend1/resxpress/issues/106)
+- Package updates
+- Deploy workflow fix.
+
 ## 7.2.1 - 07-Mar-2025
 
 - [Fixed an issue where multiple resources C# file was getting created for different cultures#101](https://github.com/pmahend1/resxpress/issues/101)
