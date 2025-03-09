@@ -4,17 +4,17 @@ on:
   workflow_dispatch:
     inputs:
       shouldPublishToVSMarketPlace:
-        description: "Option to publish to Visual Studio MarketPlace"
+        description: "Publish to Visual Studio MarketPlace?"
         type: boolean
         default: true
       shouldPublishToOpenVsx:
-        description: "Option to publish to Open-VSX"
+        description: "Publish to Open-VSX?"
         type: boolean
         default: true
 
 jobs:
   deploy:
-    runs-on: [windows-latest, ubuntu-latest]
+    runs-on: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
