@@ -14,7 +14,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: windows-latest
+    runs-on: [windows-latest, ubuntu-latest]
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
@@ -44,7 +44,7 @@ jobs:
           "VSIX_FILENAME=$VsixName" >> $env:GITHUB_OUTPUT
 
       - name: VSCE Publish
-        if: ${{ inputs.shouldPublishToVSMarketPlace }} 
+        if: ${{ inputs.shouldPublishToVSMarketPlace }}
         run: |
           Write-Host "Running vsce publish --packagePath ${{ steps.pack.outputs.VSIX_FILENAME }} --pat $env:VSCE_PAT"
           #vsce publish --packagePath ${{ steps.pack.outputs.VSIX_FILENAME }} --pat $env:VSCE_PAT
@@ -52,9 +52,9 @@ jobs:
           VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
 
       - name: Open VSX Publish
-        if: ${{ inputs.shouldPublishToOpenVsx }} 
+        if: ${{ inputs.shouldPublishToOpenVsx }}
         run: |
           Write-Host "Running npx ovsx publish --packagePath ${{ steps.pack.outputs.VSIX_FILENAME }} -p $env:OPEN_VSX_PAT"
-          #npx ovsx publish --packagePath ${{ steps.vsce.outputs.VSIX_FILENAME }} -p $env:OPEN_VSX_PAT
+          #npx ovsx publish --packagePath ${{ steps.pack.outputs.VSIX_FILENAME }} -p $env:OPEN_VSX_PAT
         env:
           OPEN_VSX_PAT: ${{ secrets.OPENVSX }}
