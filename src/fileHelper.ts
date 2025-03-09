@@ -60,7 +60,7 @@ export class FileHelper {
                         if (lines.length === 1) {
                             lines = fileContent.split("\n");
                         }
-                        var newLines = lines.filter(x => x.startsWith("namespace ")).map(x => x.trim().replace("namespace ", "").replace(" ", "").replace("{", ""));
+                        var newLines = lines.filter(x => x.startsWith("namespace ")).map(x => x.trim().replace("namespace ", "").replace(" ", "").replace("{", "").replace(";", ""));
                         if (newLines.length > 0) {
                             namespace = newLines[0];
                         }
