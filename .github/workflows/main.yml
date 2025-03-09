@@ -46,7 +46,7 @@ jobs:
       - name: VSCE Publish
         if: ${{ inputs.shouldPublishToVSMarketPlace }}
         run: |
-          Write-Host "Running vsce publish --packagePath ${{ steps.pack.outputs.VSIX_FILENAME }} --pat $env:VSCE_PAT"
+          Write-Host "Running vsce publish --packagePath ${{ steps.pack.outputs.VSIX_FILENAME }} --pat `$env:VSCE_PAT"
           vsce publish --packagePath ${{ steps.pack.outputs.VSIX_FILENAME }} --pat $env:VSCE_PAT
         env:
           VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
@@ -54,7 +54,7 @@ jobs:
       - name: Open VSX Publish
         if: ${{ inputs.shouldPublishToOpenVsx }}
         run: |
-          Write-Host "Running npx ovsx publish --packagePath ${{ steps.pack.outputs.VSIX_FILENAME }} --pat $env:OPEN_VSX_PAT"
-          npx ovsx publish --packagePath ${{ steps.pack.outputs.VSIX_FILENAME }}--pat $env:OPEN_VSX_PAT
+          Write-Host "Running npx ovsx publish --packagePath ${{ steps.pack.outputs.VSIX_FILENAME }} --pat `$env:OPEN_VSX_PAT"
+          npx ovsx publish --packagePath ${{ steps.pack.outputs.VSIX_FILENAME }} --pat $env:OPEN_VSX_PAT
         env:
           OPEN_VSX_PAT: ${{ secrets.OPENVSX }}
