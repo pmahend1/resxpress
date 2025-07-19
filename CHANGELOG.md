@@ -1,5 +1,9 @@
 # Change Log
 
+## 7.3.0 - 18-Jul-2025
+
+- Package updates.
+
 ## 7.2.2 - 08-Mar-2025
 
 - Fixes [namespace contains ;](https://github.com/pmahend1/resxpress/issues/106)
