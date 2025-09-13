@@ -8,14 +8,11 @@ import { ResxEditorProvider } from "./resxEditorProvider";
 import { NotificationService } from "./notificationService";
 import { FileHelper } from "./fileHelper";
 import { TextInputBoxOptions } from "./textInputBoxOptions";
+import { Constants } from "./constants";
+import { Settings } from "./settings";
 
 
 let currentContext: vscode.ExtensionContext;
-var shouldGenerateStronglyTypedResourceClassOnSave: boolean = false;
-let shouldUseFileScopedNamespace = false;
-
-export const resxpress = "resxpress";
-const extensionName = "ResXpress";
 
 export function activate(context: vscode.ExtensionContext) {
 	try {
@@ -31,12 +28,12 @@ export function activate(context: vscode.ExtensionContext) {
 
 	vscode.workspace.onDidChangeConfiguration(loadConfiguration);
 
-	context.subscriptions.push(vscode.commands.registerTextEditorCommand(`${resxpress}.resxpreview`,
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand(Constants.Commands.resxpreview,
 		async () => {
 			vscode.window.withProgress({
 				location: vscode.ProgressLocation.Notification,
 				cancellable: false,
-				title: extensionName,
+				title: Constants.extensionName,
 			},
 				async (p) => {
 					p.report({ message: "Showing Preview" });
@@ -45,42 +42,40 @@ export function activate(context: vscode.ExtensionContext) {
 			);
 		}));
 
-	context.subscriptions.push(vscode.commands.registerTextEditorCommand(`${resxpress}.sortbykeys`,
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand(Constants.Commands.sortbykeys,
 		async () => {
 			vscode.window.withProgress({
 				location: vscode.ProgressLocation.Notification,
 				cancellable: false,
-				title: extensionName,
+				title: Constants.extensionName,
 			}, async (p) => {
 				p.report({ message: "Sorting by keys" });
 				await sortByKeys();
 			});
 		}));
 
-	context.subscriptions.push(vscode.commands.registerTextEditorCommand(`${resxpress}.newpreview`,
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand(Constants.Commands.newpreview,
 		async () => {
 			vscode.window.withProgress({
 				location: vscode.ProgressLocation.Notification,
 				cancellable: false,
-				title: extensionName
+				title: Constants.extensionName
 			}, async (progress) => {
 				progress.report({ message: "Showing Web Preview" });
 				await newPreview();
 			});
 		}));
 
-	context.subscriptions.push(vscode.commands.registerCommand(`${resxpress}.setNameSpace`, async (uri: vscode.Uri) => await setNamespace(uri)))
-
-	context.subscriptions.push(vscode.commands.registerCommand(`${resxpress}.createResxFile`, async (uri: vscode.Uri) => await createResxFile(uri)))
-
-	context.subscriptions.push(vscode.commands.registerTextEditorCommand(`${resxpress}.resxeditor`, async () => await newPreview()));
+	context.subscriptions.push(vscode.commands.registerCommand(Constants.Commands.setNameSpace, async (uri: vscode.Uri) => await setNamespace(uri)))
+	context.subscriptions.push(vscode.commands.registerCommand(Constants.Commands.createResxFile, async (uri: vscode.Uri) => await createResxFile(uri)))
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand(Constants.Commands.resxeditor, async () => await newPreview()));
 
 	context.subscriptions.push(ResxEditorProvider.register(context));
 
 	vscode.workspace.onDidSaveTextDocument(async (document) => {
 		try {
 			var isResx = document.fileName.endsWith(".resx");
-			if (isResx && shouldGenerateStronglyTypedResourceClassOnSave) {
+			if (isResx && Settings.shouldGenerateStronglyTypedResourceClassOnSave) {
 				await runResGenAsync(document);
 			}
 		}
@@ -101,9 +96,10 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 function loadConfiguration() {
-	let resxConfig = vscode.workspace.getConfiguration(`${resxpress}.configuration`);
-	shouldGenerateStronglyTypedResourceClassOnSave = resxConfig.get<boolean>("generateStronglyTypedResourceClassOnSave") ?? false;
-	shouldUseFileScopedNamespace = resxConfig.get<boolean>("useFileScopedNamespace") ?? true;
+	let resxConfig = vscode.workspace.getConfiguration(`${Constants.resxpress}.${Constants.configuration}`);
+	Settings.shouldGenerateStronglyTypedResourceClassOnSave = resxConfig.get<boolean>(Constants.Configuration.generateStronglyTypedResourceClassOnSave) ?? false;
+	Settings.shouldUseFileScopedNamespace = resxConfig.get<boolean>(Constants.Configuration.useFileScopedNamespace) ?? true;
+	Settings.indentSpaceLength = resxConfig.get<number>(Constants.Configuration.indentSpaceLength) ?? 4;
 }
 
 function convertToPascalCase(input: string): string {
@@ -155,9 +151,9 @@ export async function runResGenAsync(document: vscode.TextDocument): Promise<voi
 		var resourceCSharpClassText = "";
 		let accessModifier = "public";
 		let workspacePath = FileHelper.getDirectory(document);
-		var spaces = shouldUseFileScopedNamespace ? "" : "    ";
-		resourceCSharpClassText += `namespace ${nameSpace}${shouldUseFileScopedNamespace ? ";" : ""}
-${shouldUseFileScopedNamespace ? "" : "{"}
+		var spaces = Settings.shouldUseFileScopedNamespace ? "" : "    ";
+		resourceCSharpClassText += `namespace ${nameSpace}${Settings.shouldUseFileScopedNamespace ? ";" : ""}
+${Settings.shouldUseFileScopedNamespace ? "" : "{"}
 ${spaces}/// <summary>
 ${spaces}///   A strongly-typed resource class, for looking up localized strings, etc.
 ${spaces}/// </summary>
@@ -222,7 +218,7 @@ ${spaces}}`;
 
 		resourceCSharpClassText += `
 ${spaces}}
-${shouldUseFileScopedNamespace ? "" : "}"}`;
+${Settings.shouldUseFileScopedNamespace ? "" : "}"}`;
 		console.log(resourceCSharpClassText);
 
 		if (workspacePath.length > 0) {
@@ -234,7 +230,7 @@ ${shouldUseFileScopedNamespace ? "" : "}"}`;
 
 
 export function deactivate() {
-	console.log(`${resxpress} deactivated`);
+	console.log(`${Constants.resxpress} deactivated`);
 }
 
 async function sortByKeys() {
@@ -293,7 +289,7 @@ function sortKeyValuesResx(reverse?: boolean) {
 		sorted.push(...dataListsorted);
 		jsObj.elements[0].elements = sorted;
 
-		var xml = xmljs.js2xml(jsObj, { spaces: 4 });
+		var xml = xmljs.js2xml(jsObj, { spaces: Settings.indentSpaceLength });
 
 		return xml;
 	}
@@ -471,7 +467,7 @@ function isStringRecord(obj: any): obj is Record<string, string> {
 async function createOrUpdateNamespaceMappingFile(workspaceFolder: vscode.WorkspaceFolder, fileNameNoExt: string, namespace: string) {
 	const workspacePath = workspaceFolder.uri.fsPath;
 	if (workspacePath) {
-		let pathToWrite = path.join(workspacePath, `.${resxpress}/namespace-mapping.json`);
+		let pathToWrite = path.join(workspacePath, `.${Constants.namespaceMappingJsonPath}`);
 		let content = await FileHelper.getFileText(pathToWrite);
 		var didWrite = false;
 		if (content.length > 0) {

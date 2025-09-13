@@ -3,6 +3,7 @@ import * as vscode from "vscode";
 import { getNonce } from "./util";
 import * as xmljs from "xml-js"
 import { ResxJsonHelper } from "./resxJsonHelper";
+import { Settings } from "./settings";
 
 export class ResxEditor {
     private readonly context: vscode.ExtensionContext;
@@ -133,7 +134,7 @@ export class ResxEditor {
         }
         console.log(`After datalist - ${JSON.stringify(currentJs.root.data)} `);
 
-        var resx = xmljs.js2xml(currentJs, { spaces: 4, compact: true });
+        var resx = xmljs.js2xml(currentJs, { spaces: Settings.indentSpaceLength, compact: true });
         console.log("Updated resx" + resx);
         edit.replace(
             document.uri,

@@ -77,13 +77,17 @@ Preview resx file as a nice Webview table.
 ### Settings
 
 1. `generateStronglyTypedResourceClassOnSave`: Generate/update strongly typed resource class files when updates to resx files are made.  
-Default is **`false`**.  
+Default: **`false`**.  
 Ex: Resource1.resx → Resource1.Designer.cs  
 
-2. `useFileScopedNamespace`: Use File Scoped Namespace.  
-Default is **`true`**  
-    **true**: File scoped namespaces.  
-    **false**: Block scoped namespaces.  
+1. `useFileScopedNamespace`: Use File Scoped Namespace.  
+Default: **`true`**  
+**true**: File scoped namespaces.  
+**false**: Block scoped namespaces.  
+
+1. `indentSpaceLength`: Indent space length for resx xml.
+Default: **4**.
+Options: **2, 4, 8**.
 
 ## Known Issues
 

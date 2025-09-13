@@ -2,8 +2,7 @@ import * as vscode from "vscode";
 import path = require("path");
 import { readFile, writeFile } from "fs/promises";
 import { existsSync, mkdirSync, readFileSync } from "fs";
-import { resxpress } from "./extension";
-
+import { Constants } from "./constants";
 
 export class FileHelper {
 
@@ -34,7 +33,7 @@ export class FileHelper {
             let fileNameNoExt = FileHelper.getFileNameNoExt(document);
             let workspacePath = vscode.workspace.getWorkspaceFolder(document.uri);
             if (workspacePath) {
-                let pathToRead = path.join(workspacePath.uri.fsPath, `.${resxpress}/namespace-mapping.json`);
+                let pathToRead = path.join(workspacePath.uri.fsPath, `.${Constants.namespaceMappingJsonPath}`);
                 let content = await this.getFileText(pathToRead);
                 if (content.length > 0) {
                     try {
