@@ -1,3 +1,4 @@
+import { Logger } from "./logger";
 import { WebpanelPostMessageKind } from "./webpanelMessageKind";
 import { WebpanelPostMessage } from "./webpanelPostMessage";
 
@@ -19,18 +20,18 @@ let currentResxJS: any = [];
 		if (errorContainer !== null && currentElement instanceof HTMLInputElement) {
 			errorContainer.innerText = "";
 			let idstr = currentElement.id;
-			console.log("input event for id = " + idstr);
+			Logger.instance.info("input event for id = " + idstr);
 			var index = Number(idstr.split(".")[0]);
-			console.log("index is :" + index);
+			Logger.instance.info("index is :" + index);
 			if (index >= currentResxJS.length) {
 
-				console.log(`Index: ${index}. Current Resx Length: ${currentResxJS.length}`);
+				Logger.instance.info(`Index: ${index}. Current Resx Length: ${currentResxJS.length}`);
 				var newObj: any = { _attributes: { name: "", "xml:space": "preserve" }, value: { _text: "" } };
 				const key = document.getElementById(`${index}.key`) as HTMLInputElement;
 				const value = document.getElementById(`${index}.value`);
 				const comment = document.getElementById(`${index}.comment`);
 
-				console.log("if check");
+				Logger.instance.info("if check");
 				if (key instanceof HTMLInputElement && value instanceof HTMLInputElement && comment instanceof HTMLInputElement) {
 					if (key.value && value.value) {
 						newObj._attributes.name = key?.value ?? "";
@@ -42,13 +43,13 @@ let currentResxJS: any = [];
 							delete newObj.comment;
 						}
 
-						console.log("newObj set");
+						Logger.instance.info("newObj set");
 						var pos = currentResxJS.map((x: any) => x?._attributes?.name).indexOf(newObj._attributes.name);
 
 						//avoid adding data with same key
 						if (pos === -1) {
 							currentResxJS.push(newObj);
-							console.log("Input event : " + JSON.stringify(newObj));
+							Logger.instance.info("Input event : " + JSON.stringify(newObj));
 
 							errorContainer.innerText = "";
 							errorContainer.style.display = "";
@@ -60,7 +61,7 @@ let currentResxJS: any = [];
 							));
 						}
 						else {
-							console.log("has dupes ");
+							Logger.instance.info("has dupes ");
 							errorContainer.innerText = `Error: Data with ${newObj._attributes.name} already exists`;
 							errorContainer.style.display = "";
 							return;
@@ -83,7 +84,7 @@ let currentResxJS: any = [];
 				if (key instanceof HTMLInputElement && value instanceof HTMLInputElement && comment instanceof HTMLInputElement) {
 					if (key.value && value.value) {
 
-						console.log("Changing values");
+						Logger.instance.info("Changing values");
 						editingObj._attributes.name = key.value ?? "";
 						editingObj.value._text = value.value ?? "";
 						if (comment?.value) {
@@ -98,9 +99,9 @@ let currentResxJS: any = [];
 
 						var keyArray = tempArray.map((x: any) => x._attributes.name);
 
-						console.log("keyArray is " + JSON.stringify(keyArray));
+						Logger.instance.info("keyArray is " + JSON.stringify(keyArray));
 						if (new Set(keyArray).size !== keyArray.length) {
-							console.log("edited Data key already exists");
+							Logger.instance.info("edited Data key already exists");
 							errorContainer.innerText = `Error while updating data : Data with ${editingObj._attributes.name} already exists`;
 							errorContainer.style.display = "";
 						}
@@ -114,7 +115,7 @@ let currentResxJS: any = [];
 						return;
 					}
 				}
-				console.log("Input event : " + JSON.stringify(currentResxJS));
+				Logger.instance.info("Input event : " + JSON.stringify(currentResxJS));
 				vscode.setState({ text: JSON.stringify(currentResxJS) });
 				vscode.postMessage(new WebpanelPostMessage(
 					WebpanelPostMessageKind.Update,
@@ -125,13 +126,13 @@ let currentResxJS: any = [];
 	}
 
 	function deleteEvent(event: MouseEvent) {
-		console.log(`deleteEvent triggered with ${event.target}`);
+		Logger.instance.info(`deleteEvent triggered with ${event.target}`);
 		const td = event.target as HTMLElement;
 		let table = document.getElementById("tbl");
 
 		if (errorContainer !== null && table && td) {
 			let idstr: string = td.id;
-			console.log(`Triggered td.id : ${idstr}`);
+			Logger.instance.info(`Triggered td.id : ${idstr}`);
 			errorContainer.innerText = "";
 
 			if (idstr && idstr.trim()) {
@@ -139,7 +140,7 @@ let currentResxJS: any = [];
 
 				if (indices.length > 0) {
 					let index = Number(indices[0]);
-					console.log(`index to be deleted: ${index}`)
+					Logger.instance.info(`index to be deleted: ${index}`)
 					if (currentResxJS.length > index) {
 						var deleteableObj = currentResxJS[index];
 
@@ -189,7 +190,7 @@ let currentResxJS: any = [];
 
 	if (add) {
 		add.addEventListener("click", () => {
-			console.log("Add clicked");
+			Logger.instance.info("Add clicked");
 			//create tr
 			let tr = document.createElement("tr");
 
@@ -251,7 +252,7 @@ let currentResxJS: any = [];
 				let json;
 				try {
 					currentResxJS = json = JSON.parse(text);
-					console.log("data json is :" + text);
+					Logger.instance.info("data json is :" + text);
 				}
 				catch {
 					table.style.display = "none";
@@ -276,7 +277,7 @@ let currentResxJS: any = [];
 						const keyInput = document.createElement("input");
 						keyInput.type = "text";
 						keyInput.value = node._attributes.name ?? "";
-						console.log("key : " + node._attributes.name);
+						Logger.instance.info("key : " + node._attributes.name);
 
 						keyInput.id = `${index}.key`;
 						keyInput.addEventListener("focusout", inputEvent, false);
@@ -288,7 +289,7 @@ let currentResxJS: any = [];
 						valueInput.value = node.value._text ?? "";
 						valueInput.type = "text";
 						valueInput.id = `${index}.value`;
-						console.log("Value : " + node.value._text);
+						Logger.instance.info("Value : " + node.value._text);
 						valueInput.addEventListener("focusout", inputEvent, false);
 						value.appendChild(valueInput);
 
@@ -299,7 +300,7 @@ let currentResxJS: any = [];
 						commentInput.type = "text";
 						commentInput.value = node?.comment?._text ?? "";
 
-						console.log("comment : " + node?.comment?._text);
+						Logger.instance.info("comment : " + node?.comment?._text);
 						commentInput.addEventListener("focusout", inputEvent, false);
 						comment.appendChild(commentInput);
 
@@ -320,7 +321,7 @@ let currentResxJS: any = [];
 						index++;
 					}
 					else {
-						console.log("node is undefined or null");
+						Logger.instance.info("node is undefined or null");
 					}
 				}
 			}
@@ -336,17 +337,17 @@ let currentResxJS: any = [];
 	window.addEventListener("message", event => {
 		const message = event.data; // The json data that the extension sent
 		const text = message.json;
-		console.log(`window.addEventListener.text : ${text}`);
+		Logger.instance.info(`window.addEventListener.text : ${text}`);
 
 		switch (message.type) {
 			case WebpanelPostMessageKind.Update:
 				var sentDataListJs = JSON.parse(text) ?? [];
 
 				if (sentDataListJs.length !== currentResxJS.length) {
-					console.log("Sent data is not same as current webview data");
+					Logger.instance.info("Sent data is not same as current webview data");
 
-					console.log(`Sent data as json ${text}`);
-					console.log("Current data as json " + JSON.stringify(currentResxJS));
+					Logger.instance.info(`Sent data as json ${text}`);
+					Logger.instance.info("Current data as json " + JSON.stringify(currentResxJS));
 					updateContent(text);
 				}
 				// Then persist state information.

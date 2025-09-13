@@ -10,6 +10,7 @@ import { FileHelper } from "./fileHelper";
 import { TextInputBoxOptions } from "./textInputBoxOptions";
 import { Constants } from "./constants";
 import { Settings } from "./settings";
+import { Logger } from "./logger";
 
 
 let currentContext: vscode.ExtensionContext;
@@ -91,8 +92,7 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.window.showErrorMessage(errorMessage);
 		}
 	});
-
-	console.log(`Extension ${context.extension.id} activated`);
+	Logger.instance.info(`Extension ${context.extension.id} activated`);
 }
 
 function loadConfiguration() {
@@ -100,6 +100,8 @@ function loadConfiguration() {
 	Settings.shouldGenerateStronglyTypedResourceClassOnSave = resxConfig.get<boolean>(Constants.Configuration.generateStronglyTypedResourceClassOnSave) ?? false;
 	Settings.shouldUseFileScopedNamespace = resxConfig.get<boolean>(Constants.Configuration.useFileScopedNamespace) ?? true;
 	Settings.indentSpaceLength = resxConfig.get<number>(Constants.Configuration.indentSpaceLength) ?? 4;
+	Settings.enableLocalLogs = resxConfig.get<boolean>(Constants.Configuration.enableLocalLogs) ?? false;
+	Logger.instance.setIsEnabled(Settings.enableLocalLogs);
 }
 
 function convertToPascalCase(input: string): string {
@@ -219,7 +221,7 @@ ${spaces}}`;
 		resourceCSharpClassText += `
 ${spaces}}
 ${Settings.shouldUseFileScopedNamespace ? "" : "}"}`;
-		console.log(resourceCSharpClassText);
+		Logger.instance.info(resourceCSharpClassText);
 
 		if (workspacePath.length > 0) {
 			let pathToWrite = path.join(workspacePath, csharpFileName);
@@ -230,7 +232,7 @@ ${Settings.shouldUseFileScopedNamespace ? "" : "}"}`;
 
 
 export function deactivate() {
-	console.log(`${Constants.resxpress} deactivated`);
+	Logger.instance.info(`${Constants.resxpress} deactivated`);
 }
 
 async function sortByKeys() {
@@ -493,7 +495,7 @@ export async function setNamespace(uri: vscode.Uri) {
 		if (fileName !== null) {
 			const inputBoxOptions = new TextInputBoxOptions("Namespace", "", undefined, "Enter namespace", "Namespace", true);
 			const namespaceValue = await vscode.window.showInputBox(inputBoxOptions);
-			console.log(`namespace entered : ${namespaceValue}`);
+			Logger.instance.info(`namespace entered : ${namespaceValue}`);
 			if (namespaceValue) {
 				let workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
 				if (workspaceFolder) {
@@ -526,9 +528,9 @@ async function createResxFile(uri: vscode.Uri | null) {
 				vscode.window.showErrorMessage("Cannot create resx file!");
 				return;
 			}
-			console.log(`Creating file at ${thisWorkspace}`)
+			Logger.instance.info(`Creating file at ${thisWorkspace}`)
 			const resxFilePath = path.join(thisWorkspace, fileName);
-			console.log(`Filename to be created: ${resxFilePath}`)
+			Logger.instance.info(`Filename to be created: ${resxFilePath}`)
 			// create a Uri for a file to be created
 			const resxFileUri = vscode.Uri.file(resxFilePath);
 			const content = `<?xml version="1.0" encoding="utf-8"?>

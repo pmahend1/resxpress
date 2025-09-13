@@ -3,6 +3,7 @@ import path = require("path");
 import { readFile, writeFile } from "fs/promises";
 import { existsSync, mkdirSync, readFileSync } from "fs";
 import { Constants } from "./constants";
+import { Logger } from "./logger";
 
 export class FileHelper {
 
@@ -43,7 +44,7 @@ export class FileHelper {
                         }
                     } catch (error) {
                         if (error instanceof Error) {
-                            console.log(error.message);
+                            Logger.instance.info(error.message);
                         }
                     }
                 }
@@ -70,7 +71,7 @@ export class FileHelper {
 
         } catch (error) {
             if (error instanceof Error) {
-                console.log(error.message);
+                Logger.instance.info(error.message);
             }
             return null;
         }

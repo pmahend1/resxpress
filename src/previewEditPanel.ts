@@ -2,6 +2,7 @@ import path = require("path");
 import * as vscode from "vscode";
 import { getNonce } from "./util";
 import { WebpanelPostMessageKind } from "./webpanelMessageKind";
+import { Logger } from "./logger";
 
 class PreviewEditPanel {
 
@@ -73,7 +74,7 @@ class PreviewEditPanel {
 		// Handle messages from the webview
 		this.panel.webview.onDidReceiveMessage(
 			message => {
-				console.log(message);
+				Logger.instance.info(message);
 				switch (message.type) {
 					case WebpanelPostMessageKind.Alert:
 						vscode.window.showErrorMessage(message.text);

@@ -121,6 +121,11 @@
                             8
                         ],
                         "markdownDescription": "No. of spaces for resx xml. Default: *4*"
+                    },
+                    "resxpress.configuration.enableLocalLogs": {
+                        "type": "boolean",
+                        "default": false,
+                        "markdownDescription": "Enable local logs. Default is **`false`** \n\n Logs are Output window."
                     }
                 }
             }
