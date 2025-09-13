@@ -24,7 +24,9 @@ const errorDuplicateKey = (key: string) => `Error: Data with ${key} already exis
 const errorInvalidResx = "Error: Document is not valid resx";
 const errorKeyValueMandatory = "Key and Value are both mandatory fields!";
 const errorUpdateDuplicateKey = (key: string) => `Error while updating data : Data with ${key} already exists`;
-
+const changeNamespaceButton = "changeNamespaceButton";
+const addButton = "addButton";
+const switchToTextEditorButton = "switchToTextEditorButton";
 
 function logToConsole(text: string) {
 	console.log(`${resxpressWebPanel}: ${text}`);
@@ -189,9 +191,6 @@ function logToConsole(text: string) {
 		}
 	}
 
-	const changeNamespaceButton = "changeNamespaceButton";
-	const addButton = "addButton";
-	const switchToTextEditorButton = "switchToTextEditorButton";
 
 	const changeNamespaceButtonElement = document.getElementById(changeNamespaceButton);
 	if (changeNamespaceButtonElement) {
