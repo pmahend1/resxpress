@@ -5,6 +5,7 @@ import * as xmljs from "xml-js"
 import { ResxJsonHelper } from "./resxJsonHelper";
 import { Settings } from "./settings";
 import { Logger } from "./logger";
+import { nameof } from "./nameof";
 
 export class ResxEditor {
     private readonly context: vscode.ExtensionContext;
@@ -90,30 +91,25 @@ export class ResxEditor {
      */
     public deleteKeyValue(document: vscode.TextDocument, json: any) {
 
-        Logger.instance.info("deleteKeyValue start");
 
         var deletedJsObj = JSON.parse(json);
-
         var currentData = ResxJsonHelper.getJsonData(document.getText());
 
-        Logger.instance.info(`Datalist before deleting ${deletedJsObj._attributes.name} : ${JSON.stringify(currentData)}`);
-
-        var pos = currentData.map(function (e) { return e?._attributes?.name; }).indexOf(deletedJsObj._attributes.name);
+        Logger.instance.info(`${ResxEditor}.${nameof(this.deleteKeyValue)}: Datalist before deleting ${deletedJsObj._attributes.name} : ${JSON.stringify(currentData)}`);
+        var pos = currentData.map(e => e?._attributes?.name).indexOf(deletedJsObj._attributes.name);
 
         currentData.splice(pos, 1);
-        Logger.instance.info("deleteKeyValue end");
+        Logger.instance.info(`${ResxEditor}.${nameof(this.deleteKeyValue)}: Deleted ${deletedJsObj._attributes.name}`);
         return this.updateTextDocument(document, JSON.stringify(currentData));
     }
 
     public updateTextDocument(document: vscode.TextDocument, dataListJson: any) {
-        Logger.instance.info("updateTextDocument start");
+        Logger.instance.info(`${ResxEditor}.${nameof(this.updateTextDocument)}: `);
 
         var dataList = JSON.parse(dataListJson);
         const edit = new vscode.WorkspaceEdit();
 
         var currentJs: any = xmljs.xml2js(document.getText(), { compact: true })
-
-        Logger.instance.info(`Before datalist - ${JSON.stringify(currentJs.root.data)} `);
 
         if (dataList) {
             switch (dataList.length) {
@@ -129,20 +125,15 @@ export class ResxEditor {
             }
         }
         else {
-            Logger.instance.info("Empty data : red flag");
-
+            Logger.instance.warning(`${ResxEditor}.${nameof(this.updateTextDocument)}: empty datalist`);
             currentJs.root.data = {};
         }
-        Logger.instance.info(`After datalist - ${JSON.stringify(currentJs.root.data)} `);
-
         var resx = xmljs.js2xml(currentJs, { spaces: Settings.indentSpaceLength, compact: true });
-        Logger.instance.info("Updated resx" + resx);
+        Logger.instance.info(`${ResxEditor}.${nameof(this.updateTextDocument)}: ${resx}`);
         edit.replace(
             document.uri,
             new vscode.Range(0, 0, document.lineCount, 0),
             resx);
-
-        Logger.instance.info("updateTextDocument end");
         return vscode.workspace.applyEdit(edit);
     }
 }
