@@ -1,5 +1,5 @@
 import { WebpanelPostMessageKind } from "./webpanelMessageKind";
-import { WebpanelPostMessage } from "./wevpanelPostMessage";
+import { WebpanelPostMessage } from "./webpanelPostMessage";
 
 // @ts-check
 let currentResxJS: any = [];
@@ -9,9 +9,7 @@ let currentResxJS: any = [];
 	// @ts-ignore acquired
 	const vscode = acquireVsCodeApi();
 
-
 	let table = document.querySelector("tbody")!;
-
 
 	const errorContainer = document.getElementById("errorBlock");
 

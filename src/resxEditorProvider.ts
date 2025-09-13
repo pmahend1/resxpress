@@ -2,10 +2,11 @@ import * as vscode from "vscode";
 import { ResxEditor } from "./resxEditor";
 import { ResxJsonHelper } from "./resxJsonHelper";
 import { WebpanelPostMessageKind } from "./webpanelMessageKind";
-import { resxpress, setNamespace } from "./extension";
+import { setNamespace } from "./extension";
 import { FileHelper } from "./fileHelper";
-import { WebpanelPostMessage } from "./wevpanelPostMessage";
+import { WebpanelPostMessage } from "./webpanelPostMessage";
 import *  as xmljs from "xml-js";
+import { Constants } from "./constants";
 
 export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
 
@@ -19,7 +20,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
 
     public static register(context: vscode.ExtensionContext): vscode.Disposable {
         const provider = new ResxEditorProvider(context);
-        const providerRegistration = vscode.window.registerCustomEditorProvider(`${resxpress}.editor`, provider);
+        const providerRegistration = vscode.window.registerCustomEditorProvider(`${Constants.resxpress}.${Constants.editor}`, provider);
         return providerRegistration;
     }
 
