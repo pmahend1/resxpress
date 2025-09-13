@@ -111,6 +111,16 @@
                         "type": "boolean",
                         "default": true,
                         "markdownDescription": "Use File Scoped Namespace. Default is **`true`** \n\n **true**: File scoped namespaces. \n\n **false**: Block scoped namespaces."
+                    },
+                    "resxpress.configuration.indentSpaceLength": {
+                        "type": "number",
+                        "default": 4,
+                        "enum": [
+                            2,
+                            4,
+                            8
+                        ],
+                        "markdownDescription": "No. of spaces for resx xml. Default: *4*"
                     }
                 }
             }
@@ -141,13 +151,13 @@
         "test": "vscode-test"
     },
     "devDependencies": {
-        "@types/node": "^22.16.5",
+        "@types/node": "^22.18.3",
         "@types/vscode": "^1.98.0",
         "@vscode/test-electron": "^2.5.2",
-        "eslint": "^9.31.0",
-        "ts-loader": "^9.5.2",
-        "typescript": "^5.8.3",
-        "webpack": "^5.100.2",
+        "eslint": "^9.35.0",
+        "ts-loader": "^9.5.4",
+        "typescript": "^5.9.2",
+        "webpack": "^5.101.3",
         "webpack-cli": "^6.0.1",
         "xml-js": "^1.6.11"
     }
