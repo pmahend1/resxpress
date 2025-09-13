@@ -44,7 +44,7 @@ export class FileHelper {
                         }
                     } catch (error) {
                         if (error instanceof Error) {
-                            Logger.instance.info(error.message);
+                            Logger.instance.error(error);
                         }
                     }
                 }
@@ -71,7 +71,7 @@ export class FileHelper {
 
         } catch (error) {
             if (error instanceof Error) {
-                Logger.instance.info(error.message);
+                Logger.instance.error(error);
             }
             return null;
         }

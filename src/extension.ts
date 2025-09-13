@@ -21,7 +21,9 @@ export function activate(context: vscode.ExtensionContext) {
 		notificationService.promptForReviewAsync();
 	}
 	catch (error) {
-		console.error(error);
+		if (error instanceof Error) {
+			Logger.instance.error(error);
+		}
 	}
 
 	currentContext = context;
@@ -83,12 +85,12 @@ export function activate(context: vscode.ExtensionContext) {
 		catch (error) {
 			var errorMessage = "";
 			if (error instanceof Error) {
+				Logger.instance.error(error);
 				errorMessage = error.message;
 			}
 			else if (typeof error === "string") {
 				errorMessage = error;
 			}
-			console.error(error);
 			vscode.window.showErrorMessage(errorMessage);
 		}
 	});
@@ -255,12 +257,12 @@ async function sortByKeys() {
 		var errorMessage = "";
 		if (error instanceof Error) {
 			errorMessage = error.message;
+			Logger.instance.error(error);
 		}
 		else if (typeof error === "string") {
 			errorMessage = error;
 		}
 		vscode.window.showErrorMessage(errorMessage);
-		console.error(error);
 	}
 }
 
@@ -299,12 +301,12 @@ function sortKeyValuesResx(reverse?: boolean) {
 		var errorMessage = "";
 		if (error instanceof Error) {
 			errorMessage = error.message;
+			Logger.instance.error(error);
 		}
 		else if (typeof error === "string") {
 			errorMessage = error;
 		}
 		vscode.window.showErrorMessage(errorMessage);
-		console.error(error);
 	}
 }
 
@@ -402,12 +404,12 @@ async function displayAsMarkdown() {
 		var errorMessage = "";
 		if (error instanceof Error) {
 			errorMessage = error.message;
+			Logger.instance.error(error);
 		}
 		else if (typeof error === "string") {
 			errorMessage = error;
 		}
 		vscode.window.showErrorMessage(errorMessage);
-		console.error(error);
 	}
 }
 
@@ -441,12 +443,12 @@ async function displayJsonInHtml(jsonData: any[], filename: string) {
 		var errorMessage = "";
 		if (error instanceof Error) {
 			errorMessage = error.message;
+			Logger.instance.error(error);
 		}
 		else if (typeof error === "string") {
 			errorMessage = error;
 		}
 		vscode.window.showErrorMessage(errorMessage);
-		console.error(error);
 	}
 }
 
@@ -567,7 +569,7 @@ async function createResxFile(uri: vscode.Uri | null) {
 					await createOrUpdateNamespaceMappingFile(workspaceFolder, fileNameNoExt, namespace);
 				}
 				else {
-					console.error(`Unable to locate workspaceFolder for ${resxFileUri.fsPath}`)
+					Logger.instance.warning(`Unable to locate workspaceFolder for ${resxFileUri.fsPath}`);
 				}
 			}
 			else {

@@ -140,7 +140,7 @@ let currentResxJS: any = [];
 
 				if (indices.length > 0) {
 					let index = Number(indices[0]);
-					Logger.instance.info(`index to be deleted: ${index}`)
+					Logger.instance.info(`index to be deleted: ${index}`);
 					if (currentResxJS.length > index) {
 						var deleteableObj = currentResxJS[index];
 
@@ -254,10 +254,13 @@ let currentResxJS: any = [];
 					currentResxJS = json = JSON.parse(text);
 					Logger.instance.info("data json is :" + text);
 				}
-				catch {
+				catch (error) {
 					table.style.display = "none";
 					errorContainer.innerText = "Error: Document is not valid resx";
 					errorContainer.style.display = "";
+					if (error instanceof Error) {
+						Logger.instance.error(error);
+					}
 					return;
 				}
 				table.style.display = "";

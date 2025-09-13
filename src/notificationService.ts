@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { Logger } from "./logger";
 export class NotificationService {
     private context: vscode.ExtensionContext;
     public readonly storageKeyPrefix: string;
@@ -48,7 +49,9 @@ export class NotificationService {
             }
         }
         catch (error) {
-            console.error(error);
+            if (error instanceof Error) {
+                Logger.instance.error(error);
+            }
         }
     }
 

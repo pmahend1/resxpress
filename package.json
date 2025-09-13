@@ -125,7 +125,7 @@
                     "resxpress.configuration.enableLocalLogs": {
                         "type": "boolean",
                         "default": false,
-                        "markdownDescription": "Enable local logs. Default is **`false`** \n\n Logs are Output window."
+                        "markdownDescription": "Enable local logs. Default is **`false`** \n\n Logs are shown in Output window."
                     }
                 }
             }
