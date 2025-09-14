@@ -4,6 +4,7 @@ import { WebpanelPostMessage } from "./webpanelPostMessage";
 
 // @ts-check
 let currentResxJS: any = [];
+const emptyString = "";
 const resxpressWebPanel = "resxpress.webpanel";
 const tbody = "tbody";
 const errorBlock = "errorBlock";
@@ -27,6 +28,8 @@ const errorUpdateDuplicateKey = (key: string) => `Error while updating data : Da
 const changeNamespaceButton = "changeNamespaceButton";
 const addButton = "addButton";
 const switchToTextEditorButton = "switchToTextEditorButton";
+const message = "message";
+const none = "none";
 
 function logToConsole(text: string) {
 	console.log(`${resxpressWebPanel}: ${text}`);
@@ -45,21 +48,21 @@ function logToConsole(text: string) {
 		let currentElement = event.target;
 
 		if (errorContainer !== null && currentElement instanceof HTMLInputElement) {
-			errorContainer.innerText = "";
+			errorContainer.innerText = emptyString;
 			let idstr = currentElement.id;
 			logToConsole(`${nameof(inputEvent)} for : ${idstr}`);
 			var index = Number(idstr.split(".")[0]);
 			if (index >= currentResxJS.length) {
 				logToConsole(`${nameof(inputEvent)}: Index: ${index}. Current Resx Length: ${currentResxJS.length}`);
-				var newObj: any = { _attributes: { name: "", "xml:space": "preserve" }, value: { _text: "" } };
+				var newObj: any = { _attributes: { name: emptyString, "xml:space": "preserve" }, value: { _text: emptyString } };
 				const keyElement = document.getElementById(`${index}.${key}`) as HTMLInputElement;
 				const valueElement = document.getElementById(`${index}.${value}`);
 				const commentElement = document.getElementById(`${index}.${comment}`);
 
 				if (keyElement instanceof HTMLInputElement && valueElement instanceof HTMLInputElement && commentElement instanceof HTMLInputElement) {
 					if (keyElement.value && valueElement.value) {
-						newObj._attributes.name = keyElement?.value ?? "";
-						newObj.value._text = valueElement?.value ?? "";
+						newObj._attributes.name = keyElement?.value ?? emptyString;
+						newObj.value._text = valueElement?.value ?? emptyString;
 						if (commentElement.value) {
 							newObj.comment = { _text: commentElement?.value };
 						}
@@ -74,8 +77,8 @@ function logToConsole(text: string) {
 							currentResxJS.push(newObj);
 							logToConsole(`${nameof(inputEvent)}: ${JSON.stringify(newObj)}`);
 
-							errorContainer.innerText = "";
-							errorContainer.style.display = "";
+							errorContainer.innerText = emptyString;
+							errorContainer.style.display = emptyString;
 
 							vscode.setState({ text: JSON.stringify(currentResxJS) });
 							vscode.postMessage(new WebpanelPostMessage(
@@ -86,13 +89,13 @@ function logToConsole(text: string) {
 						else {
 							logToConsole(`${nameof(inputEvent)}: Duplicate key found ${newObj._attributes.name}`);
 							errorContainer.innerText = errorDuplicateKey(newObj._attributes.name);
-							errorContainer.style.display = "";
+							errorContainer.style.display = emptyString;
 							return;
 						}
 					}
 					else {
 						errorContainer.innerText = errorKeyValueMandatory;
-						errorContainer.style.display = "";
+						errorContainer.style.display = emptyString;
 						return;
 					}
 				}
@@ -108,8 +111,8 @@ function logToConsole(text: string) {
 					if (keyElement.value && valueElement.value) {
 
 						logToConsole(`${nameof(inputEvent)}: Changing values`);
-						editingObj._attributes.name = keyElement.value ?? "";
-						editingObj.value._text = valueElement.value ?? "";
+						editingObj._attributes.name = keyElement.value ?? emptyString;
+						editingObj.value._text = valueElement.value ?? emptyString;
 						if (commentElement?.value) {
 							editingObj.comment = { _text: commentElement?.value };
 						}
@@ -126,7 +129,7 @@ function logToConsole(text: string) {
 						if (new Set(keyArray).size !== keyArray.length) {
 							logToConsole(`${nameof(inputEvent)}: edited Data key already exists`);
 							errorContainer.innerText = errorUpdateDuplicateKey(editingObj._attributes.name)
-							errorContainer.style.display = "";
+							errorContainer.style.display = emptyString;
 						}
 						else {
 							currentResxJS[index] = editingObj;
@@ -134,7 +137,7 @@ function logToConsole(text: string) {
 					}
 					else {
 						errorContainer.innerText = errorInvalidResx;
-						errorContainer.style.display = "";
+						errorContainer.style.display = emptyString;
 						return;
 					}
 				}
@@ -156,7 +159,7 @@ function logToConsole(text: string) {
 		if (errorContainer !== null && table && td) {
 			let idstr: string = td.id;
 			logToConsole(`Triggered td.id : ${idstr}`);
-			errorContainer.innerText = "";
+			errorContainer.innerText = emptyString;
 
 			if (idstr && idstr.trim()) {
 				let indices = idstr.split(".");
@@ -197,7 +200,7 @@ function logToConsole(text: string) {
 		changeNamespaceButtonElement.addEventListener(click, () => {
 			vscode.postMessage(new WebpanelPostMessage(
 				WebpanelPostMessageKind.NamespaceUpdate,
-				JSON.stringify("")));
+				JSON.stringify(emptyString)));
 		});
 	}
 	let addButtonElement = document.getElementById(addButton);
@@ -208,7 +211,7 @@ function logToConsole(text: string) {
 		switchToTextEditor.addEventListener(click, async () => {
 			vscode.postMessage(new WebpanelPostMessage(
 				WebpanelPostMessageKind.Switch,
-				JSON.stringify("")));
+				JSON.stringify(emptyString)));
 		});
 	}
 
@@ -225,7 +228,7 @@ function logToConsole(text: string) {
 			const keyInput = document.createElement(input);
 			keyInput.id = `${index}.${keyTdElement}`;
 			keyInput.type = text;
-			keyInput.value = "";
+			keyInput.value = emptyString;
 
 			//keyInput.onfocus =(key) =>inputEvent(key);
 			keyInput.addEventListener(focusout, inputEvent, false);
@@ -235,7 +238,7 @@ function logToConsole(text: string) {
 			const value = document.createElement(td);
 			const valueInput = document.createElement(input);
 			valueInput.id = `${index}.${value}`;
-			valueInput.value = "";
+			valueInput.value = emptyString;
 			valueInput.type = text;
 
 			valueInput.addEventListener(focusout, inputEvent, false);
@@ -247,7 +250,7 @@ function logToConsole(text: string) {
 			const commentInput = document.createElement(input);
 			commentInput.id = `${index}.${comment}`;
 			commentInput.type = text;
-			commentInput.value = "";
+			commentInput.value = emptyString;
 
 			commentInput.addEventListener(focusout, inputEvent, false);
 
@@ -279,16 +282,16 @@ function logToConsole(text: string) {
 					logToConsole(`${nameof(updateContent)}: data json is : ${text}`);
 				}
 				catch {
-					table.style.display = "none";
+					table.style.display = none;
 					errorContainer.innerText = errorInvalidResx;
-					errorContainer.style.display = "";
+					errorContainer.style.display = emptyString;
 					return;
 				}
-				table.style.display = "";
-				errorContainer.style.display = "none";
+				table.style.display = emptyString;
+				errorContainer.style.display = none;
 
 				// Render the scratches
-				table.innerHTML = "";
+				table.innerHTML = emptyString;
 
 				var index = 0;
 				for (const node of json) {
@@ -300,8 +303,8 @@ function logToConsole(text: string) {
 						const keyElement = document.createElement(td);
 						const keyInput = document.createElement(input);
 						keyInput.type = text;
-						keyInput.value = node._attributes.name ?? "";
-						logToConsole("key : " + node._attributes.name);
+						keyInput.value = node._attributes.name ?? emptyString;
+						logToConsole(`key : ${node._attributes.name}`);
 
 						keyInput.id = `${index}.${keyElement}`;
 						keyInput.addEventListener(focusout, inputEvent, false);
@@ -310,7 +313,7 @@ function logToConsole(text: string) {
 						//create value td
 						const value = document.createElement(td);
 						const valueInput = document.createElement(input);
-						valueInput.value = node.value._text ?? "";
+						valueInput.value = node.value._text ?? emptyString;
 						valueInput.type = text;
 						valueInput.id = `${index}.${value}`;
 						logToConsole(`${nameof(updateContent)}: Value : ${node.value._text}`);
@@ -322,9 +325,9 @@ function logToConsole(text: string) {
 						const commentInput = document.createElement(input);
 						commentInput.id = `${index}.${comment}`;
 						commentInput.type = text;
-						commentInput.value = node?.comment?._text ?? "";
+						commentInput.value = node?.comment?._text ?? emptyString;
 
-						logToConsole("comment : " + node?.comment?._text);
+						logToConsole(`comment : ${node?.comment?._text}`);
 						commentInput.addEventListener(focusout, inputEvent, false);
 						comment.appendChild(commentInput);
 
@@ -350,26 +353,27 @@ function logToConsole(text: string) {
 				}
 			}
 			else {
-				table.style.display = "none";
+				table.style.display = none;
 				errorContainer.innerText = errorInvalidResx;
-				errorContainer.style.display = "";
+				errorContainer.style.display = emptyString;
 				return;
 			}
 		}
 	}
 
-	window.addEventListener("message", event => {
-		const message = event.data; // The json data that the extension sent
-		const text = message.json;
+
+	window.addEventListener(message, event => {
+		const messageData = event.data; // The json data that the extension sent
+		const text = messageData.json;
 		logToConsole(`addEventListener message received : ${text}`);
 
-		switch (message.type) {
+		switch (messageData.type) {
 			case WebpanelPostMessageKind.Update:
 				var sentDataListJs = JSON.parse(text) ?? [];
 
 				if (sentDataListJs.length !== currentResxJS.length) {
 					logToConsole(`addEventListener: Sent data as json ${text}`);
-					logToConsole("addEventListener: Current data as json " + JSON.stringify(currentResxJS));
+					logToConsole(`addEventListener: Current data as json ${JSON.stringify(currentResxJS)}`);
 					updateContent(text);
 				}
 				// Then persist state information.
