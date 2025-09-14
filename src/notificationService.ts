@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { Logger } from "./logger";
+
 export class NotificationService {
     private context: vscode.ExtensionContext;
     public readonly storageKeyPrefix: string;
