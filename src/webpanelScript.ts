@@ -1,10 +1,10 @@
+import { emptyString } from "./constants";
 import { nameof } from "./nameof";
 import { WebpanelPostMessageKind } from "./webpanelMessageKind";
 import { WebpanelPostMessage } from "./webpanelPostMessage";
 
 // @ts-check
 let currentResxJS: any = [];
-const emptyString = "";
 const resxpressWebPanel = "resxpress.webpanel";
 const tbody = "tbody";
 const errorBlock = "errorBlock";
@@ -53,7 +53,7 @@ function logToConsole(text: string) {
 			logToConsole(`${nameof(inputEvent)} for : ${idstr}`);
 			var index = Number(idstr.split(".")[0]);
 			if (index >= currentResxJS.length) {
-				logToConsole(`${nameof(inputEvent)}: Index: ${index}. Current Resx Length: ${currentResxJS.length}`);
+				logToConsole(`${nameof(inputEvent)}.New: Index: ${index}. Current Resx Length: ${currentResxJS.length}`);
 				var newObj: any = { _attributes: { name: emptyString, "xml:space": "preserve" }, value: { _text: emptyString } };
 				const keyElement = document.getElementById(`${index}.${key}`) as HTMLInputElement;
 				const valueElement = document.getElementById(`${index}.${value}`);
@@ -75,7 +75,7 @@ function logToConsole(text: string) {
 						//avoid adding data with same key
 						if (pos === -1) {
 							currentResxJS.push(newObj);
-							logToConsole(`${nameof(inputEvent)}: ${JSON.stringify(newObj)}`);
+							logToConsole(`${nameof(inputEvent)}.New: ${JSON.stringify(newObj)}`);
 
 							errorContainer.innerText = emptyString;
 							errorContainer.style.display = emptyString;
@@ -87,7 +87,7 @@ function logToConsole(text: string) {
 							));
 						}
 						else {
-							logToConsole(`${nameof(inputEvent)}: Duplicate key found ${newObj._attributes.name}`);
+							logToConsole(`${nameof(inputEvent)}.New: Duplicate key found ${newObj._attributes.name}`);
 							errorContainer.innerText = errorDuplicateKey(newObj._attributes.name);
 							errorContainer.style.display = emptyString;
 							return;
@@ -106,11 +106,23 @@ function logToConsole(text: string) {
 				const keyElement = document.getElementById(`${index}.${key}`);
 				const valueElement = document.getElementById(`${index}.${value}`);
 				const commentElement = document.getElementById(`${index}.${comment}`);
+				let isKeyChanged = false;
+				let isValueChanged = false;
+				let isCommentChanged = false;
 
 				if (keyElement instanceof HTMLInputElement && valueElement instanceof HTMLInputElement && commentElement instanceof HTMLInputElement) {
-					if (keyElement.value && valueElement.value) {
 
-						logToConsole(`${nameof(inputEvent)}: Changing values`);
+					isKeyChanged = keyElement.value !== editingObj._attributes.name;
+					isValueChanged = valueElement.value !== editingObj.value._text;
+					isCommentChanged = (commentElement?.value ?? emptyString) !== (editingObj?.comment?._text ?? emptyString);
+
+					logToConsole(`${nameof(inputEvent)}.Edit: anyDataChanged : ${isKeyChanged || isValueChanged || isCommentChanged}`);
+					if (keyElement.value && valueElement.value) {
+						if (!isKeyChanged && !isValueChanged && !isCommentChanged) {
+							return;
+						}
+
+						logToConsole(`${nameof(inputEvent)}.Edit: Changing values`);
 						editingObj._attributes.name = keyElement.value ?? emptyString;
 						editingObj.value._text = valueElement.value ?? emptyString;
 						if (commentElement?.value) {
@@ -125,9 +137,9 @@ function logToConsole(text: string) {
 
 						var keyArray = tempArray.map((x: any) => x._attributes.name);
 
-						logToConsole(`${nameof(inputEvent)}: keyArray is  ${JSON.stringify(keyArray)}`);
+						logToConsole(`${nameof(inputEvent)}.Edit: keyArray is  ${JSON.stringify(keyArray)}`);
 						if (new Set(keyArray).size !== keyArray.length) {
-							logToConsole(`${nameof(inputEvent)}: edited Data key already exists`);
+							logToConsole(`${nameof(inputEvent)}.Edit: edited Data key already exists`);
 							errorContainer.innerText = errorUpdateDuplicateKey(editingObj._attributes.name)
 							errorContainer.style.display = emptyString;
 						}
@@ -141,12 +153,17 @@ function logToConsole(text: string) {
 						return;
 					}
 				}
-				logToConsole(`${nameof(inputEvent)}: ${JSON.stringify(currentResxJS)}`);
-				vscode.setState({ text: JSON.stringify(currentResxJS) });
-				vscode.postMessage(new WebpanelPostMessage(
-					WebpanelPostMessageKind.Update,
-					JSON.stringify(currentResxJS)
-				));
+				if (isKeyChanged || isValueChanged || isCommentChanged) {
+					let changeText = isKeyChanged ? "Key changed" : emptyString;
+					changeText += isValueChanged ? (changeText ? ", Value changed" : "Value changed") : emptyString;
+					changeText += isCommentChanged ? (changeText ? ", Comment changed" : "Comment changed") : emptyString;
+					logToConsole(`${nameof(inputEvent)}.Edit: ${changeText}`);
+					vscode.setState({ text: JSON.stringify(currentResxJS) });
+					vscode.postMessage(new WebpanelPostMessage(
+						WebpanelPostMessageKind.Update,
+						JSON.stringify(currentResxJS)
+					));
+				}
 			}
 		}
 	}
@@ -226,7 +243,7 @@ function logToConsole(text: string) {
 			//create key td
 			let keyTdElement = document.createElement(td);
 			const keyInput = document.createElement(input);
-			keyInput.id = `${index}.${keyTdElement}`;
+			keyInput.id = `${index}.${key}`;
 			keyInput.type = text;
 			keyInput.value = emptyString;
 
@@ -235,26 +252,24 @@ function logToConsole(text: string) {
 			keyTdElement.appendChild(keyInput);
 
 			//create value td
-			const value = document.createElement(td);
+			const valueTdElement = document.createElement(td);
 			const valueInput = document.createElement(input);
 			valueInput.id = `${index}.${value}`;
 			valueInput.value = emptyString;
 			valueInput.type = text;
 
 			valueInput.addEventListener(focusout, inputEvent, false);
-			value.appendChild(valueInput);
+			valueTdElement.appendChild(valueInput);
 
 			//create comment td
-			const comment = document.createElement(td);
+			const commentTdElement = document.createElement(td);
 
 			const commentInput = document.createElement(input);
 			commentInput.id = `${index}.${comment}`;
 			commentInput.type = text;
 			commentInput.value = emptyString;
-
 			commentInput.addEventListener(focusout, inputEvent, false);
-
-			comment.appendChild(commentInput);
+			commentTdElement.appendChild(commentInput);
 
 			//delete character X
 			const deleteTd = document.createElement(td);
@@ -266,7 +281,7 @@ function logToConsole(text: string) {
 			deleteTd.appendChild(pElement);
 
 			deleteTd.addEventListener(click, (ev) => deleteEvent(ev), false);
-			trElement.append(keyTdElement, value, comment, deleteTd);
+			trElement.append(keyTdElement, valueTdElement, commentTdElement, deleteTd);
 
 			//add tr to table 
 			table.appendChild(trElement);
@@ -306,22 +321,22 @@ function logToConsole(text: string) {
 						keyInput.value = node._attributes.name ?? emptyString;
 						logToConsole(`key : ${node._attributes.name}`);
 
-						keyInput.id = `${index}.${keyElement}`;
+						keyInput.id = `${index}.${key}`;
 						keyInput.addEventListener(focusout, inputEvent, false);
 						keyElement.appendChild(keyInput);
 
 						//create value td
-						const value = document.createElement(td);
+						const valueTdElement = document.createElement(td);
 						const valueInput = document.createElement(input);
 						valueInput.value = node.value._text ?? emptyString;
 						valueInput.type = text;
 						valueInput.id = `${index}.${value}`;
 						logToConsole(`${nameof(updateContent)}: Value : ${node.value._text}`);
 						valueInput.addEventListener(focusout, inputEvent, false);
-						value.appendChild(valueInput);
+						valueTdElement.appendChild(valueInput);
 
 						//create comment td
-						const comment = document.createElement(td);
+						const commentTdElement = document.createElement(td);
 						const commentInput = document.createElement(input);
 						commentInput.id = `${index}.${comment}`;
 						commentInput.type = text;
@@ -329,7 +344,7 @@ function logToConsole(text: string) {
 
 						logToConsole(`comment : ${node?.comment?._text}`);
 						commentInput.addEventListener(focusout, inputEvent, false);
-						comment.appendChild(commentInput);
+						commentTdElement.appendChild(commentInput);
 
 						//delete character X
 						const deleteTd = document.createElement(td);
@@ -340,8 +355,7 @@ function logToConsole(text: string) {
 						deleteTd.appendChild(pElement);
 						deleteTd.addEventListener(click, (ev) => deleteEvent(ev), false);
 
-
-						trElement.append(keyElement, value, comment, deleteTd);
+						trElement.append(keyElement, valueTdElement, commentTdElement, deleteTd);
 
 						//add tr to table 
 						table.appendChild(trElement);
@@ -365,15 +379,16 @@ function logToConsole(text: string) {
 	window.addEventListener(message, event => {
 		const messageData = event.data; // The json data that the extension sent
 		const text = messageData.json;
-		logToConsole(`addEventListener message received : ${text}`);
+		logToConsole(`addEventListener ${messageData.type} message received : ${text}`);
 
 		switch (messageData.type) {
 			case WebpanelPostMessageKind.Update:
 				var sentDataListJs = JSON.parse(text) ?? [];
 
 				if (sentDataListJs.length !== currentResxJS.length) {
-					logToConsole(`addEventListener: Sent data as json ${text}`);
-					logToConsole(`addEventListener: Current data as json ${JSON.stringify(currentResxJS)}`);
+
+					logToConsole(`addEventListener: Current data: ${JSON.stringify(currentResxJS)}`);
+					logToConsole(`addEventListener: Received data: ${text}`);
 					updateContent(text);
 				}
 				// Then persist state information.

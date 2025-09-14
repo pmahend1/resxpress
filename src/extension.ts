@@ -8,9 +8,10 @@ import { ResxEditorProvider } from "./resxEditorProvider";
 import { NotificationService } from "./notificationService";
 import { FileHelper } from "./fileHelper";
 import { TextInputBoxOptions } from "./textInputBoxOptions";
-import { Constants } from "./constants";
+import { Constants, DATA, emptyString } from "./constants";
 import { Settings } from "./settings";
 import { Logger } from "./logger";
+import { nameof } from "./nameof";
 
 
 let currentContext: vscode.ExtensionContext;
@@ -84,7 +85,7 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		}
 		catch (error) {
-			var errorMessage = "";
+			var errorMessage = emptyString;
 			if (error instanceof Error) {
 				Logger.instance.error(error);
 				errorMessage = error.message;
@@ -109,20 +110,20 @@ function loadConfiguration() {
 
 function convertToPascalCase(input: string): string {
 	// Remove special characters and keep alphanumeric characters and spaces
-	const sanitized = input.replace(/[^a-zA-Z0-9_ ]/g, "");
+	const sanitized = input.replace(/[^a-zA-Z0-9_ ]/g, emptyString);
 
 	// Split the string into words by spaces
 	const words = sanitized.split(" ");
 
 	// PascalCase
 	const pascalCaseWords = words.map(word => {
-		if (word.length === 0) return "";
+		if (word.length === 0) return emptyString;
 		// If word starts with uppercase, keep it; otherwise, capitalize
 		return word[0].toUpperCase() + word.slice(1);
 	});
 
 	// Join all the words
-	let pascalCaseString = pascalCaseWords.join("");
+	let pascalCaseString = pascalCaseWords.join(emptyString);
 
 	// If the resulting string starts with a digit, prefix it with an underscore
 	if (/^\d/.test(pascalCaseString)) {
@@ -145,7 +146,7 @@ export async function runResGenAsync(document: vscode.TextDocument): Promise<voi
 
 	let nameSpace = await FileHelper.tryGetNamespace(document);
 
-	if (nameSpace === null || nameSpace === "") {
+	if (nameSpace === null || nameSpace === emptyString) {
 		nameSpace = path.basename(path.dirname(filename));
 	}
 
@@ -153,12 +154,12 @@ export async function runResGenAsync(document: vscode.TextDocument): Promise<voi
 	let documentText = document.getText();
 	if (documentText.length > 0) {
 		var jsObj = xmljs.xml2js(documentText);
-		var resourceCSharpClassText = "";
+		var resourceCSharpClassText = emptyString;
 		let accessModifier = "public";
 		let workspacePath = FileHelper.getDirectory(document);
-		var spaces = Settings.shouldUseFileScopedNamespace ? "" : "    ";
-		resourceCSharpClassText += `namespace ${nameSpace}${Settings.shouldUseFileScopedNamespace ? ";" : ""}
-${Settings.shouldUseFileScopedNamespace ? "" : "{"}
+		var spaces = Settings.shouldUseFileScopedNamespace ? emptyString : "    ";
+		resourceCSharpClassText += `namespace ${nameSpace}${Settings.shouldUseFileScopedNamespace ? ";" : emptyString}
+${Settings.shouldUseFileScopedNamespace ? emptyString : "{"}
 ${spaces}/// <summary>
 ${spaces}///   A strongly-typed resource class, for looking up localized strings, etc.
 ${spaces}/// </summary>
@@ -198,10 +199,10 @@ ${spaces}	${accessModifier} static global::System.Globalization.CultureInfo Cult
 
 		if (jsObj.elements[0].elements.length > 0) {
 			jsObj.elements[0].elements.forEach((element: any) => {
-				if (element.name === "data") {
+				if (element.name === DATA) {
 					const resourceKey = element.attributes.name;
 					let valueElementParent = element.elements.filter((x: any) => x.name === "value")?.[0];
-					let value: string = valueElementParent?.elements?.length > 0 ? valueElementParent.elements[0].text : "";
+					let value: string = valueElementParent?.elements?.length > 0 ? valueElementParent.elements[0].text : emptyString;
 					value = value.toString().replace(/(?:\r\n|\r|\n)/g, "\n		/// ");
 					if (resourceKey) {
 						let propertyName = convertToPascalCase(resourceKey);
@@ -223,7 +224,7 @@ ${spaces}}`;
 
 		resourceCSharpClassText += `
 ${spaces}}
-${Settings.shouldUseFileScopedNamespace ? "" : "}"}`;
+${Settings.shouldUseFileScopedNamespace ? emptyString : "}"}`;
 		Logger.instance.info(resourceCSharpClassText);
 
 		if (workspacePath.length > 0) {
@@ -255,7 +256,7 @@ async function sortByKeys() {
 		}
 	}
 	catch (error) {
-		var errorMessage = "";
+		var errorMessage = emptyString;
 		if (error instanceof Error) {
 			errorMessage = error.message;
 			Logger.instance.error(error);
@@ -269,13 +270,14 @@ async function sortByKeys() {
 
 function sortKeyValuesResx(reverse?: boolean) {
 	try {
-		var text = vscode.window.activeTextEditor?.document?.getText() ?? "";
+		Logger.instance.info(`${nameof(sortKeyValuesResx)}`);
+		var text = vscode.window.activeTextEditor?.document?.getText() ?? emptyString;
 		var jsObj = xmljs.xml2js(text);
 
 		var dataList: any = [];
 		var sorted: any = [];
 		jsObj.elements[0].elements.forEach((x: any) => {
-			if (x.name === "data") {
+			if (x.name === DATA) {
 				dataList.push(x);
 			}
 			else {
@@ -299,7 +301,7 @@ function sortKeyValuesResx(reverse?: boolean) {
 		return xml;
 	}
 	catch (error) {
-		var errorMessage = "";
+		var errorMessage = emptyString;
 		if (error instanceof Error) {
 			errorMessage = error.message;
 			Logger.instance.error(error);
@@ -312,18 +314,18 @@ function sortKeyValuesResx(reverse?: boolean) {
 }
 
 function getDataJs(): any[] {
-	var text = vscode.window.activeTextEditor?.document?.getText() ?? "";
+	var text = vscode.window.activeTextEditor?.document?.getText() ?? emptyString;
 	var jsObj: any = xmljs.xml2js(text, { compact: true });
 	return jsObj.root.data;
 }
 
 async function newPreview() {
-	var text = vscode.window.activeTextEditor?.document?.getText() ?? "";
+	var text = vscode.window.activeTextEditor?.document?.getText() ?? emptyString;
 	var jsObj = xmljs.xml2js(text);
 	var dataList: any = [];
 	var sorted = [];
 	jsObj.elements[0].elements.forEach((x: any) => {
-		if (x.name === "data") {
+		if (x.name === DATA) {
 			dataList.push(x);
 		}
 		else {
@@ -342,7 +344,7 @@ async function newPreview() {
 async function displayAsMarkdown() {
 	try {
 		var pathObj = path.parse(
-			vscode.window.activeTextEditor?.document.fileName ?? ""
+			vscode.window.activeTextEditor?.document.fileName ?? emptyString
 		);
 		if (pathObj) {
 			if (pathObj.ext !== ".resx") {
@@ -372,7 +374,7 @@ async function displayAsMarkdown() {
 						propertyString = property.replace(/\r?\n/g, "<br/>");
 
 						var valueString = jsObj.value?._text;
-						var commentString = jsObj.comment?._text ?? "";
+						var commentString = jsObj.comment?._text ?? emptyString;
 
 						valueString = valueString.replace(regexM, "\\$&");
 						valueString = valueString.replace(/\r?\n/g, "<br/>");
@@ -402,7 +404,7 @@ async function displayAsMarkdown() {
 		}
 	}
 	catch (error) {
-		var errorMessage = "";
+		var errorMessage = emptyString;
 		if (error instanceof Error) {
 			errorMessage = error.message;
 			Logger.instance.error(error);
@@ -416,11 +418,11 @@ async function displayAsMarkdown() {
 
 async function displayJsonInHtml(jsonData: any[], filename: string) {
 	try {
-		var htmlContent = "";
+		var htmlContent = emptyString;
 
 		jsonData.forEach((element) => {
-			var valueStr = "";
-			var commentstr = "";
+			var valueStr = emptyString;
+			var commentstr = emptyString;
 			element.elements.forEach((subElement: any) => {
 				if (subElement.name === "value" && subElement.elements?.length > 0) {
 					valueStr = subElement.elements[0].text;
@@ -441,7 +443,7 @@ async function displayJsonInHtml(jsonData: any[], filename: string) {
 		PreviewEditPanel.createOrShow(currentContext.extensionUri, title, htmlContent);
 	}
 	catch (error) {
-		var errorMessage = "";
+		var errorMessage = emptyString;
 		if (error instanceof Error) {
 			errorMessage = error.message;
 			Logger.instance.error(error);
@@ -496,7 +498,7 @@ export async function setNamespace(uri: vscode.Uri) {
 		let parsedPath = path.parse(uri.fsPath);
 		const fileName = parsedPath.name;
 		if (fileName !== null) {
-			const inputBoxOptions = new TextInputBoxOptions("Namespace", "", undefined, "Enter namespace", "Namespace", true);
+			const inputBoxOptions = new TextInputBoxOptions("Namespace", emptyString, undefined, "Enter namespace", "Namespace", true);
 			const namespaceValue = await vscode.window.showInputBox(inputBoxOptions);
 			Logger.instance.info(`namespace entered : ${namespaceValue}`);
 			if (namespaceValue) {
@@ -510,17 +512,17 @@ export async function setNamespace(uri: vscode.Uri) {
 }
 
 async function createResxFile(uri: vscode.Uri | null) {
-	const resxFileNameOptions = new TextInputBoxOptions("New Resx File", "", undefined, "Enter Resx file name", ".resx", true);
+	const resxFileNameOptions = new TextInputBoxOptions("New Resx File", emptyString, undefined, "Enter Resx file name", ".resx", true);
 	let fileName = await vscode.window.showInputBox(resxFileNameOptions);
 	if (fileName && fileName.length > 0) {
 		if (fileName.endsWith(".resx") === false) {
 			fileName = `${fileName}.resx`;
 		}
-		const newResxFileNamespaceOptions = new TextInputBoxOptions(`namespace for ${fileName}`, "", undefined, `Enter namespace for ${fileName}`, "", true);
+		const newResxFileNamespaceOptions = new TextInputBoxOptions(`namespace for ${fileName}`, emptyString, undefined, `Enter namespace for ${fileName}`, emptyString, true);
 		const namespace = await vscode.window.showInputBox(newResxFileNamespaceOptions);
 		if (namespace && namespace.length > 0) {
 			const workspaceEdit = new vscode.WorkspaceEdit();
-			let thisWorkspace = "";
+			let thisWorkspace = emptyString;
 			if (uri) {
 				thisWorkspace = uri.fsPath;
 			}
@@ -566,7 +568,7 @@ async function createResxFile(uri: vscode.Uri | null) {
 				let workspaceFolder = vscode.workspace.getWorkspaceFolder(resxFileUri);
 
 				if (workspaceFolder) {
-					const fileNameNoExt = fileName.replace(".resx", "");
+					const fileNameNoExt = fileName.replace(".resx", emptyString);
 					await createOrUpdateNamespaceMappingFile(workspaceFolder, fileNameNoExt, namespace);
 				}
 				else {

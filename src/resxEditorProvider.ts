@@ -6,7 +6,7 @@ import { setNamespace } from "./extension";
 import { FileHelper } from "./fileHelper";
 import { WebpanelPostMessage } from "./webpanelPostMessage";
 import *  as xmljs from "xml-js";
-import { Constants } from "./constants";
+import { Constants, DATA, emptyString } from "./constants";
 import { Logger } from "./logger";
 
 export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
@@ -44,7 +44,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
         var jsonData: any = [];
         var sorted = [];
         jsObj.elements[0].elements.forEach((x: any) => {
-            if (x.name === "data") {
+            if (x.name === DATA) {
                 jsonData.push(x);
             }
             else {
@@ -52,12 +52,12 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
             }
         });
 
-        let htmlContent = "";
+        let htmlContent = emptyString;
 
         let i = 0;
         jsonData.forEach((element: any) => {
-            var valueStr = "";
-            var commentstr = "";
+            var valueStr = emptyString;
+            var commentstr = emptyString;
             element.elements.forEach((subElement: any) => {
                 if (subElement.name === "value" && subElement.elements?.length > 0) {
                     valueStr = subElement.elements[0].text;
@@ -74,7 +74,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
 			</tr>`;
             i = i + 1;
         });
-        webviewPanel.webview.html = this.resxEditor.getHtmlForWebview(webviewPanel.webview, namespace ?? "", htmlContent);
+        webviewPanel.webview.html = this.resxEditor.getHtmlForWebview(webviewPanel.webview, namespace ?? emptyString, htmlContent);
 
         // Receive message from the webview.
         webviewPanel.webview.onDidReceiveMessage(async (e) => {
@@ -115,10 +115,8 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
             changeDocumentSubscription.dispose();
         });
 
-
-
         updateWebview();
     }
 
-    content: string = "";
+    content: string = emptyString;
 }

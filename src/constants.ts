@@ -1,3 +1,6 @@
+export const DATA = "data";
+export const emptyString = "";
+
 export class Constants {
     /**
      * ResXpress

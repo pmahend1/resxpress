@@ -95,16 +95,16 @@ export class ResxEditor {
         var deletedJsObj = JSON.parse(json);
         var currentData = ResxJsonHelper.getJsonData(document.getText());
 
-        Logger.instance.info(`${ResxEditor}.${nameof(this.deleteKeyValue)}: Datalist before deleting ${deletedJsObj._attributes.name} : ${JSON.stringify(currentData)}`);
+        Logger.instance.info(`${nameof(ResxEditor)}.${nameof(this.deleteKeyValue)}: Datalist before deleting ${deletedJsObj._attributes.name} : ${JSON.stringify(currentData)}`);
         var pos = currentData.map(e => e?._attributes?.name).indexOf(deletedJsObj._attributes.name);
 
         currentData.splice(pos, 1);
-        Logger.instance.info(`${ResxEditor}.${nameof(this.deleteKeyValue)}: Deleted ${deletedJsObj._attributes.name}`);
+        Logger.instance.info(`${nameof(ResxEditor)}.${nameof(this.deleteKeyValue)}: Deleted ${deletedJsObj._attributes.name}`);
         return this.updateTextDocument(document, JSON.stringify(currentData));
     }
 
     public updateTextDocument(document: vscode.TextDocument, dataListJson: any) {
-        Logger.instance.info(`${ResxEditor}.${nameof(this.updateTextDocument)}: `);
+        Logger.instance.info(`${nameof(ResxEditor)}.${nameof(this.updateTextDocument)}: `);
 
         var dataList = JSON.parse(dataListJson);
         const edit = new vscode.WorkspaceEdit();
@@ -125,11 +125,11 @@ export class ResxEditor {
             }
         }
         else {
-            Logger.instance.warning(`${ResxEditor}.${nameof(this.updateTextDocument)}: empty datalist`);
+            Logger.instance.warning(`${nameof(ResxEditor)}.${nameof(this.updateTextDocument)}: empty datalist`);
             currentJs.root.data = {};
         }
         var resx = xmljs.js2xml(currentJs, { spaces: Settings.indentSpaceLength, compact: true });
-        Logger.instance.info(`${ResxEditor}.${nameof(this.updateTextDocument)}: ${resx}`);
+        Logger.instance.info(`${nameof(ResxEditor)}.${nameof(this.updateTextDocument)}: ${resx}`);
         edit.replace(
             document.uri,
             new vscode.Range(0, 0, document.lineCount, 0),

@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import path = require("path");
 import { readFile, writeFile } from "fs/promises";
 import { existsSync, mkdirSync, readFileSync } from "fs";
-import { Constants } from "./constants";
+import { Constants, emptyString } from "./constants";
 import { Logger } from "./logger";
 
 export class FileHelper {
@@ -19,7 +19,7 @@ export class FileHelper {
     }
 
     public static async writeToFile(filePath: string, text: string) {
-        if (filePath !== "") {
+        if (filePath !== emptyString) {
             const dir = path.dirname(filePath);
             if (!existsSync(dir)) {
                 mkdirSync(dir, { recursive: true });
@@ -60,7 +60,7 @@ export class FileHelper {
                         if (lines.length === 1) {
                             lines = fileContent.split("\n");
                         }
-                        var newLines = lines.filter(x => x.startsWith("namespace ")).map(x => x.trim().replace("namespace ", "").replace(" ", "").replace("{", "").replace(";", ""));
+                        var newLines = lines.filter(x => x.startsWith("namespace ")).map(x => x.trim().replace("namespace ", emptyString).replace(" ", emptyString).replace("{", emptyString).replace(";", emptyString));
                         if (newLines.length > 0) {
                             namespace = newLines[0];
                         }
@@ -82,6 +82,6 @@ export class FileHelper {
             let content = await readFile(filepath, { encoding: "utf-8" });
             return content;
         }
-        return "";
+        return emptyString;
     }
 }
