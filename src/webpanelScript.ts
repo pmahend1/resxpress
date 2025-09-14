@@ -355,7 +355,6 @@ function logToConsole(text: string) {
 						deleteTd.appendChild(pElement);
 						deleteTd.addEventListener(click, (ev) => deleteEvent(ev), false);
 
-
 						trElement.append(keyElement, valueTdElement, commentTdElement, deleteTd);
 
 						//add tr to table 
