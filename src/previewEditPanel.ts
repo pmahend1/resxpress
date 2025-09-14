@@ -3,6 +3,7 @@ import * as vscode from "vscode";
 import { getNonce } from "./util";
 import { WebpanelPostMessageKind } from "./webpanelMessageKind";
 import { Logger } from "./logger";
+import { emptyString } from "./constants";
 
 class PreviewEditPanel {
 
@@ -15,7 +16,7 @@ class PreviewEditPanel {
 	private disposables: vscode.Disposable[] = [];
 	private static title: string = "Resx Preview";
 
-	public static namespace: string = "";
+	public static namespace: string = emptyString;
 
 	public static createOrShow(extensionUri: vscode.Uri, title: string, content: string) {
 
