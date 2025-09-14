@@ -23,6 +23,7 @@ function isString(value: unknown): value is string {
 
 export class Logger implements ILogger {
     private static _instance: Logger;
+    private isDebug: boolean = false;
 
     public static get instance() {
         if (!Logger._instance) {
@@ -30,6 +31,10 @@ export class Logger implements ILogger {
         }
 
         return Logger._instance;
+    }
+
+    public setDebug(isDebug: boolean) {
+        this.isDebug = isDebug;
     }
 
     private constructor() {
@@ -60,11 +65,17 @@ export class Logger implements ILogger {
 
     private log(logLevel: LogLevel, message: string, data?: unknown): void {
         if (this.enableLogs) {
-            this.appendLine(
-                `[ ${logLevel} - ${new Date().toLocaleTimeString()}] ${message}`
-            );
+            const logMessage = `[ ${logLevel} - ${new Date().toLocaleTimeString()}] ${message}`;
+            if (this.isDebug) {
+                console.log(logMessage);
+            }
+            this.appendLine(logMessage);
             if (data) {
-                this.appendLine(Logger.data2String(data));
+                const dataString = Logger.data2String(data);
+                if (this.isDebug) {
+                    console.log(dataString);
+                }
+                this.appendLine(dataString);
             }
         }
     }

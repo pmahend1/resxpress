@@ -16,6 +16,7 @@ import { Logger } from "./logger";
 let currentContext: vscode.ExtensionContext;
 
 export function activate(context: vscode.ExtensionContext) {
+	Logger.instance.setDebug(context.extensionMode === vscode.ExtensionMode.Development);
 	try {
 		const notificationService = new NotificationService(context);
 		notificationService.promptForReviewAsync();
