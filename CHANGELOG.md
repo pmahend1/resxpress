@@ -1,5 +1,12 @@
 # Change Log
 
+## 7.4.0 - 14-Sep-2025
+
+- [#109: Added indentSpaceLength setting](https://github.com/pmahend1/resxpress/issues/109)
+- [#110: Added enable local logs setting](https://github.com/pmahend1/resxpress/pull/110)
+- [#111: Make webpanel dirty only if key/value/comment is updated for edit mode](https://github.com/pmahend1/resxpress/pull/111)
+- Package updates.
+
 ## 7.3.0 - 18-Jul-2025
 
 - Package updates.
