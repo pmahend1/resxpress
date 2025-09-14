@@ -7,6 +7,7 @@ import { FileHelper } from "./fileHelper";
 import { WebpanelPostMessage } from "./webpanelPostMessage";
 import *  as xmljs from "xml-js";
 import { Constants } from "./constants";
+import { Logger } from "./logger";
 
 export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
 
@@ -77,7 +78,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
 
         // Receive message from the webview.
         webviewPanel.webview.onDidReceiveMessage(async (e) => {
-            console.log(`webviewPanel.webview.onDidReceiveMessage: ${JSON.stringify(e)}`);
+            Logger.instance.info(`webviewPanel.webview.onDidReceiveMessage: ${JSON.stringify(e)}`);
             switch (e.type) {
                 case WebpanelPostMessageKind.Update:
                     this.resxEditor.updateTextDocument(document, e.json);

@@ -25,5 +25,6 @@ export class Constants {
         public static readonly generateStronglyTypedResourceClassOnSave = "generateStronglyTypedResourceClassOnSave";
         public static readonly useFileScopedNamespace = "useFileScopedNamespace";
         public static readonly indentSpaceLength = "indentSpaceLength";
+        public static readonly enableLocalLogs = "enableLocalLogs";
     }
 }

@@ -10,17 +10,21 @@ import { FileHelper } from "./fileHelper";
 import { TextInputBoxOptions } from "./textInputBoxOptions";
 import { Constants } from "./constants";
 import { Settings } from "./settings";
+import { Logger } from "./logger";
 
 
 let currentContext: vscode.ExtensionContext;
 
 export function activate(context: vscode.ExtensionContext) {
+	Logger.instance.setDebug(context.extensionMode === vscode.ExtensionMode.Development);
 	try {
 		const notificationService = new NotificationService(context);
 		notificationService.promptForReviewAsync();
 	}
 	catch (error) {
-		console.error(error);
+		if (error instanceof Error) {
+			Logger.instance.error(error);
+		}
 	}
 
 	currentContext = context;
@@ -82,17 +86,16 @@ export function activate(context: vscode.ExtensionContext) {
 		catch (error) {
 			var errorMessage = "";
 			if (error instanceof Error) {
+				Logger.instance.error(error);
 				errorMessage = error.message;
 			}
 			else if (typeof error === "string") {
 				errorMessage = error;
 			}
-			console.error(error);
 			vscode.window.showErrorMessage(errorMessage);
 		}
 	});
-
-	console.log(`Extension ${context.extension.id} activated`);
+	Logger.instance.info(`Extension ${context.extension.id} activated`);
 }
 
 function loadConfiguration() {
@@ -100,6 +103,8 @@ function loadConfiguration() {
 	Settings.shouldGenerateStronglyTypedResourceClassOnSave = resxConfig.get<boolean>(Constants.Configuration.generateStronglyTypedResourceClassOnSave) ?? false;
 	Settings.shouldUseFileScopedNamespace = resxConfig.get<boolean>(Constants.Configuration.useFileScopedNamespace) ?? true;
 	Settings.indentSpaceLength = resxConfig.get<number>(Constants.Configuration.indentSpaceLength) ?? 4;
+	Settings.enableLocalLogs = resxConfig.get<boolean>(Constants.Configuration.enableLocalLogs) ?? false;
+	Logger.instance.setIsEnabled(Settings.enableLocalLogs);
 }
 
 function convertToPascalCase(input: string): string {
@@ -219,7 +224,7 @@ ${spaces}}`;
 		resourceCSharpClassText += `
 ${spaces}}
 ${Settings.shouldUseFileScopedNamespace ? "" : "}"}`;
-		console.log(resourceCSharpClassText);
+		Logger.instance.info(resourceCSharpClassText);
 
 		if (workspacePath.length > 0) {
 			let pathToWrite = path.join(workspacePath, csharpFileName);
@@ -230,7 +235,7 @@ ${Settings.shouldUseFileScopedNamespace ? "" : "}"}`;
 
 
 export function deactivate() {
-	console.log(`${Constants.resxpress} deactivated`);
+	Logger.instance.info(`${Constants.resxpress} deactivated`);
 }
 
 async function sortByKeys() {
@@ -253,12 +258,12 @@ async function sortByKeys() {
 		var errorMessage = "";
 		if (error instanceof Error) {
 			errorMessage = error.message;
+			Logger.instance.error(error);
 		}
 		else if (typeof error === "string") {
 			errorMessage = error;
 		}
 		vscode.window.showErrorMessage(errorMessage);
-		console.error(error);
 	}
 }
 
@@ -297,12 +302,12 @@ function sortKeyValuesResx(reverse?: boolean) {
 		var errorMessage = "";
 		if (error instanceof Error) {
 			errorMessage = error.message;
+			Logger.instance.error(error);
 		}
 		else if (typeof error === "string") {
 			errorMessage = error;
 		}
 		vscode.window.showErrorMessage(errorMessage);
-		console.error(error);
 	}
 }
 
@@ -400,12 +405,12 @@ async function displayAsMarkdown() {
 		var errorMessage = "";
 		if (error instanceof Error) {
 			errorMessage = error.message;
+			Logger.instance.error(error);
 		}
 		else if (typeof error === "string") {
 			errorMessage = error;
 		}
 		vscode.window.showErrorMessage(errorMessage);
-		console.error(error);
 	}
 }
 
@@ -439,12 +444,12 @@ async function displayJsonInHtml(jsonData: any[], filename: string) {
 		var errorMessage = "";
 		if (error instanceof Error) {
 			errorMessage = error.message;
+			Logger.instance.error(error);
 		}
 		else if (typeof error === "string") {
 			errorMessage = error;
 		}
 		vscode.window.showErrorMessage(errorMessage);
-		console.error(error);
 	}
 }
 
@@ -493,7 +498,7 @@ export async function setNamespace(uri: vscode.Uri) {
 		if (fileName !== null) {
 			const inputBoxOptions = new TextInputBoxOptions("Namespace", "", undefined, "Enter namespace", "Namespace", true);
 			const namespaceValue = await vscode.window.showInputBox(inputBoxOptions);
-			console.log(`namespace entered : ${namespaceValue}`);
+			Logger.instance.info(`namespace entered : ${namespaceValue}`);
 			if (namespaceValue) {
 				let workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
 				if (workspaceFolder) {
@@ -526,9 +531,9 @@ async function createResxFile(uri: vscode.Uri | null) {
 				vscode.window.showErrorMessage("Cannot create resx file!");
 				return;
 			}
-			console.log(`Creating file at ${thisWorkspace}`)
+			Logger.instance.info(`Creating file at ${thisWorkspace}`)
 			const resxFilePath = path.join(thisWorkspace, fileName);
-			console.log(`Filename to be created: ${resxFilePath}`)
+			Logger.instance.info(`Filename to be created: ${resxFilePath}`)
 			// create a Uri for a file to be created
 			const resxFileUri = vscode.Uri.file(resxFilePath);
 			const content = `<?xml version="1.0" encoding="utf-8"?>
@@ -565,7 +570,7 @@ async function createResxFile(uri: vscode.Uri | null) {
 					await createOrUpdateNamespaceMappingFile(workspaceFolder, fileNameNoExt, namespace);
 				}
 				else {
-					console.error(`Unable to locate workspaceFolder for ${resxFileUri.fsPath}`)
+					Logger.instance.warning(`Unable to locate workspaceFolder for ${resxFileUri.fsPath}`);
 				}
 			}
 			else {
