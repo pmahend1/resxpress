@@ -18,7 +18,6 @@ const tbl = "tbl";
 const p = "p";
 const text = "text";
 const click = "click";
-const focusout = "focusout";
 const deleteStr = "delete";
 const X = "X";
 const errorDuplicateKey = (key: string) => `Error: Data with ${key} already exists`;
@@ -44,7 +43,7 @@ function logToConsole(text: string) {
 
 	const errorContainer = document.getElementById(errorBlock);
 
-	function inputEvent(event: FocusEvent) {
+	function inputEvent(event: Event) {
 		let currentElement = event.target;
 
 		if (errorContainer !== null && currentElement instanceof HTMLInputElement) {
@@ -248,7 +247,7 @@ function logToConsole(text: string) {
 			keyInput.value = emptyString;
 
 			//keyInput.onfocus =(key) =>inputEvent(key);
-			keyInput.addEventListener(focusout, inputEvent, false);
+			keyInput.addEventListener(input, inputEvent);
 			keyTdElement.appendChild(keyInput);
 
 			//create value td
@@ -258,7 +257,7 @@ function logToConsole(text: string) {
 			valueInput.value = emptyString;
 			valueInput.type = text;
 
-			valueInput.addEventListener(focusout, inputEvent, false);
+			valueInput.addEventListener(input, inputEvent, false);
 			valueTdElement.appendChild(valueInput);
 
 			//create comment td
@@ -268,7 +267,7 @@ function logToConsole(text: string) {
 			commentInput.id = `${index}.${comment}`;
 			commentInput.type = text;
 			commentInput.value = emptyString;
-			commentInput.addEventListener(focusout, inputEvent, false);
+			commentInput.addEventListener(input, inputEvent, false);
 			commentTdElement.appendChild(commentInput);
 
 			//delete character X
@@ -322,7 +321,7 @@ function logToConsole(text: string) {
 						logToConsole(`key : ${node._attributes.name}`);
 
 						keyInput.id = `${index}.${key}`;
-						keyInput.addEventListener(focusout, inputEvent, false);
+						keyInput.addEventListener(input, inputEvent, false);
 						keyElement.appendChild(keyInput);
 
 						//create value td
@@ -332,7 +331,7 @@ function logToConsole(text: string) {
 						valueInput.type = text;
 						valueInput.id = `${index}.${value}`;
 						logToConsole(`${nameof(updateContent)}: Value : ${node.value._text}`);
-						valueInput.addEventListener(focusout, inputEvent, false);
+						valueInput.addEventListener(input, inputEvent, false);
 						valueTdElement.appendChild(valueInput);
 
 						//create comment td
@@ -343,7 +342,7 @@ function logToConsole(text: string) {
 						commentInput.value = node?.comment?._text ?? emptyString;
 
 						logToConsole(`comment : ${node?.comment?._text}`);
-						commentInput.addEventListener(focusout, inputEvent, false);
+						commentInput.addEventListener(input, inputEvent, false);
 						commentTdElement.appendChild(commentInput);
 
 						//delete character X
