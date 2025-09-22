@@ -15,7 +15,7 @@
         "color": "#123456",
         "theme": "dark"
     },
-    "version": "7.4.0",
+    "version": "7.5.0",
     "engines": {
         "vscode": "^1.98.0"
     },
@@ -156,10 +156,10 @@
         "test": "vscode-test"
     },
     "devDependencies": {
-        "@types/node": "^22.18.3",
+        "@types/node": "^22.18.6",
         "@types/vscode": "^1.98.0",
         "@vscode/test-electron": "^2.5.2",
-        "eslint": "^9.35.0",
+        "eslint": "^9.36.0",
         "ts-loader": "^9.5.4",
         "typescript": "^5.9.2",
         "webpack": "^5.101.3",
