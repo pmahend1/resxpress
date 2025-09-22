@@ -1,5 +1,10 @@
 # Change Log
 
+## 7.5.0 - 21-Sep-2025
+
+- [#117: `focusout` event changed to `input` event for key, value and comment input fields to make it more responsive.](https://github.com/pmahend1/resxpress/issues/117)
+- Package updates.
+
 ## 7.4.0 - 14-Sep-2025
 
 - [#109: Added indentSpaceLength setting](https://github.com/pmahend1/resxpress/issues/109)
