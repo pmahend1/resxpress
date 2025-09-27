@@ -20,6 +20,7 @@ const text = "text";
 const click = "click";
 const deleteStr = "delete";
 const X = "X";
+const strong = "strong";
 const errorDuplicateKey = (key: string) => `Error: Data with ${key} already exists`;
 const errorInvalidResx = "Error: Document is not valid resx";
 const errorKeyValueMandatory = "Key and Value are both mandatory fields!";
@@ -399,11 +400,10 @@ function logToConsole(text: string) {
 				const newNamespace = text;
 				const namespaceSpanElement = document.getElementById(namespaceSpan);
 				if (namespaceSpanElement) {
-					// Clear previous content
 					namespaceSpanElement.innerHTML = "Namespace: ";
-					const strong = document.createElement("strong");
-					strong.textContent = newNamespace;
-					namespaceSpanElement.appendChild(strong);
+					const strongElement = document.createElement(strong);
+					strongElement.textContent = newNamespace;
+					namespaceSpanElement.appendChild(strongElement);
 				}
 				break;
 		}
