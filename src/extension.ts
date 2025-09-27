@@ -72,7 +72,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}));
 
 	context.subscriptions.push(vscode.commands.registerCommand(Constants.Commands.setNameSpace, async (document: vscode.TextDocument) => await setNewNamespace(document)));
-	context.subscriptions.push(vscode.commands.registerCommand(Constants.Commands.createResxFile, async (uri: vscode.Uri) => await createResxFile(uri)))
+	context.subscriptions.push(vscode.commands.registerCommand(Constants.Commands.createResxFile, async (uri: vscode.Uri) => await createResxFile(uri)));
 	context.subscriptions.push(vscode.commands.registerTextEditorCommand(Constants.Commands.resxeditor, async () => await newPreview()));
 
 	context.subscriptions.push(ResxEditorProvider.register(context));
@@ -492,63 +492,59 @@ async function createOrUpdateNamespaceMappingFile(workspaceFolder: vscode.Worksp
 		}
 	}
 }
-//uri: vscode.Uri
+
 export async function setNewNamespace(document: vscode.TextDocument): Promise<string | undefined> {
 	if (!document.uri) {
 		return;
 	}
-
-	export async function setNamespace(uri: vscode.Uri) {
-		if (uri) {
-			let parsedPath = path.parse(uri.fsPath);
-			const fileName = parsedPath.name;
-			if (fileName !== null) {
-				const inputBoxOptions = new TextInputBoxOptions("Namespace", "", undefined, "Enter namespace", "Namespace", true);
-				const namespaceValue = await vscode.window.showInputBox(inputBoxOptions);
-				Logger.instance.info(`namespace entered : ${namespaceValue}`);
-				if (namespaceValue) {
-					let workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
-					if (workspaceFolder) {
-						await createOrUpdateNamespaceMappingFile(workspaceFolder, fileName, namespaceValue);
-						if (Settings.shouldGenerateStronglyTypedResourceClassOnSave && parsedPath.ext === ".resx") {
-							await runResGenAsync(document);
-						}
-					}
+	const uri = document.uri;
+	let parsedPath = path.parse(uri.fsPath);
+	const fileName = parsedPath.name;
+	if (fileName !== null) {
+		const inputBoxOptions = new TextInputBoxOptions("Namespace", "", undefined, "Enter namespace", "Namespace", true);
+		const namespaceValue = await vscode.window.showInputBox(inputBoxOptions);
+		Logger.instance.info(`namespace entered : ${namespaceValue}`);
+		if (namespaceValue) {
+			let workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
+			if (workspaceFolder) {
+				await createOrUpdateNamespaceMappingFile(workspaceFolder, fileName, namespaceValue);
+				if (Settings.shouldGenerateStronglyTypedResourceClassOnSave && parsedPath.ext === ".resx") {
+					await runResGenAsync(document);
 				}
-				return namespaceValue;
 			}
 		}
-
+		return namespaceValue;
 	}
+}
 
-	async function createResxFile(uri: vscode.Uri | null) {
-		const resxFileNameOptions = new TextInputBoxOptions("New Resx File", emptyString, undefined, "Enter Resx file name", ".resx", true);
-		let fileName = await vscode.window.showInputBox(resxFileNameOptions);
-		if (fileName && fileName.length > 0) {
-			if (fileName.endsWith(".resx") === false) {
-				fileName = `${fileName}.resx`;
+async function createResxFile(uri: vscode.Uri | null) {
+	const resxFileNameOptions = new TextInputBoxOptions("New Resx File", emptyString, undefined, "Enter Resx file name", ".resx", true);
+	let fileName = await vscode.window.showInputBox(resxFileNameOptions);
+	if (fileName && fileName.length > 0) {
+		if (fileName.endsWith(".resx") === false) {
+			fileName = `${fileName}.resx`;
+		}
+		const newResxFileNamespaceOptions = new TextInputBoxOptions(`namespace for ${fileName}`, emptyString, undefined, `Enter namespace for ${fileName}`, emptyString, true);
+		const namespace = await vscode.window.showInputBox(newResxFileNamespaceOptions);
+		if (namespace && namespace.length > 0) {
+			const workspaceEdit = new vscode.WorkspaceEdit();
+			let thisWorkspace = emptyString;
+			if (uri) {
+				thisWorkspace = uri.fsPath;
 			}
-			const newResxFileNamespaceOptions = new TextInputBoxOptions(`namespace for ${fileName}`, emptyString, undefined, `Enter namespace for ${fileName}`, emptyString, true);
-			const namespace = await vscode.window.showInputBox(newResxFileNamespaceOptions);
-			if (namespace && namespace.length > 0) {
-				const workspaceEdit = new vscode.WorkspaceEdit();
-				let thisWorkspace = emptyString;
-				if (uri) {
-					thisWorkspace = uri.fsPath;
-				}
-				else if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
-					thisWorkspace = vscode.workspace.workspaceFolders[0].uri.fsPath;
-				}
-				else {
-					vscode.window.showErrorMessage("Cannot create resx file!");
-					return;
-				}
-				Logger.instance.info(`Creating file at ${thisWorkspace}`)
-				const resxFilePath = path.join(thisWorkspace, fileName);
-				Logger.instance.info(`Filename to be created: ${resxFilePath}`)
-				// create a Uri for a file to be created
-				const resxFileUri = vscode.Uri.file(resxFilePath);
-				const content = `<?xml version="1.0" encoding="utf-8"?>
+			else if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+				thisWorkspace = vscode.workspace.workspaceFolders[0].uri.fsPath;
+			}
+			else {
+				vscode.window.showErrorMessage("Cannot create resx file!");
+				return;
+			}
+			Logger.instance.info(`Creating file at ${thisWorkspace}`)
+			const resxFilePath = path.join(thisWorkspace, fileName);
+			Logger.instance.info(`Filename to be created: ${resxFilePath}`)
+			// create a Uri for a file to be created
+			const resxFileUri = vscode.Uri.file(resxFilePath);
+			const content = `<?xml version="1.0" encoding="utf-8"?>
 <root>
 	<resheader name="resmimetype">
 		<value>text/microsoft-resx</value>
@@ -565,35 +561,35 @@ export async function setNewNamespace(document: vscode.TextDocument): Promise<st
 	<!--Data-->
 </root>`;
 
-				let encoder = new TextEncoder();
-				let uInt8Array = encoder.encode(content);
-				// create an edit that will create a file
-				workspaceEdit.createFile(resxFileUri, { ignoreIfExists: false, overwrite: false, contents: uInt8Array });
+			let encoder = new TextEncoder();
+			let uInt8Array = encoder.encode(content);
+			// create an edit that will create a file
+			workspaceEdit.createFile(resxFileUri, { ignoreIfExists: false, overwrite: false, contents: uInt8Array });
 
-				//Create file
-				const didApplyEdit = await vscode.workspace.applyEdit(workspaceEdit);
-				if (didApplyEdit) {
-					let document = await vscode.workspace.openTextDocument(resxFileUri);
-					await vscode.window.showTextDocument(document);
-					let workspaceFolder = vscode.workspace.getWorkspaceFolder(resxFileUri);
+			//Create file
+			const didApplyEdit = await vscode.workspace.applyEdit(workspaceEdit);
+			if (didApplyEdit) {
+				let document = await vscode.workspace.openTextDocument(resxFileUri);
+				await vscode.window.showTextDocument(document);
+				let workspaceFolder = vscode.workspace.getWorkspaceFolder(resxFileUri);
 
-					if (workspaceFolder) {
-						const fileNameNoExt = fileName.replace(".resx", emptyString);
-						await createOrUpdateNamespaceMappingFile(workspaceFolder, fileNameNoExt, namespace);
-					}
-					else {
-						Logger.instance.warning(`Unable to locate workspaceFolder for ${resxFileUri.fsPath}`);
-					}
+				if (workspaceFolder) {
+					const fileNameNoExt = fileName.replace(".resx", emptyString);
+					await createOrUpdateNamespaceMappingFile(workspaceFolder, fileNameNoExt, namespace);
 				}
 				else {
-					vscode.window.showErrorMessage("Unable to add resx content");
+					Logger.instance.warning(`Unable to locate workspaceFolder for ${resxFileUri.fsPath}`);
 				}
 			}
 			else {
-				vscode.window.showErrorMessage(`Invalid namespace entered for ${fileName}`);
+				vscode.window.showErrorMessage("Unable to add resx content");
 			}
 		}
 		else {
-			vscode.window.showErrorMessage("Invalid resx file name entered");
+			vscode.window.showErrorMessage(`Invalid namespace entered for ${fileName}`);
 		}
 	}
+	else {
+		vscode.window.showErrorMessage("Invalid resx file name entered");
+	}
+}
