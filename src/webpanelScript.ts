@@ -399,7 +399,11 @@ function logToConsole(text: string) {
 				const newNamespace = text;
 				const namespaceSpanElement = document.getElementById(namespaceSpan);
 				if (namespaceSpanElement) {
-					namespaceSpanElement.innerHTML = `Namespace: <strong>${newNamespace}</strong>`;
+					// Clear previous content
+					namespaceSpanElement.innerHTML = "Namespace: ";
+					const strong = document.createElement("strong");
+					strong.textContent = newNamespace;
+					namespaceSpanElement.appendChild(strong);
 				}
 				break;
 		}
