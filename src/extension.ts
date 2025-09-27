@@ -71,8 +71,8 @@ export function activate(context: vscode.ExtensionContext) {
 			});
 		}));
 
-	context.subscriptions.push(vscode.commands.registerCommand(Constants.Commands.setNameSpace, async (uri: vscode.Uri) => await setNamespace(uri)))
-	context.subscriptions.push(vscode.commands.registerCommand(Constants.Commands.createResxFile, async (uri: vscode.Uri) => await createResxFile(uri)))
+	context.subscriptions.push(vscode.commands.registerCommand(Constants.Commands.setNameSpace, async (document: vscode.TextDocument) => await setNewNamespace(document)));
+	context.subscriptions.push(vscode.commands.registerCommand(Constants.Commands.createResxFile, async (uri: vscode.Uri) => await createResxFile(uri)));
 	context.subscriptions.push(vscode.commands.registerTextEditorCommand(Constants.Commands.resxeditor, async () => await newPreview()));
 
 	context.subscriptions.push(ResxEditorProvider.register(context));
@@ -493,21 +493,27 @@ async function createOrUpdateNamespaceMappingFile(workspaceFolder: vscode.Worksp
 	}
 }
 
-export async function setNamespace(uri: vscode.Uri) {
-	if (uri) {
-		let parsedPath = path.parse(uri.fsPath);
-		const fileName = parsedPath.name;
-		if (fileName !== null) {
-			const inputBoxOptions = new TextInputBoxOptions("Namespace", emptyString, undefined, "Enter namespace", "Namespace", true);
-			const namespaceValue = await vscode.window.showInputBox(inputBoxOptions);
-			Logger.instance.info(`namespace entered : ${namespaceValue}`);
-			if (namespaceValue) {
-				let workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
-				if (workspaceFolder) {
-					await createOrUpdateNamespaceMappingFile(workspaceFolder, fileName, namespaceValue);
+export async function setNewNamespace(document: vscode.TextDocument): Promise<string | undefined> {
+	if (!document.uri) {
+		return;
+	}
+	const uri = document.uri;
+	let parsedPath = path.parse(uri.fsPath);
+	const fileName = parsedPath.name;
+	if (fileName !== null) {
+		const inputBoxOptions = new TextInputBoxOptions("Namespace", "", undefined, "Enter namespace", "Namespace", true);
+		const namespaceValue = await vscode.window.showInputBox(inputBoxOptions);
+		Logger.instance.info(`namespace entered : ${namespaceValue}`);
+		if (namespaceValue) {
+			let workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
+			if (workspaceFolder) {
+				await createOrUpdateNamespaceMappingFile(workspaceFolder, fileName, namespaceValue);
+				if (Settings.shouldGenerateStronglyTypedResourceClassOnSave && parsedPath.ext === ".resx") {
+					await runResGenAsync(document);
 				}
 			}
 		}
+		return namespaceValue;
 	}
 }
 

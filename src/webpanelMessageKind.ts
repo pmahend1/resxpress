@@ -3,6 +3,7 @@ export enum WebpanelPostMessageKind {
     Add = "add",
     Delete = "delete",
     Update = "update",
-    NamespaceUpdate = "namespace-update",
-    Alert = "alert"
+    TriggerNamespaceUpdate = "trigger-namespace-update",
+    Alert = "alert",
+    NewNamespace = "new-namespace"
 }

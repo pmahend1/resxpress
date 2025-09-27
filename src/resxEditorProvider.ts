@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { ResxEditor } from "./resxEditor";
 import { ResxJsonHelper } from "./resxJsonHelper";
 import { WebpanelPostMessageKind } from "./webpanelMessageKind";
-import { setNamespace } from "./extension";
+import { setNewNamespace } from "./extension";
 import { FileHelper } from "./fileHelper";
 import { WebpanelPostMessage } from "./webpanelPostMessage";
 import *  as xmljs from "xml-js";
@@ -93,11 +93,18 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
                 case WebpanelPostMessageKind.Switch:
                     vscode.window.showTextDocument(document, vscode.ViewColumn.Active);
                     break;
-                case WebpanelPostMessageKind.NamespaceUpdate:
-                    await setNamespace(document.uri);
+                case WebpanelPostMessageKind.TriggerNamespaceUpdate:
+                    let newNamespace = await setNewNamespace(document);
+                    if (newNamespace) {
+                        setNewNamespaceInWebview(newNamespace);
+                    }
                     break;
             }
         });
+
+        function setNewNamespaceInWebview(newNamespace: string) {
+            webviewPanel.webview.postMessage(new WebpanelPostMessage(WebpanelPostMessageKind.NewNamespace, newNamespace));
+        }
 
         function updateWebview() {
             var jsonText = JSON.stringify(ResxJsonHelper.getJsonData(document.getText()));
