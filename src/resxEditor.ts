@@ -42,7 +42,7 @@ export class ResxEditor {
             <img src="${faRightLeft}" alt="Switch Icon" class="icon filter-fefefe"> Switch to Text Editor
         </button>
         <div class="namespace-section">
-            <span>Namespace: <strong>${namespace}</strong></span>
+            <span id="namespaceSpan">Namespace: <strong>${namespace}</strong></span>
             <button id="changeNamespaceButton" class="btn secondary">
                 <img src="${faPenToSquare}" alt="Edit Icon" class="icon filter-fefefe"> Change Namespace
             </button>
@@ -130,10 +130,7 @@ export class ResxEditor {
         }
         var resx = xmljs.js2xml(currentJs, { spaces: Settings.indentSpaceLength, compact: true });
         Logger.instance.info(`${nameof(ResxEditor)}.${nameof(this.updateTextDocument)}: ${resx}`);
-        edit.replace(
-            document.uri,
-            new vscode.Range(0, 0, document.lineCount, 0),
-            resx);
+        edit.replace(document.uri, new vscode.Range(0, 0, document.lineCount, 0), resx);
         return vscode.workspace.applyEdit(edit);
     }
 }

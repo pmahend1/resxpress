@@ -1,8 +1,8 @@
 import { WebpanelPostMessageKind } from "./webpanelMessageKind";
 
 export class WebpanelPostMessage {
-    constructor(public type: WebpanelPostMessageKind, public json?: string) {
+    constructor(public type: WebpanelPostMessageKind, public text?: string) {
         this.type = type;
-        this.json = json;
+        this.text = text;
     }
 }

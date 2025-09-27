@@ -29,6 +29,7 @@ const addButton = "addButton";
 const switchToTextEditorButton = "switchToTextEditorButton";
 const message = "message";
 const none = "none";
+const namespaceSpan = "namespaceSpan";
 
 function logToConsole(text: string) {
 	console.log(`${resxpressWebPanel}: ${text}`);
@@ -215,7 +216,7 @@ function logToConsole(text: string) {
 	if (changeNamespaceButtonElement) {
 		changeNamespaceButtonElement.addEventListener(click, () => {
 			vscode.postMessage(new WebpanelPostMessage(
-				WebpanelPostMessageKind.NamespaceUpdate,
+				WebpanelPostMessageKind.TriggerNamespaceUpdate,
 				JSON.stringify(emptyString)));
 		});
 	}
@@ -374,10 +375,9 @@ function logToConsole(text: string) {
 		}
 	}
 
-
 	window.addEventListener(message, event => {
-		const messageData = event.data; // The json data that the extension sent
-		const text = messageData.json;
+		const messageData = event.data; // data that the extension sent
+		const text = messageData.text;
 		logToConsole(`addEventListener ${messageData.type} message received : ${text}`);
 
 		switch (messageData.type) {
@@ -394,7 +394,14 @@ function logToConsole(text: string) {
 				// This state is returned in the call to `vscode.getState` below when a webview is reloaded.
 				vscode.setState({ text });
 
-				return;
+				break;
+			case WebpanelPostMessageKind.NewNamespace:
+				const newNamespace = text;
+				const namespaceSpanElement = document.getElementById(namespaceSpan);
+				if (namespaceSpanElement) {
+					namespaceSpanElement.innerHTML = `Namespace: <strong>${newNamespace}</strong>`;
+				}
+				break;
 		}
 	});
 

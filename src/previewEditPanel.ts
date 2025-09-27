@@ -5,6 +5,9 @@ import { WebpanelPostMessageKind } from "./webpanelMessageKind";
 import { Logger } from "./logger";
 import { emptyString } from "./constants";
 
+/**
+ * Preview only. Key-Value pairs cannot be edited.
+ */
 class PreviewEditPanel {
 
 	public static currentPanel: PreviewEditPanel | undefined;
@@ -17,6 +20,16 @@ class PreviewEditPanel {
 	private static title: string = "Resx Preview";
 
 	public static namespace: string = emptyString;
+
+	public setNewNamespace(namespace: string) {
+		PreviewEditPanel.namespace = namespace;
+		if (PreviewEditPanel.currentPanel) {
+			PreviewEditPanel.currentPanel.panel.webview.postMessage({
+				type: WebpanelPostMessageKind.NewNamespace,
+				data: namespace
+			});
+		}
+	}
 
 	public static createOrShow(extensionUri: vscode.Uri, title: string, content: string) {
 
