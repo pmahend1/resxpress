@@ -20,6 +20,7 @@ export class ResxEditor {
         const maPlusThick = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "ma-plus-thick.svg")));
         const faPenToSquare = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "fa-pen-to-square.svg")));
         const faRightLeft = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "fa-right-left.svg")));
+        const faSortAtoZ = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "fa-arrow-down-a-z-solid-full.svg")));
         const nonce = getNonce();
 
         return `<!DOCTYPE html>
@@ -47,6 +48,9 @@ export class ResxEditor {
                 <img src="${faPenToSquare}" alt="Edit Icon" class="icon filter-fefefe"> Change Namespace
             </button>
         </div>
+        <button id="sortByKeysButton" class="btn secondary">
+            <img src="${faSortAtoZ}" alt="Sort Icon" class="icon filter-fefefe">Sort By Keys
+        </button>
         <p id="errorBlock" class="error-block"></p>
     </div>
 

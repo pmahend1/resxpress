@@ -21,6 +21,7 @@ const click = "click";
 const deleteStr = "delete";
 const X = "X";
 const strong = "strong";
+const sortByKeysButton = "sortByKeysButton";
 const errorDuplicateKey = (key: string) => `Error: Data with ${key} already exists`;
 const errorInvalidResx = "Error: Document is not valid resx";
 const errorKeyValueMandatory = "Key and Value are both mandatory fields!";
@@ -374,6 +375,15 @@ function logToConsole(text: string) {
 				return;
 			}
 		}
+	}
+
+	const sortByKeysButtonElement = document.getElementById(sortByKeysButton);
+	if (sortByKeysButtonElement) {
+		sortByKeysButtonElement.addEventListener(click, () => {
+			vscode.postMessage(new WebpanelPostMessage(
+				WebpanelPostMessageKind.SortByKeys,
+				JSON.stringify(emptyString)));
+		});
 	}
 
 	window.addEventListener(message, event => {
