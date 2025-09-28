@@ -1,5 +1,10 @@
 # Change Log
 
+## 7.6.0 - 28-Sep-2025
+
+- Added sort by keys button to webview editor.
+- Fixed namespace not being updated on webview editor.
+
 ## 7.5.0 - 21-Sep-2025
 
 - [#117: `focusout` event changed to `input` event for key, value and comment input fields to make it more responsive.](https://github.com/pmahend1/resxpress/issues/117)
