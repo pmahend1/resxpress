@@ -101,6 +101,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
                     break;
                 case WebpanelPostMessageKind.SortByKeys:
                     await sortByKeys(document);
+                    updateWebview();
                     break
             }
         });

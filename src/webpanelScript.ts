@@ -399,8 +399,8 @@ function logToConsole(text: string) {
 
 					logToConsole(`addEventListener: Current data: ${JSON.stringify(currentResxJS)}`);
 					logToConsole(`addEventListener: Received data: ${text}`);
-					updateContent(text);
 				}
+				updateContent(text);
 				// Then persist state information.
 				// This state is returned in the call to `vscode.getState` below when a webview is reloaded.
 				vscode.setState({ text });
