@@ -290,13 +290,13 @@ function logToConsole(text: string) {
 		});
 	}
 
-	function updateContent(text: string) {
+	function updatePanelWebContent(text: string) {
 		if (errorContainer !== null) {
 			if (text) {
 				let json;
 				try {
 					currentResxJS = json = JSON.parse(text);
-					logToConsole(`${nameof(updateContent)}: data json is : ${text}`);
+					logToConsole(`${nameof(updatePanelWebContent)}: data json is : ${text}`);
 				}
 				catch {
 					table.style.display = none;
@@ -333,7 +333,7 @@ function logToConsole(text: string) {
 						valueInput.value = node.value._text ?? emptyString;
 						valueInput.type = text;
 						valueInput.id = `${index}.${value}`;
-						logToConsole(`${nameof(updateContent)}: Value : ${node.value._text}`);
+						logToConsole(`${nameof(updatePanelWebContent)}: Value : ${node.value._text}`);
 						valueInput.addEventListener(input, inputEvent, false);
 						valueTdElement.appendChild(valueInput);
 
@@ -400,7 +400,7 @@ function logToConsole(text: string) {
 					logToConsole(`addEventListener: Current data: ${JSON.stringify(currentResxJS)}`);
 					logToConsole(`addEventListener: Received data: ${text}`);
 				}
-				updateContent(text);
+				updatePanelWebContent(text);
 				// Then persist state information.
 				// This state is returned in the call to `vscode.getState` below when a webview is reloaded.
 				vscode.setState({ text });
@@ -421,7 +421,7 @@ function logToConsole(text: string) {
 
 	const state = vscode.getState();
 	if (state) {
-		updateContent(state.text);
+		updatePanelWebContent(state.text);
 	}
 }());
 
