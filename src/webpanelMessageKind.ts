@@ -5,5 +5,6 @@ export enum WebpanelPostMessageKind {
     Update = "update",
     TriggerNamespaceUpdate = "trigger-namespace-update",
     Alert = "alert",
-    NewNamespace = "new-namespace"
+    NewNamespace = "new-namespace",
+    SortByKeys = "sort-by-keys"
 }

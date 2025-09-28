@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { ResxEditor } from "./resxEditor";
 import { ResxJsonHelper } from "./resxJsonHelper";
 import { WebpanelPostMessageKind } from "./webpanelMessageKind";
-import { setNewNamespace } from "./extension";
+import { setNewNamespace, sortByKeys } from "./extension";
 import { FileHelper } from "./fileHelper";
 import { WebpanelPostMessage } from "./webpanelPostMessage";
 import *  as xmljs from "xml-js";
@@ -99,6 +99,9 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
                         setNewNamespaceInWebview(newNamespace);
                     }
                     break;
+                case WebpanelPostMessageKind.SortByKeys:
+                    await sortByKeys(document);
+                    break
             }
         });
 

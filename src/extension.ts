@@ -48,14 +48,17 @@ export function activate(context: vscode.ExtensionContext) {
 		}));
 
 	context.subscriptions.push(vscode.commands.registerTextEditorCommand(Constants.Commands.sortbykeys,
-		async () => {
+		async (editor) => {
+			if (!editor.document) {
+				return;
+			}
 			vscode.window.withProgress({
 				location: vscode.ProgressLocation.Notification,
 				cancellable: false,
 				title: Constants.extensionName,
 			}, async (p) => {
 				p.report({ message: "Sorting by keys" });
-				await sortByKeys();
+				await sortByKeys(editor.document);
 			});
 		}));
 
@@ -239,20 +242,18 @@ export function deactivate() {
 	Logger.instance.info(`${Constants.resxpress} deactivated`);
 }
 
-async function sortByKeys() {
+export async function sortByKeys(document: vscode.TextDocument) {
 	try {
-		let unordered: any = sortKeyValuesResx();
-
-		let editor = vscode.window.activeTextEditor;
-
-		if (editor) {
-			let document = editor.document;
-
-			var ranger = new vscode.Range(0, 0, document.lineCount, 0);
-
-			editor.edit((editBuilder) => {
-				editBuilder.replace(ranger, unordered);
-			});
+		let orderedResx: any = sortKeyValuesResx(document);
+		var ranger = new vscode.Range(0, 0, document.lineCount, 0);
+		const edit = vscode.TextEdit.replace(ranger, orderedResx);
+		const editBuilder = new vscode.WorkspaceEdit();
+		editBuilder.set(document.uri, [edit]);
+		const success = await vscode.workspace.applyEdit(editBuilder);
+		if (success) {
+			console.log('Text replaced successfully.');
+		} else {
+			console.log('Failed to replace text.');
 		}
 	}
 	catch (error) {
@@ -268,10 +269,10 @@ async function sortByKeys() {
 	}
 }
 
-function sortKeyValuesResx(reverse?: boolean) {
+function sortKeyValuesResx(document: vscode.TextDocument, reverse?: boolean): string | undefined {
 	try {
 		Logger.instance.info(`${nameof(sortKeyValuesResx)}`);
-		var text = vscode.window.activeTextEditor?.document?.getText() ?? emptyString;
+		var text = document?.getText() ?? emptyString;
 		var jsObj = xmljs.xml2js(text);
 
 		var dataList: any = [];
