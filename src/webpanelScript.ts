@@ -162,7 +162,7 @@ function logToConsole(text: string) {
 					logToConsole(`${nameof(inputEvent)}.Edit: ${changeText}`);
 					vscode.setState({ text: JSON.stringify(currentResxJS) });
 					vscode.postMessage(new WebpanelPostMessage(
-						WebpanelPostMessageKind.Update,
+						WebpanelPostMessageKind.TriggerTextDocumentUpdate,
 						JSON.stringify(currentResxJS)
 					));
 				}
@@ -392,7 +392,7 @@ function logToConsole(text: string) {
 		logToConsole(`addEventListener ${messageData.type} message received : ${text}`);
 
 		switch (messageData.type) {
-			case WebpanelPostMessageKind.Update:
+			case WebpanelPostMessageKind.UpdateWebPanel:
 				var sentDataListJs = JSON.parse(text) ?? [];
 
 				if (sentDataListJs.length !== currentResxJS.length) {
