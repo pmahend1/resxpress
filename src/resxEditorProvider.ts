@@ -77,7 +77,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
         webviewPanel.webview.html = this.resxEditor.getHtmlForWebview(webviewPanel.webview, namespace ?? emptyString, htmlContent);
 
         // Receive message from the webview.
-        webviewPanel.webview.onDidReceiveMessage(async (e) => {
+        let webviewListener = webviewPanel.webview.onDidReceiveMessage(async (e) => {
             Logger.instance.info(`webviewPanel.webview.onDidReceiveMessage: ${JSON.stringify(e)}`);
             switch (e.type) {
                 case WebpanelPostMessageKind.TriggerTextDocumentUpdate:
@@ -115,15 +115,10 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
             webviewPanel.webview.postMessage(new WebpanelPostMessage(WebpanelPostMessageKind.UpdateWebPanel, jsonText));
         }
 
-        // const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(e => {
-        //     if (e.document.uri.toString() === document.uri.toString()) {
-        //         updateWebview();
-        //     }
-        // });
 
         // Make sure we get rid of the listener when our editor is closed.
         webviewPanel.onDidDispose(() => {
-            //changeDocumentSubscription.dispose();
+            webviewListener.dispose();
         });
 
         updateWebview();
