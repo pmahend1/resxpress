@@ -287,10 +287,12 @@ function sortKeyValuesResx(document: vscode.TextDocument, reverse?: boolean): st
 		});
 
 		var dataListsorted = dataList.sort((x1: any, x2: any) => {
+			var firstKey = x1.attributes.name.toLowerCase();
+			var secondKey = x2.attributes.name.toLowerCase();
 			if (reverse) {
-				return x1.attributes.name > x2.attributes.name ? -1 : x1.attributes.name < x2.attributes.name ? 1 : 0;
+				return firstKey > secondKey ? -1 : firstKey < secondKey ? 1 : 0;
 			} else {
-				return x1.attributes.name < x2.attributes.name ? -1 : x1.attributes.name > x2.attributes.name ? 1 : 0;
+				return firstKey < secondKey ? -1 : firstKey > secondKey ? 1 : 0;
 			}
 		});
 

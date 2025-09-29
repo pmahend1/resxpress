@@ -77,18 +77,18 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
         webviewPanel.webview.html = this.resxEditor.getHtmlForWebview(webviewPanel.webview, namespace ?? emptyString, htmlContent);
 
         // Receive message from the webview.
-        webviewPanel.webview.onDidReceiveMessage(async (e) => {
+        let webviewListener = webviewPanel.webview.onDidReceiveMessage(async (e) => {
             Logger.instance.info(`webviewPanel.webview.onDidReceiveMessage: ${JSON.stringify(e)}`);
             switch (e.type) {
-                case WebpanelPostMessageKind.Update:
-                    this.resxEditor.updateTextDocument(document, e.json);
+                case WebpanelPostMessageKind.TriggerTextDocumentUpdate:
+                    this.resxEditor.updateTextDocument(document, e.text);
                     break;
                 case WebpanelPostMessageKind.Add:
-                    this.resxEditor.addNewKeyValue(document, e.json);
+                    this.resxEditor.addNewKeyValue(document, e.text);
                     break;
 
                 case WebpanelPostMessageKind.Delete:
-                    this.resxEditor.deleteKeyValue(document, e.json);
+                    this.resxEditor.deleteKeyValue(document, e.text);
                     break;
                 case WebpanelPostMessageKind.Switch:
                     vscode.window.showTextDocument(document, vscode.ViewColumn.Active);
@@ -101,7 +101,8 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
                     break;
                 case WebpanelPostMessageKind.SortByKeys:
                     await sortByKeys(document);
-                    break
+                    updateWebview();
+                    break;
             }
         });
 
@@ -111,18 +112,13 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
 
         function updateWebview() {
             var jsonText = JSON.stringify(ResxJsonHelper.getJsonData(document.getText()));
-            webviewPanel.webview.postMessage(new WebpanelPostMessage(WebpanelPostMessageKind.Update, jsonText));
+            webviewPanel.webview.postMessage(new WebpanelPostMessage(WebpanelPostMessageKind.UpdateWebPanel, jsonText));
         }
 
-        const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(e => {
-            if (e.document.uri.toString() === document.uri.toString()) {
-                updateWebview();
-            }
-        });
 
         // Make sure we get rid of the listener when our editor is closed.
         webviewPanel.onDidDispose(() => {
-            changeDocumentSubscription.dispose();
+            webviewListener.dispose();
         });
 
         updateWebview();

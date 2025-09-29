@@ -1,5 +1,10 @@
 # Change Log
 
+## 7.6.1 - 28-Sep-2025
+
+- Fixed adding new resx key not working
+- Sorting case sensitivity fix
+
 ## 7.6.0 - 28-Sep-2025
 
 - Added sort by keys button to webview editor.
