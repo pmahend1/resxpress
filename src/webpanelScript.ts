@@ -287,6 +287,9 @@ function logToConsole(text: string) {
 
 			//add tr to table 
 			table.appendChild(trElement);
+
+			trElement.scrollIntoView();
+			keyInput.focus();
 		});
 	}
 

@@ -1,5 +1,10 @@
 # Change Log
 
+## 7.7.0 - 06-Oct-2025
+
+- [#127: Scroll and focus to new resx key](https://github.com/pmahend1/resxpress/issues/127)
+- Package updates.
+
 ## 7.6.1 - 28-Sep-2025
 
 - Fixed adding new resx key not working
