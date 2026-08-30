@@ -484,14 +484,14 @@ async function createOrUpdateNamespaceMappingFile(workspaceFolder: vscode.Worksp
 			let namespaceMaps = JSON.parse(content);
 			if (isStringRecord(namespaceMaps)) {
 				namespaceMaps[fileNameNoExt] = namespace;
-				await FileHelper.writeToFile(pathToWrite, JSON.stringify(namespaceMaps))
+				await FileHelper.writeToFile(pathToWrite, JSON.stringify(namespaceMaps));
 				didWrite = true;
 			}
 		}
 		if (didWrite === false) {
 			let rec: Record<string, string> = {};
 			rec[fileNameNoExt] = namespace;
-			await FileHelper.writeToFile(pathToWrite, JSON.stringify(rec))
+			await FileHelper.writeToFile(pathToWrite, JSON.stringify(rec));
 		}
 	}
 }
@@ -542,9 +542,9 @@ async function createResxFile(uri: vscode.Uri | null) {
 				vscode.window.showErrorMessage("Cannot create resx file!");
 				return;
 			}
-			Logger.instance.info(`Creating file at ${thisWorkspace}`)
+			Logger.instance.info(`Creating file at ${thisWorkspace}`);
 			const resxFilePath = path.join(thisWorkspace, fileName);
-			Logger.instance.info(`Filename to be created: ${resxFilePath}`)
+			Logger.instance.info(`Filename to be created: ${resxFilePath}`);
 			// create a Uri for a file to be created
 			const resxFileUri = vscode.Uri.file(resxFilePath);
 			const content = `<?xml version="1.0" encoding="utf-8"?>

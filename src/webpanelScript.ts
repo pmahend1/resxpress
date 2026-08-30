@@ -142,7 +142,7 @@ function logToConsole(text: string) {
 						logToConsole(`${nameof(inputEvent)}.Edit: keyArray is  ${JSON.stringify(keyArray)}`);
 						if (new Set(keyArray).size !== keyArray.length) {
 							logToConsole(`${nameof(inputEvent)}.Edit: edited Data key already exists`);
-							errorContainer.innerText = errorUpdateDuplicateKey(editingObj._attributes.name)
+							errorContainer.innerText = errorUpdateDuplicateKey(editingObj._attributes.name);
 							errorContainer.style.display = emptyString;
 						}
 						else {
@@ -185,7 +185,7 @@ function logToConsole(text: string) {
 
 				if (indices.length > 0) {
 					let index = Number(indices[0]);
-					logToConsole(`${nameof(deleteEvent)}: index to be deleted: ${index}`)
+					logToConsole(`${nameof(deleteEvent)}: index to be deleted: ${index}`);
 					if (currentResxJS.length > index) {
 						var deleteableObj = currentResxJS[index];
 

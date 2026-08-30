@@ -1,7 +1,7 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import { getNonce } from "./util";
-import * as xmljs from "xml-js"
+import * as xmljs from "xml-js";
 import { ResxJsonHelper } from "./resxJsonHelper";
 import { Settings } from "./settings";
 import { Logger } from "./logger";
@@ -113,7 +113,7 @@ export class ResxEditor {
         var dataList = JSON.parse(dataListJson);
         const edit = new vscode.WorkspaceEdit();
 
-        var currentJs: any = xmljs.xml2js(document.getText(), { compact: true })
+        var currentJs: any = xmljs.xml2js(document.getText(), { compact: true });
 
         if (dataList) {
             switch (dataList.length) {
