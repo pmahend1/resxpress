@@ -15,9 +15,10 @@
         "color": "#123456",
         "theme": "dark"
     },
-    "version": "7.8.0",
+    "version": "7.9.0",
     "engines": {
-        "vscode": "^1.98.0"
+        "node": "^24.0.0",
+        "vscode": "^1.125.0"
     },
     "categories": [
         "Snippets",
@@ -146,6 +147,7 @@
         "sort"
     ],
     "markdown": "standard",
+    "packageManager": "pnpm@11.24.0",
     "scripts": {
         "compile": "webpack --mode development",
         "watch": "webpack --mode development --watch",
@@ -153,17 +155,21 @@
         "package": "webpack --mode production --devtool hidden-source-map",
         "compile-tests": "tsc -p . --outDir out",
         "pretest": "npm run compile-tests",
+        "lint": "eslint src",
         "test": "vscode-test"
     },
     "devDependencies": {
-        "@types/node": "^22.19.7",
-        "@types/vscode": "^1.98.0",
-        "@vscode/test-electron": "^2.5.2",
-        "eslint": "^9.39.2",
-        "ts-loader": "^9.5.4",
-        "typescript": "^5.9.3",
-        "webpack": "^5.104.1",
-        "webpack-cli": "^6.0.1",
+        "@types/node": "^24.13.3",
+        "@types/vscode": "^1.125.0",
+        "@vscode/test-electron": "^3.1.0",
+        "@vscode/vsce": "^3.9.2",
+        "eslint": "^10.9.1",
+        "ovsx": "^1.1.1",
+        "ts-loader": "^9.6.2",
+        "typescript": "^6.0.3",
+        "typescript-eslint": "^8.68.0",
+        "webpack": "^5.110.1",
+        "webpack-cli": "^7.2.3",
         "xml-js": "^1.6.11"
     }
 }

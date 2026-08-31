@@ -56,7 +56,15 @@ function logToConsole(text: string) {
 			var index = Number(idstr.split(".")[0]);
 			if (index >= currentResxJS.length) {
 				logToConsole(`${nameof(inputEvent)}.New: Index: ${index}. Current Resx Length: ${currentResxJS.length}`);
-				var newObj: any = { _attributes: { name: emptyString, "xml:space": "preserve" }, value: { _text: emptyString } };
+				const xmlSpace = "xml:space";
+				var newObj: any = {
+					_attributes: {
+						name: emptyString,
+						xmlSpace: "preserve"
+					}, value: {
+						_text: emptyString
+					}
+				};
 				const keyElement = document.getElementById(`${index}.${key}`) as HTMLInputElement;
 				const valueElement = document.getElementById(`${index}.${value}`);
 				const commentElement = document.getElementById(`${index}.${comment}`);
@@ -142,7 +150,7 @@ function logToConsole(text: string) {
 						logToConsole(`${nameof(inputEvent)}.Edit: keyArray is  ${JSON.stringify(keyArray)}`);
 						if (new Set(keyArray).size !== keyArray.length) {
 							logToConsole(`${nameof(inputEvent)}.Edit: edited Data key already exists`);
-							errorContainer.innerText = errorUpdateDuplicateKey(editingObj._attributes.name)
+							errorContainer.innerText = errorUpdateDuplicateKey(editingObj._attributes.name);
 							errorContainer.style.display = emptyString;
 						}
 						else {
@@ -185,7 +193,7 @@ function logToConsole(text: string) {
 
 				if (indices.length > 0) {
 					let index = Number(indices[0]);
-					logToConsole(`${nameof(deleteEvent)}: index to be deleted: ${index}`)
+					logToConsole(`${nameof(deleteEvent)}: index to be deleted: ${index}`);
 					if (currentResxJS.length > index) {
 						var deleteableObj = currentResxJS[index];
 

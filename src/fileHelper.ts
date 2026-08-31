@@ -15,7 +15,7 @@ export class FileHelper {
 
     public static getDirectory(document: vscode.TextDocument): string {
         let parsedPath = path.parse(document.fileName);
-        return parsedPath.dir
+        return parsedPath.dir;
     }
 
     public static async writeToFile(filePath: string, text: string) {

@@ -9,10 +9,15 @@
 		"outDir": "out",
 		"sourceMap": true,
 		"strict": true,
-		"rootDir": "src"
+		"rootDir": "src",
+		"types": [
+			"node", // Fixes 'node:child_process' name error
+			"vscode" // Ensures VS Code API types are loaded
+		]
 	},
 	"exclude": [
 		"node_modules",
-		".vscode-test"
+		".vscode-test",
+		"src/test"
 	]
 }

@@ -120,7 +120,9 @@ function convertToPascalCase(input: string): string {
 
 	// PascalCase
 	const pascalCaseWords = words.map(word => {
-		if (word.length === 0) return emptyString;
+		if (word.length === 0) {
+			return emptyString;
+		}
 		// If word starts with uppercase, keep it; otherwise, capitalize
 		return word[0].toUpperCase() + word.slice(1);
 	});
@@ -459,17 +461,21 @@ async function displayJsonInHtml(jsonData: any[], filename: string) {
 }
 
 function isStringRecord(obj: any): obj is Record<string, string> {
-	if (obj === null)
+	if (obj === null) {
 		return false;
+	}
 
-	if (typeof obj !== "object")
+	if (typeof obj !== "object") {
 		return false;
+	}
 
-	if (Array.isArray(obj))
+	if (Array.isArray(obj)) {
 		return false;
+	}
 
-	if (Object.getOwnPropertySymbols(obj).length > 0)
+	if (Object.getOwnPropertySymbols(obj).length > 0) {
 		return false;
+	}
 
 	return Object.getOwnPropertyNames(obj).every(p => typeof obj[p] === "string");
 }
@@ -484,14 +490,14 @@ async function createOrUpdateNamespaceMappingFile(workspaceFolder: vscode.Worksp
 			let namespaceMaps = JSON.parse(content);
 			if (isStringRecord(namespaceMaps)) {
 				namespaceMaps[fileNameNoExt] = namespace;
-				await FileHelper.writeToFile(pathToWrite, JSON.stringify(namespaceMaps))
+				await FileHelper.writeToFile(pathToWrite, JSON.stringify(namespaceMaps));
 				didWrite = true;
 			}
 		}
 		if (didWrite === false) {
 			let rec: Record<string, string> = {};
 			rec[fileNameNoExt] = namespace;
-			await FileHelper.writeToFile(pathToWrite, JSON.stringify(rec))
+			await FileHelper.writeToFile(pathToWrite, JSON.stringify(rec));
 		}
 	}
 }
@@ -542,9 +548,9 @@ async function createResxFile(uri: vscode.Uri | null) {
 				vscode.window.showErrorMessage("Cannot create resx file!");
 				return;
 			}
-			Logger.instance.info(`Creating file at ${thisWorkspace}`)
+			Logger.instance.info(`Creating file at ${thisWorkspace}`);
 			const resxFilePath = path.join(thisWorkspace, fileName);
-			Logger.instance.info(`Filename to be created: ${resxFilePath}`)
+			Logger.instance.info(`Filename to be created: ${resxFilePath}`);
 			// create a Uri for a file to be created
 			const resxFileUri = vscode.Uri.file(resxFilePath);
 			const content = `<?xml version="1.0" encoding="utf-8"?>

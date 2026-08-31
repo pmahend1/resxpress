@@ -11,3 +11,7 @@ dist
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+#AI
+AGENTS.md
+CLAUDE.md
