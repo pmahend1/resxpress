@@ -120,7 +120,9 @@ function convertToPascalCase(input: string): string {
 
 	// PascalCase
 	const pascalCaseWords = words.map(word => {
-		if (word.length === 0) return emptyString;
+		if (word.length === 0) {
+			return emptyString;
+		}
 		// If word starts with uppercase, keep it; otherwise, capitalize
 		return word[0].toUpperCase() + word.slice(1);
 	});
@@ -459,17 +461,21 @@ async function displayJsonInHtml(jsonData: any[], filename: string) {
 }
 
 function isStringRecord(obj: any): obj is Record<string, string> {
-	if (obj === null)
+	if (obj === null) {
 		return false;
+	}
 
-	if (typeof obj !== "object")
+	if (typeof obj !== "object") {
 		return false;
+	}
 
-	if (Array.isArray(obj))
+	if (Array.isArray(obj)) {
 		return false;
+	}
 
-	if (Object.getOwnPropertySymbols(obj).length > 0)
+	if (Object.getOwnPropertySymbols(obj).length > 0) {
 		return false;
+	}
 
 	return Object.getOwnPropertyNames(obj).every(p => typeof obj[p] === "string");
 }

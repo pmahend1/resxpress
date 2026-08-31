@@ -56,7 +56,15 @@ function logToConsole(text: string) {
 			var index = Number(idstr.split(".")[0]);
 			if (index >= currentResxJS.length) {
 				logToConsole(`${nameof(inputEvent)}.New: Index: ${index}. Current Resx Length: ${currentResxJS.length}`);
-				var newObj: any = { _attributes: { name: emptyString, "xml:space": "preserve" }, value: { _text: emptyString } };
+				const xmlSpace = "xml:space";
+				var newObj: any = {
+					_attributes: {
+						name: emptyString,
+						xmlSpace: "preserve"
+					}, value: {
+						_text: emptyString
+					}
+				};
 				const keyElement = document.getElementById(`${index}.${key}`) as HTMLInputElement;
 				const valueElement = document.getElementById(`${index}.${value}`);
 				const commentElement = document.getElementById(`${index}.${comment}`);
