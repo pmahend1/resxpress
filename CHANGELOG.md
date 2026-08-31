@@ -1,5 +1,9 @@
 # Change Log
 
+## 7.9.0 - 30-Aug-2026
+
+- Package updates.
+
 ## 7.8.0 - 24-Jan-2026
 
 - Package updates.
