@@ -125,8 +125,6 @@ jobs:
                   VSMP_RATING: ${{ steps.fetch-vsmp.outputs.VSMP_RATING }}
                   OVSX_DOWNLOADS: ${{ steps.fetch-ovsx.outputs.OVSX_DOWNLOADS }}
               run: |
-                  # Port of the Shields.io `metric` text formatter, so counts read the
-                  # same way the retired visual-studio-marketplace badges did (2.2M, 409k).
                   function Format-Metric([long]$n) {
                       $prefixes = @("k", "M", "G", "T", "P", "E", "Z", "Y")
                       $invariant = [System.Globalization.CultureInfo]::InvariantCulture
@@ -136,22 +134,16 @@ jobs:
                           $absN  = [Math]::Abs($n)
                           if ($absN -lt $limit) { continue }
 
-                          $scaled = $absN / $limit
-                          if ($scaled -lt 10) {
-                              # For "small" numbers, keep one decimal unless it is 0.
-                              $oneDecimal = [Math]::Round($scaled, 1).ToString("0.0", $invariant)
-                              if (-not $oneDecimal.EndsWith("0")) {
-                                  $res = "$oneDecimal$($prefixes[$i])"
-                                  return $(if ($n -lt 0) { "-$res" } else { $res })
-                              }
+                          # Keep up to two decimals, trimming trailing zeros
+                          $scaled = [Math]::Round($absN / $limit, 2, [MidpointRounding]::AwayFromZero)
+
+                          # Rounding can carry into the next unit (999,999 -> 1000k -> 1M).
+                          if ($scaled -ge 1000 -and $i + 1 -lt $prefixes.Length) {
+                              $scaled = 1
+                              $i++
                           }
 
-                          $rounded = [Math]::Round($scaled, [MidpointRounding]::AwayFromZero)
-                          if ($rounded -lt 1000) {
-                              $res = "$rounded$($prefixes[$i])"
-                          } else {
-                              $res = "1$($prefixes[$i + 1])"
-                          }
+                          $res = $scaled.ToString("0.##", $invariant) + $prefixes[$i]
                           return $(if ($n -lt 0) { "-$res" } else { $res })
                       }
 
@@ -220,28 +212,29 @@ jobs:
                   New-Item -ItemType Directory -Force -Path $publishDirectory | Out-Null
                   Copy-Item -Path ".github/badges/*.json" -Destination $publishDirectory
 
-                    # Remove generated files before checkout so tracked files on the badges
-                    # branch cannot be blocked by untracked files in the main checkout.
-                    Remove-Item -Path ".github/badges/*.json" -Force -ErrorAction SilentlyContinue
+                  # Remove generated files before checkout so tracked files on the badges
+                  # branch cannot be blocked by untracked files in the main checkout.
+                  Remove-Item -Path ".github/badges/*.json" -Force -ErrorAction SilentlyContinue
 
-                    $remoteBranch = git ls-remote --heads origin $branchName
-                    if ($LASTEXITCODE -ne 0) {
+                  $remoteBranch = git ls-remote --heads origin $branchName
+                  if ($LASTEXITCODE -ne 0) {
                       throw "Unable to check whether the '$branchName' branch exists."
-                    }
+                  }
 
-                    if ($remoteBranch) {
+                  if ($remoteBranch) {
                       git fetch origin "$branchName`:$branchName"
                       if ($LASTEXITCODE -ne 0) {
-                        throw "Unable to fetch the '$branchName' branch."
+                          throw "Unable to fetch the '$branchName' branch."
                       }
                       git checkout $branchName
                       if ($LASTEXITCODE -ne 0) {
-                        throw "Unable to check out the '$branchName' branch."
+                          throw "Unable to check out the '$branchName' branch."
                       }
-                  } else {
+                  }
+                  else {
                       git checkout --orphan $branchName
                       if ($LASTEXITCODE -ne 0) {
-                        throw "Unable to create the '$branchName' branch."
+                          throw "Unable to create the '$branchName' branch."
                       }
                       git rm -rf . 2>$null | Out-Null
                       New-Item -ItemType Directory -Force -Path .github/badges | Out-Null
@@ -255,6 +248,7 @@ jobs:
                       git commit -m "chore(badges): update marketplace download/install stats [skip ci]"
                       git push origin $branchName
                       Write-Host "Badge JSON files updated and pushed to '$branchName' branch."
-                  } else {
+                  }
+                  else {
                       Write-Host "No badge changes detected. Skipping commit."
                   }

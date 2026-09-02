@@ -12,8 +12,6 @@ Resx editor, previewer and reorganizer extension for Visual Studio Code and VSCo
 <!-- Open VSX: Version|Downloads|Rating -->
 [![Open VSX Version](https://img.shields.io/open-vsx/v/PrateekMahendrakar/resxpress?color=darkcyan&style=for-the-badge&logo=vscodium&logoColor=darkcyan)](https://open-vsx.org/extension/PrateekMahendrakar/resxpress)![Downloads](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fpmahend1%2Fresxpress%2Fbadges%2F.github%2Fbadges%2Fovsx-downloads.json&style=for-the-badge&color=darkcyan)![Rating](https://img.shields.io/open-vsx/rating/PrateekMahendrakar/resxpress?style=for-the-badge&color=darkcyan)
 
-[<img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" width="100" height="25">](https://www.buymeacoffee.com/pmahend1)
-
 ---
 
 ## Features
