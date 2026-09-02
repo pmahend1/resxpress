@@ -1,0 +1,260 @@
+name: Update Marketplace Badge Stats
+
+on:
+    schedule:
+        # Runs 4 times a day at 00:23, 06:23, 12:23, 18:23 UTC
+        - cron: "23 */6 * * *"
+    workflow_dispatch:
+
+permissions:
+    contents: write
+
+jobs:
+    update-badges:
+        name: Fetch VS Marketplace & Open VSX stats
+        runs-on: windows-latest
+        defaults:
+            run:
+                shell: pwsh
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Ensure badges directory exists
+              run: New-Item -ItemType Directory -Force -Path .github/badges | Out-Null
+
+            - name: Fetch VS Marketplace stats
+              shell: pwsh
+              run: |
+                  $headers = @{
+                      "Accept"        = "application/json;api-version=6.0-preview.1"
+                      "Content-Type"  = "application/json"
+                  }
+                  $body = @'
+                  {
+                    "filters": [
+                      {
+                        "criteria": [
+                          { "filterType": 7, "value": "PrateekMahendrakar.resxpress" }
+                        ]
+                      }
+                    ],
+                    "flags": 914
+                  }
+                  '@
+
+                  $response = Invoke-RestMethod `
+                      -Uri "https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery" `
+                      -Method Post `
+                      -Headers $headers `
+                      -Body $body
+
+                  $extension = $response.results[0].extensions[0]
+                  $stats     = $extension.statistics
+
+                  $installs    = ($stats | Where-Object { $_.statisticName -eq "install" }).value
+                  $updates     = ($stats | Where-Object { $_.statisticName -eq "updateCount" }).value
+                  $rating      = ($stats | Where-Object { $_.statisticName -eq "averagerating" }).value
+                  $ratingCount = ($stats | Where-Object { $_.statisticName -eq "ratingcount" }).value
+                  $version     = $extension.versions[0].version
+
+                  if (-not $installs)    { $installs    = 0 }
+                  if (-not $updates)     { $updates     = 0 }
+                  if (-not $rating)      { $rating      = 0 }
+                  if (-not $ratingCount) { $ratingCount = 0 }
+
+                  $installs = [long]$installs
+                  $updates  = [long]$updates
+
+                  # The Marketplace "downloadCount" statistic counts only manual .vsix
+                  # downloads (a few thousand). Total downloads is fresh installs plus
+                  # in-product updates, which is what the retired Shields badge reported.
+                  $downloads = $installs + $updates
+
+                  if (-not $version) {
+                      throw "VS Marketplace response did not contain a version."
+                  }
+
+                  # Render as "4.6/5 (153)" to match the Open VSX rating badge format.
+                  $ratingText = "{0:N1}/5 ({1})" -f [double]$rating, [int]$ratingCount
+
+                  Write-Host "VS Marketplace installs:  $installs"
+                  Write-Host "VS Marketplace downloads: $downloads"
+                  Write-Host "VS Marketplace version:   $version"
+                  Write-Host "VS Marketplace rating:    $ratingText"
+
+                  "VSMP_INSTALLS=$installs"   >> $env:GITHUB_OUTPUT
+                  "VSMP_DOWNLOADS=$downloads" >> $env:GITHUB_OUTPUT
+                  "VSMP_VERSION=$version"     >> $env:GITHUB_OUTPUT
+                  "VSMP_RATING=$ratingText"   >> $env:GITHUB_OUTPUT
+              id: fetch-vsmp
+
+            - name: Fetch Open VSX stats
+              shell: pwsh
+              run: |
+                  $namespace  = "PrateekMahendrakar"
+                  $extension  = "resxpress"
+                  $ovsxApiUrl = "https://open-vsx.org/api/$namespace/$extension"
+
+                  try {
+                      $response = Invoke-RestMethod -Uri $ovsxApiUrl -Method Get -Headers @{ "Accept" = "application/json" }
+                      $downloads = $response.downloadCount
+                      $version   = $response.version
+                  } catch {
+                      throw "Failed to fetch Open VSX stats: $_"
+                  }
+
+                    if ($null -eq $downloads) {
+                      throw "Open VSX response did not contain a download count."
+                    }
+
+                  Write-Host "Open VSX downloads: $downloads"
+                  Write-Host "Open VSX version:   $version"
+
+                  "OVSX_DOWNLOADS=$downloads" >> $env:GITHUB_OUTPUT
+                  "OVSX_VERSION=$version"     >> $env:GITHUB_OUTPUT
+              id: fetch-ovsx
+
+            - name: Write Shields endpoint JSON files
+              shell: pwsh
+              env:
+                  VSMP_INSTALLS: ${{ steps.fetch-vsmp.outputs.VSMP_INSTALLS }}
+                  VSMP_DOWNLOADS: ${{ steps.fetch-vsmp.outputs.VSMP_DOWNLOADS }}
+                  VSMP_VERSION: ${{ steps.fetch-vsmp.outputs.VSMP_VERSION }}
+                  VSMP_RATING: ${{ steps.fetch-vsmp.outputs.VSMP_RATING }}
+                  OVSX_DOWNLOADS: ${{ steps.fetch-ovsx.outputs.OVSX_DOWNLOADS }}
+              run: |
+                  # Port of the Shields.io `metric` text formatter, so counts read the
+                  # same way the retired visual-studio-marketplace badges did (2.2M, 409k).
+                  function Format-Metric([long]$n) {
+                      $prefixes = @("k", "M", "G", "T", "P", "E", "Z", "Y")
+                      $invariant = [System.Globalization.CultureInfo]::InvariantCulture
+
+                      for ($i = $prefixes.Length - 1; $i -ge 0; $i--) {
+                          $limit = [Math]::Pow(1000, $i + 1)
+                          $absN  = [Math]::Abs($n)
+                          if ($absN -lt $limit) { continue }
+
+                          $scaled = $absN / $limit
+                          if ($scaled -lt 10) {
+                              # For "small" numbers, keep one decimal unless it is 0.
+                              $oneDecimal = [Math]::Round($scaled, 1).ToString("0.0", $invariant)
+                              if (-not $oneDecimal.EndsWith("0")) {
+                                  $res = "$oneDecimal$($prefixes[$i])"
+                                  return $(if ($n -lt 0) { "-$res" } else { $res })
+                              }
+                          }
+
+                          $rounded = [Math]::Round($scaled, [MidpointRounding]::AwayFromZero)
+                          if ($rounded -lt 1000) {
+                              $res = "$rounded$($prefixes[$i])"
+                          } else {
+                              $res = "1$($prefixes[$i + 1])"
+                          }
+                          return $(if ($n -lt 0) { "-$res" } else { $res })
+                      }
+
+                      return "$n"
+                  }
+
+                  # --- VS Marketplace Version ---
+                  $vsmpVersionJson = @{
+                      schemaVersion = 1
+                      label         = "Visual Studio MarketPlace"
+                      message       = "v$env:VSMP_VERSION"
+                      color         = "blue"
+                  } | ConvertTo-Json -Compress
+                  Set-Content -Path ".github/badges/vsmp-version.json" -Value $vsmpVersionJson -Encoding UTF8
+                  Write-Host "Wrote .github/badges/vsmp-version.json"
+
+                  # --- VS Marketplace Rating ---
+                  $vsmpRatingJson = @{
+                      schemaVersion = 1
+                      label         = "Rating"
+                      message       = "$env:VSMP_RATING"
+                      color         = "blue"
+                  } | ConvertTo-Json -Compress
+                  Set-Content -Path ".github/badges/vsmp-rating.json" -Value $vsmpRatingJson -Encoding UTF8
+                  Write-Host "Wrote .github/badges/vsmp-rating.json"
+
+                  # --- VS Marketplace Installs ---
+                  $vsmpInstallsJson = @{
+                      schemaVersion = 1
+                      label         = "Installs"
+                      message       = Format-Metric ([long]$env:VSMP_INSTALLS)
+                      color         = "blue"
+                  } | ConvertTo-Json -Compress
+                  Set-Content -Path ".github/badges/vsmp-installs.json" -Value $vsmpInstallsJson -Encoding UTF8
+                  Write-Host "Wrote .github/badges/vsmp-installs.json"
+
+                  # --- VS Marketplace Downloads ---
+                  $vsmpDownloadsJson = @{
+                      schemaVersion = 1
+                      label         = "Downloads"
+                      message       = Format-Metric ([long]$env:VSMP_DOWNLOADS)
+                      color         = "blue"
+                  } | ConvertTo-Json -Compress
+                  Set-Content -Path ".github/badges/vsmp-downloads.json" -Value $vsmpDownloadsJson -Encoding UTF8
+                  Write-Host "Wrote .github/badges/vsmp-downloads.json"
+
+                  # --- Open VSX Downloads ---
+                  $ovsxDownloadsJson = @{
+                      schemaVersion = 1
+                      label         = "Downloads"
+                      message       = Format-Metric ([long]$env:OVSX_DOWNLOADS)
+                      color         = "darkcyan"
+                  } | ConvertTo-Json -Compress
+                  Set-Content -Path ".github/badges/ovsx-downloads.json" -Value $ovsxDownloadsJson -Encoding UTF8
+                  Write-Host "Wrote .github/badges/ovsx-downloads.json"
+
+            - name: Publish badge JSON files to 'badges' branch
+              shell: pwsh
+              run: |
+                  git config user.name  "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+
+                  $branchName = "badges"
+                  $publishDirectory = Join-Path $env:RUNNER_TEMP "resxpress-badges"
+                  Remove-Item -Path $publishDirectory -Recurse -Force -ErrorAction SilentlyContinue
+                  New-Item -ItemType Directory -Force -Path $publishDirectory | Out-Null
+                  Copy-Item -Path ".github/badges/*.json" -Destination $publishDirectory
+
+                    # Remove generated files before checkout so tracked files on the badges
+                    # branch cannot be blocked by untracked files in the main checkout.
+                    Remove-Item -Path ".github/badges/*.json" -Force -ErrorAction SilentlyContinue
+
+                    $remoteBranch = git ls-remote --heads origin $branchName
+                    if ($LASTEXITCODE -ne 0) {
+                      throw "Unable to check whether the '$branchName' branch exists."
+                    }
+
+                    if ($remoteBranch) {
+                      git fetch origin "$branchName`:$branchName"
+                      if ($LASTEXITCODE -ne 0) {
+                        throw "Unable to fetch the '$branchName' branch."
+                      }
+                      git checkout $branchName
+                      if ($LASTEXITCODE -ne 0) {
+                        throw "Unable to check out the '$branchName' branch."
+                      }
+                  } else {
+                      git checkout --orphan $branchName
+                      if ($LASTEXITCODE -ne 0) {
+                        throw "Unable to create the '$branchName' branch."
+                      }
+                      git rm -rf . 2>$null | Out-Null
+                      New-Item -ItemType Directory -Force -Path .github/badges | Out-Null
+                  }
+
+                  Copy-Item -Path "$publishDirectory/*.json" -Destination ".github/badges/"
+                  git add .github/badges/
+
+                  $hasChanges = (git diff --cached --name-only | Measure-Object).Count -gt 0
+                  if ($hasChanges) {
+                      git commit -m "chore(badges): update marketplace download/install stats [skip ci]"
+                      git push origin $branchName
+                      Write-Host "Badge JSON files updated and pushed to '$branchName' branch."
+                  } else {
+                      Write-Host "No badge changes detected. Skipping commit."
+                  }
