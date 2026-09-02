@@ -12,6 +12,9 @@ dist
 !.yarn/sdks
 !.yarn/versions
 
+.DS_Store
+
 #AI
 AGENTS.md
 CLAUDE.md
+TODO.md
