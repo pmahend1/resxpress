@@ -1,7 +1,6 @@
 export enum WebpanelPostMessageKind {
     Switch = "switch",
-    Add = "add",
-    Delete = "delete",
+    Ready = "ready",
     UpdateWebPanel = "update-web-panel",
     TriggerTextDocumentUpdate = "trigger-text-document-update",
     TriggerNamespaceUpdate = "trigger-namespace-update",

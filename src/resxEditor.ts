@@ -1,11 +1,6 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import { getNonce } from "./util";
-import * as xmljs from "xml-js";
-import { ResxJsonHelper } from "./resxJsonHelper";
-import { Settings } from "./settings";
-import { Logger } from "./logger";
-import { nameof } from "./nameof";
 
 export class ResxEditor {
     private readonly context: vscode.ExtensionContext;
@@ -13,7 +8,7 @@ export class ResxEditor {
         this.context = context;
     }
 
-    public getHtmlForWebview(webview: vscode.Webview, namespace: string, content: string): string {
+    public getHtmlForWebview(webview: vscode.Webview, namespace: string): string {
 
         const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "out", "webpanelScript.js")));
         const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "webpanel.css")));
@@ -43,7 +38,7 @@ export class ResxEditor {
             <img src="${faRightLeft}" alt="Switch Icon" class="icon filter-fefefe"> Switch to Text Editor
         </button>
         <div class="namespace-section">
-            <span id="namespaceSpan">Namespace: <strong>${namespace}</strong></span>
+            <span id="namespaceSpan">Namespace: <strong>${escapeHtml(namespace)}</strong></span>
             <button id="changeNamespaceButton" class="btn secondary">
                 <img src="${faPenToSquare}" alt="Edit Icon" class="icon filter-fefefe"> Change Namespace
             </button>
@@ -62,79 +57,22 @@ export class ResxEditor {
             <th> </th>
         </thead>
         <tbody>
-            ${content}
         </tbody>
     </table>
     <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>
 </html>`;
     }
+}
 
-    /**
-     * Add a new key value back to text editor 
-     */
-    public addNewKeyValue(document: vscode.TextDocument, json: any) {
-        const newObj = JSON.parse(json);
-        const docDataList = ResxJsonHelper.getJsonData(document.getText());
-
-        var pos = docDataList.map((x) => { return x?._attributes?.name; }).indexOf(newObj._attributes.name);
-
-        //avoid adding data with same key
-        if (pos === -1) {
-            docDataList.push(newObj);
-        }
-        else {
-            // commented for now. its triggering twice 
-            vscode.window.showErrorMessage(`Data with same key ${newObj._attributes.name} already exists`);
-        }
-        return this.updateTextDocument(document, JSON.stringify(docDataList));
-    }
-
-    /**
-     * Delete an existing scratch from a document.
-     */
-    public deleteKeyValue(document: vscode.TextDocument, json: any) {
-
-
-        var deletedJsObj = JSON.parse(json);
-        var currentData = ResxJsonHelper.getJsonData(document.getText());
-
-        Logger.instance.info(`${nameof(ResxEditor)}.${nameof(this.deleteKeyValue)}: Datalist before deleting ${deletedJsObj._attributes.name} : ${JSON.stringify(currentData)}`);
-        var pos = currentData.map(e => e?._attributes?.name).indexOf(deletedJsObj._attributes.name);
-
-        currentData.splice(pos, 1);
-        Logger.instance.info(`${nameof(ResxEditor)}.${nameof(this.deleteKeyValue)}: Deleted ${deletedJsObj._attributes.name}`);
-        return this.updateTextDocument(document, JSON.stringify(currentData));
-    }
-
-    public updateTextDocument(document: vscode.TextDocument, dataListJson: any) {
-        Logger.instance.info(`${nameof(ResxEditor)}.${nameof(this.updateTextDocument)}: `);
-
-        var dataList = JSON.parse(dataListJson);
-        const edit = new vscode.WorkspaceEdit();
-
-        var currentJs: any = xmljs.xml2js(document.getText(), { compact: true });
-
-        if (dataList) {
-            switch (dataList.length) {
-                case 0:
-                    delete currentJs.root.data;
-                    break;
-                case 1:
-                    currentJs.root.data = dataList[0];
-                    break;
-                default:
-                    currentJs.root.data = dataList;
-                    break;
-            }
-        }
-        else {
-            Logger.instance.warning(`${nameof(ResxEditor)}.${nameof(this.updateTextDocument)}: empty datalist`);
-            currentJs.root.data = {};
-        }
-        var resx = xmljs.js2xml(currentJs, { spaces: Settings.indentSpaceLength, compact: true });
-        Logger.instance.info(`${nameof(ResxEditor)}.${nameof(this.updateTextDocument)}: ${resx}`);
-        edit.replace(document.uri, new vscode.Range(0, 0, document.lineCount, 0), resx);
-        return vscode.workspace.applyEdit(edit);
-    }
+/*
+ * The rows themselves are built with DOM APIs in webpanelScript, which is what
+ * keeps resx content out of the HTML. The namespace is the one value still
+ * interpolated here, and it comes from a Designer.cs file or a user prompt.
+ */
+function escapeHtml(text: string): string {
+    return text.replace(/&/g, "&amp;")
+               .replace(/</g, "&lt;")
+               .replace(/>/g, "&gt;")
+               .replace(/"/g, "&quot;");
 }
