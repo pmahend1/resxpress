@@ -1,6 +1,9 @@
 name: Deploy CI
 
 on:
+  push:
+    tags:
+      - "v*.*.*"
   workflow_dispatch:
     inputs:
       shouldPublishToVSMarketPlace:
@@ -11,6 +14,9 @@ on:
         description: "Publish to Open-VSX?"
         type: boolean
         default: true
+
+permissions:
+  contents: write
 
 jobs:
   deploy:
@@ -31,6 +37,22 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # The tag is the release trigger and the source of version truth, but vsce packs
+      # whatever package.json says. A vsix whose version disagrees with its release tag
+      # cannot be unpublished from the Marketplace, so fail before packaging, not after.
+      - name: Verify tag matches package.json version
+        if: github.ref_type == 'tag'
+        shell: pwsh
+        run: |
+          $tagVersion = "${{ github.ref_name }}" -replace "^v", ""
+          $packageVersion = (Get-Content .\package.json | ConvertFrom-Json).version
+          Write-Host "Tag version         : $tagVersion"
+          Write-Host "package.json version: $packageVersion"
+          if ($tagVersion -ne $packageVersion) {
+            throw [System.Exception]("Tag version $tagVersion does not match package.json version $packageVersion ❌")
+          }
+          Write-Host "Pass ✅"
+
       - name: Pack vsix
         id: pack
         run: |
@@ -39,8 +61,9 @@ jobs:
           Write-Host "`$VsixName = $VsixName"
           "VSIX_FILENAME=$VsixName" >> $env:GITHUB_OUTPUT
 
+      # A tag push has no equivalent of the two dispatch toggles, so it publishes to both.
       - name: VSCE Publish
-        if: ${{ inputs.shouldPublishToVSMarketPlace }}
+        if: ${{ github.event_name == 'push' || inputs.shouldPublishToVSMarketPlace }}
         run: |
           Write-Host "Running pnpm exec vsce publish --packagePath ${{ steps.pack.outputs.VSIX_FILENAME }} --pat `$env:VSCE_PAT"
           pnpm exec vsce publish --packagePath ${{ steps.pack.outputs.VSIX_FILENAME }} --pat $env:VSCE_PAT
@@ -48,9 +71,16 @@ jobs:
           VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
 
       - name: Open VSX Publish
-        if: ${{ inputs.shouldPublishToOpenVsx }}
+        if: ${{ github.event_name == 'push' || inputs.shouldPublishToOpenVsx }}
         run: |
           Write-Host "Running pnpm exec ovsx publish --packagePath ${{ steps.pack.outputs.VSIX_FILENAME }} --pat `$env:OPEN_VSX_PAT"
           pnpm exec ovsx publish --packagePath ${{ steps.pack.outputs.VSIX_FILENAME }} --pat $env:OPEN_VSX_PAT
         env:
           OPEN_VSX_PAT: ${{ secrets.OPENVSX }}
+
+      - name: GitHub Release
+        uses: softprops/action-gh-release@v3
+        if: github.ref_type == 'tag'
+        with:
+          generate_release_notes: true
+          files: ${{ steps.pack.outputs.VSIX_FILENAME }}
