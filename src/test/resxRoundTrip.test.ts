@@ -100,6 +100,25 @@ test("a new entry is appended after the last data element, not at the end of the
     assert.ok(xml.indexOf(`name="Added"`) < xml.indexOf("<!--Trailing comment before the close tag-->"));
 });
 
+test("the first entry added to a brand new file lands below the Data marker", () => {
+    /*
+     * Mirrors what createResxFile writes: tab indented, no trailing newline, and
+     * <!--Data--> as the last child, so there is no existing <data> element to append
+     * after. Every other add test starts from a file that already has entries.
+     */
+    const created = `<?xml version="1.0" encoding="utf-8"?>\n<root>\n\t<resheader name="resmimetype">\n\t\t<value>text/microsoft-resx</value>\n\t</resheader>\n\t<!--Data-->\n</root>`;
+    const resxFile = ResxFile.parse(created, 4);
+    assert.deepEqual(resxFile.entries, []);
+
+    resxFile.applyEntries([{ key: "Hello", value: "World", comment: "first one" }]);
+    const xml = resxFile.toXml();
+
+    assert.ok(xml.indexOf("<!--Data-->") < xml.indexOf("<data "), "the marker still introduces the data block");
+    assert.ok(xml.includes(`\t<data name="Hello" xml:space="preserve">\n\t\t<value>World</value>\n\t\t<comment>first one</comment>\n\t</data>`),
+              "the entry copies the template's tabs");
+    assert.ok(xml.endsWith("</root>"), "the template has no trailing newline and does not grow one");
+});
+
 test("indentation comes from the file, not from the setting", () => {
     assert.ok(ResxFile.parse(fixture, 8).toXml().includes(`\n  <data name="Padded"`));
 
