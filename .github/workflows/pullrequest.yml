@@ -8,13 +8,12 @@ on:
     workflow_dispatch:
 
 jobs:
-    checks:
+    engines:
         runs-on: windows-latest
         steps:
             - name: Checkout branch
               uses: actions/checkout@v7
 
-            # Cheap and dependency-free, so it runs before install to fail fast.
             - name: Verify engines.vscode matches @types/vscode
               shell: pwsh
               run: |
@@ -24,9 +23,15 @@ jobs:
                   Write-Host "engines.vscode : $engines"
                   Write-Host "@types/vscode  : $types"
                   if ($engines -ne $types) {
-                    throw [System.Exception]("engines.vscode ($engines) does not match @types/vscode ($types). ❌ Keep them identical so the API surface compiled against is the one declared as supported.")
+                      throw [System.Exception]("engines.vscode ($engines) does not match @types/vscode ($types). ❌ Keep them identical so the API surface compiled against is the one declared as supported.")
                   }
                   Write-Host "Pass ✅"
+
+    lint:
+        runs-on: windows-latest
+        steps:
+            - name: Checkout branch
+              uses: actions/checkout@v7
 
             - name: Setup pnpm
               uses: pnpm/action-setup@v6
