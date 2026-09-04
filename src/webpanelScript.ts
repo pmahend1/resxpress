@@ -34,6 +34,20 @@ const switchToTextEditorButton = "switchToTextEditorButton";
 const message = "message";
 const none = "none";
 const namespaceSpan = "namespaceSpan";
+const searchInput = "searchInput";
+const searchStatus = "searchStatus";
+const searchSummary = (matchCount: number, total: number) => `Showing ${matchCount} of ${total}`;
+const keydown = "keydown";
+const escapeKey = "Escape";
+const findKey = "f";
+const filteredOutClass = "filtered-out";
+const altRowClass = "alt-row";
+const stickyToolbarSelector = ".sticky-div";
+const stickyToolbarHeightProperty = "--sticky-toolbar-height";
+const macUserAgentMarker = "Mac";
+const macFindShortcut = "⌘F";
+const findShortcut = "Ctrl+F";
+const searchTooltip = (shortcut: string) => `Search key, value or comment (${shortcut} to focus, Esc to clear)`;
 const documentUpdateDelayInMilliseconds = 300;
 
 function logToConsole(text: string) {
@@ -47,6 +61,8 @@ function logToConsole(text: string) {
 
 	const table = document.querySelector(tbody)!;
 	const errorContainer = document.getElementById(errorBlock);
+	const searchInputElement = getInput(searchInput);
+	const searchStatusElement = document.getElementById(searchStatus);
 	let pendingUpdateHandle: ReturnType<typeof setTimeout> | undefined;
 
 	function showError(errorMessage: string) {
@@ -201,6 +217,55 @@ function logToConsole(text: string) {
 	function renderEntries() {
 		table.innerHTML = emptyString;
 		currentEntries.forEach((entry, index) => table.appendChild(createRow(entry, index)));
+		applyFilter();
+	}
+
+	function entryMatches(entry: ResxEntry, query: string): boolean {
+		return entry.key.toLowerCase().includes(query)
+			|| entry.value.toLowerCase().includes(query)
+			|| (entry.comment ?? emptyString).toLowerCase().includes(query);
+	}
+
+	/*
+	 * Non-matching rows are hidden where they are rather than dropped from the
+	 * table. A row's id is its index in currentEntries, so rendering only the
+	 * matches would renumber the survivors and send every later edit and delete
+	 * to the wrong entry. Striping is assigned here for the same reason:
+	 * nth-child still counts a hidden row, so CSS alone cannot alternate the
+	 * rows that remain visible.
+	 */
+	function applyFilter() {
+		const query = (searchInputElement?.value ?? emptyString).trim().toLowerCase();
+		let visibleCount = 0;
+
+		currentEntries.forEach((entry, index) => {
+			const child = table.children[index];
+			const row = child instanceof HTMLElement ? child : undefined;
+			if (row === undefined) {
+				return;
+			}
+
+			const isMatch = query.length === 0 || entryMatches(entry, query);
+			row.classList.toggle(filteredOutClass, isMatch === false);
+			row.classList.toggle(altRowClass, isMatch && visibleCount % 2 === 1);
+			if (isMatch) {
+				visibleCount++;
+			}
+		});
+
+		if (searchStatusElement !== null) {
+			searchStatusElement.textContent = query.length === 0
+				? emptyString
+				: searchSummary(visibleCount, currentEntries.length);
+		}
+	}
+
+	function clearSearch() {
+		if (searchInputElement === undefined) {
+			return;
+		}
+
+		searchInputElement.value = emptyString;
 	}
 
 	function deleteEvent(event: MouseEvent) {
@@ -266,10 +331,44 @@ function logToConsole(text: string) {
 		});
 	}
 
+	if (searchInputElement !== undefined) {
+		/*
+		 * The shortcut is named on hover rather than in the placeholder, which has
+		 * to say what the box searches. It is spelled for the platform because the
+		 * handler below accepts either modifier, so Ctrl+F on a Mac would be a lie.
+		 */
+		searchInputElement.title = searchTooltip(navigator.userAgent.includes(macUserAgentMarker)
+			? macFindShortcut
+			: findShortcut);
+		searchInputElement.addEventListener(input, applyFilter, false);
+		searchInputElement.addEventListener(keydown, event => {
+			if (event.key === escapeKey) {
+				clearSearch();
+				applyFilter();
+			}
+		}, false);
+
+		/*
+		 * Ctrl+F is what anyone will reach for first, and nothing else claims it
+		 * here: VS Code's webview find widget is opt-in and would be useless even
+		 * if it were on, because it drives Chromium's find-in-page, which does not
+		 * look inside <input> values - and every resx field is an input.
+		 */
+		document.addEventListener(keydown, event => {
+			if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === findKey) {
+				event.preventDefault();
+				searchInputElement.focus();
+				searchInputElement.select();
+			}
+		}, false);
+	}
+
 	const addButtonElement = document.getElementById(addButton);
 	if (addButtonElement !== null) {
 		addButtonElement.addEventListener(click, () => {
 			logToConsole("addButton clicked");
+			// The new row is empty, so an active filter would hide the row that was just asked for.
+			clearSearch();
 			currentEntries.push({ key: emptyString, value: emptyString });
 			renderEntries();
 
@@ -289,6 +388,22 @@ function logToConsole(text: string) {
 				WebpanelPostMessageKind.SortByKeys,
 				JSON.stringify(emptyString)));
 		});
+	}
+
+	/*
+	 * The column headers stick directly under the toolbar, so they need its
+	 * height. It is not a constant: the toolbar wraps, so the height changes with
+	 * the panel width. Publishing the measured value replaces a hardcoded 62px
+	 * that was only ever correct for a single-row toolbar.
+	 */
+	const stickyToolbar = document.querySelector(stickyToolbarSelector);
+	if (stickyToolbar !== null) {
+		const publishToolbarHeight = () => document.documentElement.style.setProperty(
+			stickyToolbarHeightProperty,
+			`${stickyToolbar.getBoundingClientRect().height}px`);
+
+		publishToolbarHeight();
+		new ResizeObserver(publishToolbarHeight).observe(stickyToolbar);
 	}
 
 	// A hidden webview is torn down, so whatever is still queued has to go now.
