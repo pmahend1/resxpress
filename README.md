@@ -43,6 +43,28 @@ newline all survive an edit, and only the lines you changed are rewritten.
 - Add a new resx file.
 - Update C# namespace of a resx file.
 
+### ResXpress: Edit All Languages
+
+Every culture of a resource in one editable table, one column per language - `Resource1.resx`,
+`Resource1.de.resx`, `Resource1.fr.resx` and so on side by side, instead of one file at a time.
+
+Open it from the command palette, from the explorer's right-click menu, or by right-clicking a
+resx editor tab. Any culture of the resource will do: the whole family is found from whichever
+file you start on.
+
+- Each column writes back to its own file, using the same minimal-edit path as the single file
+  editor, so a translation file only ever gains the lines you actually changed.
+- A key missing from a translation shows as a highlighted empty cell - typing in it adds the
+  entry to that language alone, and clearing a cell removes it again. Nothing writes blank
+  entries into languages you did not touch.
+- **Comments** collapse to a single column showing the default language's comment, or expand to
+  one column per language for translated comments. The toolbar button switches between the two;
+  the columns you hide are never rewritten.
+- The Key column stays pinned while the languages scroll sideways, so the table stays readable
+  however many languages there are.
+- **Save All** saves every file the table has changed - most of them are not open in a tab of
+  their own. Deleting a row removes that key from every language.
+
 ### ResXpress: Markdown Preview
 
 Preview resx file as Markdown table.

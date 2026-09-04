@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 
 import { promises as fsPromises } from "fs";
+import { CombinedResxPanel } from "./combinedResxPanel";
 import { PreviewEditPanel } from "./previewEditPanel";
 import * as path from "path";
 import { ResxEditorProvider } from "./resxEditorProvider";
@@ -78,6 +79,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand(Constants.Commands.setNameSpace, async (document: vscode.TextDocument) => await setNewNamespace(document)));
 	context.subscriptions.push(vscode.commands.registerCommand(Constants.Commands.createResxFile, async (uri: vscode.Uri) => await createResxFile(uri)));
 	context.subscriptions.push(vscode.commands.registerTextEditorCommand(Constants.Commands.resxeditor, async () => await newPreview()));
+	context.subscriptions.push(vscode.commands.registerCommand(Constants.Commands.combinedEditor, async (uri?: vscode.Uri) => await openCombinedEditor(context, uri)));
 
 	context.subscriptions.push(ResxEditorProvider.register(context));
 
@@ -101,6 +103,52 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 	Logger.instance.info(`Extension ${context.extension.id} activated`);
+}
+
+async function openCombinedEditor(context: vscode.ExtensionContext, uri?: vscode.Uri) {
+	try {
+		const resxUri = resolveResxUri(uri);
+		if (resxUri === undefined) {
+			vscode.window.showErrorMessage("Open a resx file first, or run this from a resx file's context menu.");
+			return;
+		}
+
+		await CombinedResxPanel.createOrShow(context.extensionUri, resxUri);
+	}
+	catch (error) {
+		var errorMessage = emptyString;
+		if (error instanceof Error) {
+			Logger.instance.error(error);
+			errorMessage = error.message;
+		}
+		else if (typeof error === "string") {
+			errorMessage = error;
+		}
+		vscode.window.showErrorMessage(errorMessage);
+	}
+}
+
+/*
+ * ResXpress is the default editor for .resx, so a resx that is open is usually
+ * a custom editor rather than a text editor and activeTextEditor is undefined.
+ * The active tab is what knows the uri in that case.
+ */
+function resolveResxUri(uri?: vscode.Uri): vscode.Uri | undefined {
+	if (uri instanceof vscode.Uri) {
+		return uri;
+	}
+
+	const activeDocumentUri = vscode.window.activeTextEditor?.document.uri;
+	if (activeDocumentUri !== undefined) {
+		return activeDocumentUri;
+	}
+
+	const activeTabInput = vscode.window.tabGroups.activeTabGroup.activeTab?.input;
+	if (activeTabInput instanceof vscode.TabInputCustom || activeTabInput instanceof vscode.TabInputText) {
+		return activeTabInput.uri;
+	}
+
+	return undefined;
 }
 
 function loadConfiguration() {

@@ -1,0 +1,247 @@
+/*
+ * The combined panel scrolls in two directions, so it does not reuse
+ * webpanel.css. There, the page itself scrolls and the header sticks under the
+ * toolbar at a measured offset. That model cannot survive a table wider than
+ * the panel: a sticky element cannot leave its containing block, so the toolbar
+ * would slide away as soon as the table was scrolled sideways. Here the toolbar
+ * is taken out of the scrolling area altogether and .table-scroll is the only
+ * thing that scrolls, which lets the header row and the Key column stick
+ * against it independently.
+ */
+body {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--vscode-editor-foreground);
+  background-color: var(--vscode-editor-background);
+  font-family: var(--vscode-font-family);
+}
+
+.toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 16px;
+  background-color: var(--vscode-editor-background);
+  border-bottom: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.35));
+}
+
+.table-scroll {
+  flex: 1 1 auto;
+  overflow: auto;
+}
+
+/*
+ * separate + zero spacing rather than collapse: a collapsed border belongs to
+ * the table, not to the cell, so it does not travel with a sticky header or a
+ * sticky first column and the grid tears as soon as anything is scrolled.
+ */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: max-content;
+  min-width: 100%;
+  text-align: left;
+}
+
+th,
+td {
+  padding: 0.25rem;
+  border-right: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.35));
+  border-bottom: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.35));
+}
+
+th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 12px 8px;
+  text-align: center;
+  white-space: nowrap;
+  background-color: var(--vscode-sideBar-background, var(--vscode-editor-background));
+  box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+}
+
+/* The Key column stays put while the languages scroll past it. */
+th.key-column,
+td.key-column {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background-color: var(--vscode-editor-background);
+  border-right: 1px solid var(--vscode-focusBorder, rgba(128, 128, 128, 0.6));
+}
+
+th.key-column {
+  /* Above both the sticky header row and the sticky column it corners. */
+  z-index: 3;
+  background-color: var(--vscode-sideBar-background, var(--vscode-editor-background));
+}
+
+th.key-column,
+td.key-column {
+  min-width: 14rem;
+}
+
+th.value-column,
+td.value-column,
+th.comment-column,
+td.comment-column {
+  min-width: 15rem;
+}
+
+th.delete-column,
+td.delete-column {
+  min-width: 2.5rem;
+  width: 2.5rem;
+  border-right: none;
+  cursor: pointer;
+}
+
+td.delete-column p {
+  margin: 0;
+  text-align: center;
+  color: var(--vscode-descriptionForeground);
+}
+
+td.delete-column:hover p {
+  color: var(--vscode-errorForeground);
+}
+
+/*
+ * Striping is a class rather than :nth-child(even) because a filtered-out row
+ * still counts as a child, which would leave gaps in the alternating colour.
+ * applyFilter in combinedPanelScript assigns it over the visible rows instead.
+ */
+tr.alt-row td {
+  background-color: var(--vscode-sideBar-background, var(--vscode-editor-background));
+}
+
+tr.alt-row td.key-column {
+  background-color: var(--vscode-sideBar-background, var(--vscode-editor-background));
+}
+
+tr.filtered-out {
+  display: none;
+}
+
+/* A key that has no entry in this language at all - the gap worth seeing. */
+td.missing-cell,
+tr.alt-row td.missing-cell {
+  background-color: color-mix(in srgb, var(--vscode-editorWarning-foreground, #cca700) 14%, transparent);
+}
+
+td input {
+  background-color: transparent;
+  color: var(--vscode-editor-foreground);
+  border: 1px solid transparent;
+  border-radius: 2px;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 4px 6px;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+td input:focus {
+  outline: none;
+  border-color: var(--vscode-focusBorder);
+  background-color: var(--vscode-input-background);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  background-color: var(--vscode-button-hoverBackground, var(--vscode-button-background));
+}
+
+.btn.secondary {
+  background-color: var(--vscode-button-secondaryBackground, var(--vscode-button-background));
+  color: var(--vscode-button-secondaryForeground, var(--vscode-button-foreground));
+}
+
+.btn.secondary:hover {
+  background-color: var(--vscode-button-secondaryHoverBackground, var(--vscode-button-hoverBackground));
+}
+
+.btn:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: 2px;
+}
+
+.error-block {
+  color: var(--vscode-errorForeground);
+  font-size: 13px;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.search-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 100%;
+}
+
+.search-input {
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border, transparent);
+  border-radius: 4px;
+  flex: 1;
+  /* Without this a long placeholder sets the min-content width and overflows the row. */
+  min-width: 0;
+  padding: 6px 10px;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.search-input::placeholder {
+  color: var(--vscode-input-placeholderForeground);
+  text-overflow: ellipsis;
+}
+
+.search-input:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+/* The native clear button is drawn in a fixed colour that disappears on dark themes. */
+.search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.search-status {
+  color: var(--vscode-descriptionForeground);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.icon {
+  width: 14px;
+  height: 14px;
+  margin-right: 6px;
+}
+
+.filter-fefefe {
+  filter: invert(100%) sepia(100%) saturate(1%) hue-rotate(208deg) brightness(109%) contrast(99%);
+}

@@ -62,6 +62,10 @@
             {
                 "command": "resxpress.createResxFile",
                 "title": "ResXpress: Create a Resx Resources file"
+            },
+            {
+                "command": "resxpress.combinededitor",
+                "title": "ResXpress: Edit All Languages"
             }
         ],
         "snippets": [
@@ -77,6 +81,11 @@
                     "command": "resxpress.newpreview",
                     "group": "z_commands",
                     "when": "resourceExtname == .resx"
+                },
+                {
+                    "command": "resxpress.combinededitor",
+                    "group": "z_commands",
+                    "when": "resourceExtname == .resx"
                 }
             ],
             "editor/title/context": [
@@ -84,11 +93,21 @@
                     "command": "resxpress.newpreview",
                     "group": "3_preview",
                     "when": "resourceExtname == .resx"
+                },
+                {
+                    "command": "resxpress.combinededitor",
+                    "group": "3_preview",
+                    "when": "resourceExtname == .resx"
                 }
             ],
             "explorer/context": [
                 {
                     "command": "resxpress.setNameSpace",
+                    "group": "3_preview",
+                    "when": "resourceExtname == .resx"
+                },
+                {
+                    "command": "resxpress.combinededitor",
                     "group": "3_preview",
                     "when": "resourceExtname == .resx"
                 },

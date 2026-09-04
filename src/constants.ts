@@ -22,6 +22,7 @@ export class Constants {
         public static readonly setNameSpace = `${Constants.resxpress}.setNameSpace`;
         public static readonly createResxFile = `${Constants.resxpress}.createResxFile`;
         public static readonly resxeditor = `${Constants.resxpress}.resxeditor`;
+        public static readonly combinedEditor = `${Constants.resxpress}.combinededitor`;
     };
 
     static Configuration = class {
