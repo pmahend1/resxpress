@@ -47,6 +47,13 @@ export class ResxEditor {
             <img src="${faSortAtoZ}" alt="Sort Icon" class="icon filter-fefefe">Sort By Keys
         </button>
         <p id="errorBlock" class="error-block"></p>
+        <!-- Last in the toolbar, and given a full-width flex basis, so it takes a row of its own under the buttons. -->
+        <div class="search-section">
+            <input id="searchInput" class="search-input" type="search"
+                   placeholder="Search key, value or comment"
+                   aria-label="Search key, value or comment" />
+            <span id="searchStatus" class="search-status"></span>
+        </div>
     </div>
 
     <table id="tbl">

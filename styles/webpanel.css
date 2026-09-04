@@ -45,17 +45,25 @@ th {
   position: sticky;
   position: -webkit-sticky;
   padding: -chrome-sticky;
-  top: 62px;
-  margin-top: 62px;
+  /* Measured and published by webpanelScript; the fallback is a one-row toolbar. */
+  top: var(--sticky-toolbar-height, 62px);
   box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
   background-color: var(--vscode-sideBar-background);
   text-align: center;
   padding: 15px 15px;
 }
 
-tr:nth-child(even) {
+/*
+ * Striping is a class rather than :nth-child(even) because a filtered-out row
+ * still counts as a child, which would leave gaps in the alternating colour.
+ * applyFilter in webpanelScript assigns it over the visible rows instead.
+ */
+tr.alt-row {
   background-color: var(--vscode-sideBar-background);
-  padding: 0;
+}
+
+tr.filtered-out {
+  display: none;
 }
 
 input {
@@ -138,6 +146,62 @@ p {
   font-size: 14px;
   margin: 0;
   flex-grow: 1;
+}
+
+/*
+ * flex-basis of 100% drops the search row onto its own line under the buttons,
+ * so the box gets the editor's full width instead of fighting four labelled
+ * buttons and the namespace block for it.
+ */
+.search-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 100%;
+}
+
+/*
+ * The bare `input` rule above is written for the borderless cells inside the
+ * table - transparent, 95% wide, full height - so this box has to override
+ * every one of those declarations rather than only the ones it wants changed.
+ */
+.search-input {
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border, transparent);
+  border-radius: 4px;
+  flex: 1;
+  /* Without this a long placeholder sets the min-content width and overflows the row. */
+  min-width: 0;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 16px;
+  font-family: inherit;
+}
+
+/* Ellipsis rather than a placeholder cut off mid-word if the box is ever narrowed. */
+.search-input::placeholder {
+  color: var(--vscode-input-placeholderForeground);
+  text-overflow: ellipsis;
+}
+
+.search-input:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+/* The native clear button is drawn in a fixed colour that disappears on dark themes. */
+.search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.search-status {
+  color: var(--vscode-descriptionForeground);
+  font-size: 13px;
+  white-space: nowrap;
 }
 
 .namespace-section {

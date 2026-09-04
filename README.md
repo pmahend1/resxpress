@@ -33,6 +33,7 @@ It offers the following features;
 - Adding a new resx data.
 - Editing an existing resx data.
 - Deleting an existing resx data.
+- Searching by key, value or comment to filter down a large resx file. `Ctrl+F` (`Cmd+F` on macOS) focuses the search box and `Esc` clears it.
 - Checks for resx data with duplicate keys and shows error if exists.
 - To and Fro updates between Text document and ResxEditors as soon as typed valid resx data.
 - To and fro updates Text document and ResxEditors when Save triggered on either.
