@@ -1,12 +1,14 @@
 /*
- * The combined panel scrolls in two directions, so it does not reuse
- * webpanel.css. There, the page itself scrolls and the header sticks under the
- * toolbar at a measured offset. That model cannot survive a table wider than
- * the panel: a sticky element cannot leave its containing block, so the toolbar
- * would slide away as soon as the table was scrolled sideways. Here the toolbar
- * is taken out of the scrolling area altogether and .table-scroll is the only
- * thing that scrolls, which lets the header row and the Key column stick
- * against it independently.
+ * Visually this is webpanel.css - same buttons, same borders, same striping - so
+ * the two editors do not look like they came from different extensions. What it
+ * does not share is the scrolling model, and that is deliberate.
+ *
+ * There, the page itself scrolls and the header sticks under the toolbar at a
+ * measured offset. That cannot survive a table wider than the panel: a sticky
+ * element cannot leave its containing block, so the toolbar would slide away as
+ * soon as the table was scrolled sideways. Here the toolbar is taken out of the
+ * scrolling area altogether and .table-scroll is the only thing that scrolls,
+ * which lets the header row and the Key column stick against it independently.
  */
 body {
   box-sizing: border-box;
@@ -18,18 +20,19 @@ body {
   overflow: hidden;
   color: var(--vscode-editor-foreground);
   background-color: var(--vscode-editor-background);
-  font-family: var(--vscode-font-family);
 }
 
 .toolbar {
   flex: 0 0 auto;
+  position: relative;
+  z-index: 10;
+  background-color: var(--vscode-editor-background);
+  padding: 10px;
+  padding-bottom: 20px;
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 15px;
   align-items: center;
-  padding: 10px 16px;
-  background-color: var(--vscode-editor-background);
-  border-bottom: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.35));
 }
 
 .table-scroll {
@@ -40,7 +43,8 @@ body {
 /*
  * separate + zero spacing rather than collapse: a collapsed border belongs to
  * the table, not to the cell, so it does not travel with a sticky header or a
- * sticky first column and the grid tears as soon as anything is scrolled.
+ * sticky first column and the grid tears as soon as anything is scrolled. The
+ * borders below are put back one edge at a time to redraw what collapse gives.
  */
 table {
   border-collapse: separate;
@@ -53,19 +57,28 @@ table {
 th,
 td {
   padding: 0.25rem;
-  border-right: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.35));
-  border-bottom: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.35));
+  border-right: 1px solid;
+  border-bottom: 1px solid;
+}
+
+th {
+  border-top: 1px solid;
+}
+
+th:first-child,
+td:first-child {
+  border-left: 1px solid;
 }
 
 th {
   position: sticky;
   top: 0;
   z-index: 2;
-  padding: 12px 8px;
+  background-color: var(--vscode-sideBar-background);
+  box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
   text-align: center;
   white-space: nowrap;
-  background-color: var(--vscode-sideBar-background, var(--vscode-editor-background));
-  box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+  padding: 15px 15px;
 }
 
 /* The Key column stays put while the languages scroll past it. */
@@ -75,13 +88,12 @@ td.key-column {
   left: 0;
   z-index: 1;
   background-color: var(--vscode-editor-background);
-  border-right: 1px solid var(--vscode-focusBorder, rgba(128, 128, 128, 0.6));
 }
 
 th.key-column {
   /* Above both the sticky header row and the sticky column it corners. */
   z-index: 3;
-  background-color: var(--vscode-sideBar-background, var(--vscode-editor-background));
+  background-color: var(--vscode-sideBar-background);
 }
 
 th.key-column,
@@ -100,18 +112,7 @@ th.delete-column,
 td.delete-column {
   min-width: 2.5rem;
   width: 2.5rem;
-  border-right: none;
   cursor: pointer;
-}
-
-td.delete-column p {
-  margin: 0;
-  text-align: center;
-  color: var(--vscode-descriptionForeground);
-}
-
-td.delete-column:hover p {
-  color: var(--vscode-errorForeground);
 }
 
 /*
@@ -119,81 +120,96 @@ td.delete-column:hover p {
  * still counts as a child, which would leave gaps in the alternating colour.
  * applyFilter in combinedPanelScript assigns it over the visible rows instead.
  */
-tr.alt-row td {
-  background-color: var(--vscode-sideBar-background, var(--vscode-editor-background));
-}
-
+tr.alt-row td,
 tr.alt-row td.key-column {
-  background-color: var(--vscode-sideBar-background, var(--vscode-editor-background));
+  background-color: var(--vscode-sideBar-background);
 }
 
 tr.filtered-out {
   display: none;
 }
 
-/* A key that has no entry in this language at all - the gap worth seeing. */
+/* A key with no entry in this language at all - the gap worth seeing. */
 td.missing-cell,
 tr.alt-row td.missing-cell {
   background-color: color-mix(in srgb, var(--vscode-editorWarning-foreground, #cca700) 14%, transparent);
 }
 
-td input {
+input {
   background-color: transparent;
   color: var(--vscode-editor-foreground);
-  border: 1px solid transparent;
-  border-radius: 2px;
-  box-sizing: border-box;
-  width: 100%;
-  padding: 4px 6px;
-  font-family: inherit;
-  font-size: inherit;
+  border-color: transparent;
+  height: 100%;
+  width: 95%;
+  display: inline-block;
+  margin: 0px 3px;
+  padding: 0px 2px;
 }
 
-td input:focus {
-  outline: none;
-  border-color: var(--vscode-focusBorder);
-  background-color: var(--vscode-input-background);
+p {
+  text-align: center;
+}
+
+td.delete-column p {
+  margin: 0;
 }
 
 .btn {
   display: inline-flex;
   align-items: center;
-  background-color: var(--vscode-button-background);
-  color: var(--vscode-button-foreground);
-  padding: 6px 12px;
+  background-color: #067ab8;
+  color: var(--vscode-editor-background);
+  padding: 8px 12px;
   border: none;
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 13px;
+  border-radius: 8px;
+  font-size: 18px;
   cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
   white-space: nowrap;
 }
 
+.btn svg {
+  margin-right: 6px;
+  fill: currentColor;
+}
+
 .btn:hover {
-  background-color: var(--vscode-button-hoverBackground, var(--vscode-button-background));
+  background-color: #005b98;
+}
+
+.btn.primary {
+  background-color: #067ab8;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.btn.primary:hover {
+  background-color: #005b98;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .btn.secondary {
-  background-color: var(--vscode-button-secondaryBackground, var(--vscode-button-background));
-  color: var(--vscode-button-secondaryForeground, var(--vscode-button-foreground));
+  background-color: #5A9BD5;
+  color: #ffffff;
 }
 
 .btn.secondary:hover {
-  background-color: var(--vscode-button-secondaryHoverBackground, var(--vscode-button-hoverBackground));
-}
-
-.btn:focus-visible {
-  outline: 1px solid var(--vscode-focusBorder);
-  outline-offset: 2px;
+  background-color: #1976D2;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .error-block {
-  color: var(--vscode-errorForeground);
-  font-size: 13px;
+  color: #dc3e36;
+  font-size: 14px;
   margin: 0;
   flex-grow: 1;
 }
 
+/*
+ * flex-basis of 100% drops the search row onto its own line under the buttons,
+ * so the box gets the panel's full width instead of fighting the buttons for it.
+ */
 .search-section {
   display: flex;
   align-items: center;
@@ -201,6 +217,11 @@ td input:focus {
   flex: 1 1 100%;
 }
 
+/*
+ * The bare `input` rule above is written for the borderless cells inside the
+ * table - transparent, 95% wide, full height - so this box has to override
+ * every one of those declarations rather than only the ones it wants changed.
+ */
 .search-input {
   background-color: var(--vscode-input-background);
   color: var(--vscode-input-foreground);
@@ -209,11 +230,15 @@ td input:focus {
   flex: 1;
   /* Without this a long placeholder sets the min-content width and overflows the row. */
   min-width: 0;
-  padding: 6px 10px;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 16px;
   font-family: inherit;
-  font-size: 13px;
 }
 
+/* Ellipsis rather than a placeholder cut off mid-word if the box is ever narrowed. */
 .search-input::placeholder {
   color: var(--vscode-input-placeholderForeground);
   text-overflow: ellipsis;
@@ -232,14 +257,15 @@ td input:focus {
 
 .search-status {
   color: var(--vscode-descriptionForeground);
-  font-size: 12px;
+  font-size: 13px;
   white-space: nowrap;
 }
 
 .icon {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   margin-right: 6px;
+  color: white;
 }
 
 .filter-fefefe {

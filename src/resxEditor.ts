@@ -1,5 +1,6 @@
 import * as path from "path";
 import * as vscode from "vscode";
+import { emptyString } from "./constants";
 import { getNonce } from "./util";
 
 export class ResxEditor {
@@ -8,7 +9,7 @@ export class ResxEditor {
         this.context = context;
     }
 
-    public getHtmlForWebview(webview: vscode.Webview, namespace: string): string {
+    public getHtmlForWebview(webview: vscode.Webview, namespace: string, hasCultureSiblings: boolean): string {
 
         const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "out", "webpanelScript.js")));
         const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "webpanel.css")));
@@ -16,7 +17,19 @@ export class ResxEditor {
         const faPenToSquare = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "fa-pen-to-square.svg")));
         const faRightLeft = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "fa-right-left.svg")));
         const faSortAtoZ = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "fa-arrow-down-a-z-solid-full.svg")));
+        const columns = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "columns.svg")));
         const nonce = getNonce();
+
+        /*
+         * Offered only when there is something to combine. A resource with no
+         * culture siblings has nothing to show in a second column, and the
+         * button would be a dead end on the majority of resx files.
+         */
+        const allLanguagesButton = hasCultureSiblings
+            ? `<button id="allLanguagesButton" class="btn secondary" title="Edit every language of this resource in one table">
+            <img src="${columns}" alt="All Languages Icon" class="icon filter-fefefe"> All Languages
+        </button>`
+            : emptyString;
 
         return `<!DOCTYPE html>
 <html lang="en">
@@ -37,6 +50,7 @@ export class ResxEditor {
         <button id="switchToTextEditorButton" class="btn secondary">
             <img src="${faRightLeft}" alt="Switch Icon" class="icon filter-fefefe"> Switch to Text Editor
         </button>
+        ${allLanguagesButton}
         <div class="namespace-section">
             <span id="namespaceSpan">Namespace: <strong>${escapeHtml(namespace)}</strong></span>
             <button id="changeNamespaceButton" class="btn secondary">

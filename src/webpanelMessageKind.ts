@@ -9,5 +9,6 @@ export enum WebpanelPostMessageKind {
     SortByKeys = "sort-by-keys",
     UpdateCombinedPanel = "update-combined-panel",
     TriggerCombinedUpdate = "trigger-combined-update",
-    SaveAll = "save-all"
+    SaveAll = "save-all",
+    OpenAllLanguages = "open-all-languages"
 }

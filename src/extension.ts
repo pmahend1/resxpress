@@ -81,6 +81,20 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerTextEditorCommand(Constants.Commands.resxeditor, async () => await newPreview()));
 	context.subscriptions.push(vscode.commands.registerCommand(Constants.Commands.combinedEditor, async (uri?: vscode.Uri) => await openCombinedEditor(context, uri)));
 
+	/*
+	 * "Edit All Languages" is only offered for a resource that actually has more
+	 * than one file. There is no `when` clause that can look at the filesystem,
+	 * so the answer for whatever resx is in front of the user is published as a
+	 * context key and refreshed whenever that could have changed.
+	 */
+	context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(() => void updateCultureSiblingsContext()));
+	context.subscriptions.push(vscode.window.tabGroups.onDidChangeTabs(() => void updateCultureSiblingsContext()));
+	context.subscriptions.push(vscode.window.tabGroups.onDidChangeTabGroups(() => void updateCultureSiblingsContext()));
+	context.subscriptions.push(vscode.workspace.onDidCreateFiles(() => void updateCultureSiblingsContext()));
+	context.subscriptions.push(vscode.workspace.onDidDeleteFiles(() => void updateCultureSiblingsContext()));
+	context.subscriptions.push(vscode.workspace.onDidRenameFiles(() => void updateCultureSiblingsContext()));
+	void updateCultureSiblingsContext();
+
 	context.subscriptions.push(ResxEditorProvider.register(context));
 
 	vscode.workspace.onDidSaveTextDocument(async (document) => {
@@ -103,6 +117,13 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 	Logger.instance.info(`Extension ${context.extension.id} activated`);
+}
+
+async function updateCultureSiblingsContext() {
+	const uri = resolveResxUri();
+	const isResx = uri !== undefined && uri.path.toLowerCase().endsWith(".resx");
+	const hasCultureSiblings = isResx && await ResxEditorProvider.hasCultureSiblings(uri);
+	await vscode.commands.executeCommand("setContext", Constants.hasCultureSiblingsContext, hasCultureSiblings);
 }
 
 async function openCombinedEditor(context: vscode.ExtensionContext, uri?: vscode.Uri) {

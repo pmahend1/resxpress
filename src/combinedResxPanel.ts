@@ -43,6 +43,15 @@ export class CombinedResxPanel {
     /** Set while our own edits are being applied, so they are not echoed back as a repaint. */
     private isWritingEdits = false;
 
+    /*
+     * Webview messages are handled one at a time. VS Code does not wait for one
+     * async onDidReceiveMessage handler before invoking the next, and Save All
+     * arrives immediately behind the write it is meant to follow - so without
+     * this the save can land first and the write that follows leaves every file
+     * dirty again, right after the user asked to save them.
+     */
+    private queue: Promise<void> = Promise.resolve();
+
     private constructor(panel: vscode.WebviewPanel, group: ResxGroup, extensionUri: vscode.Uri) {
         this.panel = panel;
         this.group = group;
@@ -50,20 +59,20 @@ export class CombinedResxPanel {
 
         this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
 
-        this.panel.webview.onDidReceiveMessage(async (message) => {
+        this.panel.webview.onDidReceiveMessage((message) => {
             Logger.instance.info(`${nameof(CombinedResxPanel)}: ${message.type}`);
             switch (message.type) {
                 case WebpanelPostMessageKind.Ready:
-                    await this.pushToWebview();
+                    this.enqueue(() => this.pushToWebview());
                     break;
                 case WebpanelPostMessageKind.TriggerCombinedUpdate:
-                    await this.writeEntries(JSON.parse(message.text) as CombinedEntry[]);
+                    this.enqueue(() => this.writeEntries(JSON.parse(message.text) as CombinedEntry[]));
                     break;
                 case WebpanelPostMessageKind.SaveAll:
-                    await this.saveAll();
+                    this.enqueue(() => this.saveAll());
                     break;
                 case WebpanelPostMessageKind.SortByKeys:
-                    await this.sortAll();
+                    this.enqueue(() => this.sortAll());
                     break;
             }
         }, null, this.disposables);
@@ -112,6 +121,16 @@ export class CombinedResxPanel {
                                                        });
 
         CombinedResxPanel.openPanels.set(group.key, new CombinedResxPanel(panel, group, extensionUri));
+    }
+
+    private enqueue(work: () => Promise<void>): void {
+        this.queue = this.queue
+            .then(work)
+            .catch(error => {
+                if (error instanceof Error) {
+                    Logger.instance.error(error);
+                }
+            });
     }
 
     public dispose(): void {

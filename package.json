@@ -76,6 +76,12 @@
             }
         ],
         "menus": {
+            "commandPalette": [
+                {
+                    "command": "resxpress.combinededitor",
+                    "when": "resxpress.hasCultureSiblings"
+                }
+            ],
             "editor/context": [
                 {
                     "command": "resxpress.newpreview",
@@ -85,7 +91,7 @@
                 {
                     "command": "resxpress.combinededitor",
                     "group": "z_commands",
-                    "when": "resourceExtname == .resx"
+                    "when": "resourceExtname == .resx && resxpress.hasCultureSiblings"
                 }
             ],
             "editor/title/context": [
@@ -97,17 +103,12 @@
                 {
                     "command": "resxpress.combinededitor",
                     "group": "3_preview",
-                    "when": "resourceExtname == .resx"
+                    "when": "resourceExtname == .resx && resxpress.hasCultureSiblings"
                 }
             ],
             "explorer/context": [
                 {
                     "command": "resxpress.setNameSpace",
-                    "group": "3_preview",
-                    "when": "resourceExtname == .resx"
-                },
-                {
-                    "command": "resxpress.combinededitor",
                     "group": "3_preview",
                     "when": "resourceExtname == .resx"
                 },

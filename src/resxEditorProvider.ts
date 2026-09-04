@@ -7,6 +7,7 @@ import { ResxDocumentWriter } from "./resxDocumentWriter";
 import { ResxEditor } from "./resxEditor";
 import type { ResxEntry } from "./resxEntry";
 import { ResxFile } from "./resxFile";
+import { ResxGroup } from "./resxGroup";
 import { Settings } from "./settings";
 import { WebpanelPostMessageKind } from "./webpanelMessageKind";
 import { WebpanelPostMessage } from "./webpanelPostMessage";
@@ -41,7 +42,10 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
             return;
         }
         const namespace = await FileHelper.tryGetNamespace(document);
-        webviewPanel.webview.html = this.resxEditor.getHtmlForWebview(webviewPanel.webview, namespace ?? emptyString);
+        const hasCultureSiblings = await ResxEditorProvider.hasCultureSiblings(document.uri);
+        webviewPanel.webview.html = this.resxEditor.getHtmlForWebview(webviewPanel.webview,
+                                                                     namespace ?? emptyString,
+                                                                     hasCultureSiblings);
 
         let isWritingWebviewEdit = false;
 
@@ -75,6 +79,9 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
                 case WebpanelPostMessageKind.SortByKeys:
                     await sortByKeys(document);
                     updateWebview();
+                    break;
+                case WebpanelPostMessageKind.OpenAllLanguages:
+                    await vscode.commands.executeCommand(Constants.Commands.combinedEditor, document.uri);
                     break;
             }
         });
@@ -118,5 +125,19 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
         });
 
         updateWebview();
+    }
+
+    /* Whether this resource has more than the one file, and so anything to combine. */
+    public static async hasCultureSiblings(uri: vscode.Uri): Promise<boolean> {
+        try {
+            return (await ResxGroup.resolve(uri)).cultures.length > 1;
+        }
+        catch (error) {
+            if (error instanceof Error) {
+                Logger.instance.warning(error.message);
+            }
+
+            return false;
+        }
     }
 }
