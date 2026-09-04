@@ -3,15 +3,16 @@ import * as vscode from "vscode";
 import { promises as fsPromises } from "fs";
 import { PreviewEditPanel } from "./previewEditPanel";
 import * as path from "path";
-import *  as xmljs from "xml-js";
 import { ResxEditorProvider } from "./resxEditorProvider";
 import { NotificationService } from "./notificationService";
 import { FileHelper } from "./fileHelper";
 import { TextInputBoxOptions } from "./textInputBoxOptions";
-import { Constants, DATA, emptyString } from "./constants";
+import { Constants, emptyString } from "./constants";
+import { ResxDocumentWriter } from "./resxDocumentWriter";
+import type { ResxEntry } from "./resxEntry";
+import { ResxFile } from "./resxFile";
 import { Settings } from "./settings";
 import { Logger } from "./logger";
-import { nameof } from "./nameof";
 
 
 let currentContext: vscode.ExtensionContext;
@@ -158,7 +159,7 @@ export async function runResGenAsync(document: vscode.TextDocument): Promise<voi
 
 	let documentText = document.getText();
 	if (documentText.length > 0) {
-		var jsObj = xmljs.xml2js(documentText);
+		const entries = ResxFile.parse(documentText, Settings.indentSpaceLength).entries;
 		var resourceCSharpClassText = emptyString;
 		let accessModifier = "public";
 		let workspacePath = FileHelper.getDirectory(document);
@@ -202,30 +203,20 @@ ${spaces}	/// </summary>
 ${spaces}	[global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
 ${spaces}	${accessModifier} static global::System.Globalization.CultureInfo Culture { get; set; }`;
 
-		if (jsObj.elements[0].elements.length > 0) {
-			jsObj.elements[0].elements.forEach((element: any) => {
-				if (element.name === DATA) {
-					const resourceKey = element.attributes.name;
-					let valueElementParent = element.elements.filter((x: any) => x.name === "value")?.[0];
-					let value: string = valueElementParent?.elements?.length > 0 ? valueElementParent.elements[0].text : emptyString;
-					value = value.toString().replace(/(?:\r\n|\r|\n)/g, "\n		/// ");
-					if (resourceKey) {
-						let propertyName = convertToPascalCase(resourceKey);
-						resourceCSharpClassText += `
+		entries.forEach((entry) => {
+			if (entry.key.length === 0) {
+				return;
+			}
+
+			const summaryValue = entry.value.replace(/(?:\r\n|\r|\n)/g, "\n		/// ");
+			const propertyName = convertToPascalCase(entry.key);
+			resourceCSharpClassText += `
 	
 ${spaces}	/// <summary>
-${spaces}	/// Looks up a localized string similar to ${value}.
+${spaces}	/// Looks up a localized string similar to ${summaryValue}.
 ${spaces}	/// </summary>
-${spaces}	${accessModifier} static string ${propertyName} => ResourceManager.GetString("${resourceKey}", Culture);`;
-					}
-				}
-			});
-		}
-		else {
-			resourceCSharpClassText += `
-${spaces}}`;
-		}
-
+${spaces}	${accessModifier} static string ${propertyName} => ResourceManager.GetString("${entry.key}", Culture);`;
+		});
 
 		resourceCSharpClassText += `
 ${spaces}}
@@ -245,102 +236,14 @@ export function deactivate() {
 }
 
 export async function sortByKeys(document: vscode.TextDocument) {
-	try {
-		let orderedResx: any = sortKeyValuesResx(document);
-		var ranger = new vscode.Range(0, 0, document.lineCount, 0);
-		const edit = vscode.TextEdit.replace(ranger, orderedResx);
-		const editBuilder = new vscode.WorkspaceEdit();
-		editBuilder.set(document.uri, [edit]);
-		const success = await vscode.workspace.applyEdit(editBuilder);
-		if (success) {
-			console.log('Text replaced successfully.');
-		} else {
-			console.log('Failed to replace text.');
-		}
-	}
-	catch (error) {
-		var errorMessage = emptyString;
-		if (error instanceof Error) {
-			errorMessage = error.message;
-			Logger.instance.error(error);
-		}
-		else if (typeof error === "string") {
-			errorMessage = error;
-		}
-		vscode.window.showErrorMessage(errorMessage);
-	}
-}
-
-function sortKeyValuesResx(document: vscode.TextDocument, reverse?: boolean): string | undefined {
-	try {
-		Logger.instance.info(`${nameof(sortKeyValuesResx)}`);
-		var text = document?.getText() ?? emptyString;
-		var jsObj = xmljs.xml2js(text);
-
-		var dataList: any = [];
-		var sorted: any = [];
-		jsObj.elements[0].elements.forEach((x: any) => {
-			if (x.name === DATA) {
-				dataList.push(x);
-			}
-			else {
-				sorted.push(x);
-			}
-		});
-
-		var dataListsorted = dataList.sort((x1: any, x2: any) => {
-			var firstKey = x1.attributes.name.toLowerCase();
-			var secondKey = x2.attributes.name.toLowerCase();
-			if (reverse) {
-				return firstKey > secondKey ? -1 : firstKey < secondKey ? 1 : 0;
-			} else {
-				return firstKey < secondKey ? -1 : firstKey > secondKey ? 1 : 0;
-			}
-		});
-
-		sorted.push(...dataListsorted);
-		jsObj.elements[0].elements = sorted;
-
-		var xml = xmljs.js2xml(jsObj, { spaces: Settings.indentSpaceLength });
-
-		return xml;
-	}
-	catch (error) {
-		var errorMessage = emptyString;
-		if (error instanceof Error) {
-			errorMessage = error.message;
-			Logger.instance.error(error);
-		}
-		else if (typeof error === "string") {
-			errorMessage = error;
-		}
-		vscode.window.showErrorMessage(errorMessage);
-	}
-}
-
-function getDataJs(): any[] {
-	var text = vscode.window.activeTextEditor?.document?.getText() ?? emptyString;
-	var jsObj: any = xmljs.xml2js(text, { compact: true });
-	return jsObj.root.data;
+	await ResxDocumentWriter.sortByKey(document);
 }
 
 async function newPreview() {
 	var text = vscode.window.activeTextEditor?.document?.getText() ?? emptyString;
-	var jsObj = xmljs.xml2js(text);
-	var dataList: any = [];
-	var sorted = [];
-	jsObj.elements[0].elements.forEach((x: any) => {
-		if (x.name === DATA) {
-			dataList.push(x);
-		}
-		else {
-			sorted.push(x);
-		}
-	});
-
 	var currentFileName = vscode.window.activeTextEditor?.document.fileName;
 	if (currentFileName) {
-		await displayJsonInHtml(dataList, currentFileName);
+		await displayJsonInHtml(ResxFile.parse(text, Settings.indentSpaceLength).entries, currentFileName);
 	}
 }
 
@@ -356,52 +259,37 @@ async function displayAsMarkdown() {
 				await vscode.window.showErrorMessage("Not a Resx file.");
 				return;
 			}
-			const jsonData: any[] = getDataJs();
-			if (!(jsonData instanceof Error)) {
-				var currentFileName = vscode.window.activeTextEditor?.document.fileName;
-				if (currentFileName) {
-					var fileNameNoExt = vscode.window.activeTextEditor?.document.fileName.substring(
-						0,
-						currentFileName.lastIndexOf(".")
-					);
-					let mdFile = fileNameNoExt + ".md";
+			const documentText = vscode.window.activeTextEditor?.document?.getText() ?? emptyString;
+			const entries = ResxFile.parse(documentText, Settings.indentSpaceLength).entries;
+			var currentFileName = vscode.window.activeTextEditor?.document.fileName;
+			if (currentFileName) {
+				var fileNameNoExt = vscode.window.activeTextEditor?.document.fileName.substring(
+					0,
+					currentFileName.lastIndexOf(".")
+				);
+				let mdFile = fileNameNoExt + ".md";
 
-					let fileContent = `### ${pathObj.name} Preview\n\n| Key | Value | Comment |\n`;
-					fileContent += "| --- | --- | --- |" + "\n";
+				let fileContent = `### ${pathObj.name} Preview\n\n| Key | Value | Comment |\n`;
+				fileContent += "| --- | --- | --- |" + "\n";
 
-					for (const jsObj of jsonData) {
-						const regexM = /[\\`*_{}[\]()#+.!|-]/g;
-						//clean up key
-						var property = jsObj._attributes.name;
-						var propertyString = property;
+				for (const entry of entries) {
+					const regexM = /[\\`*_{}[\]()#+.!|-]/g;
+					const propertyString = entry.key.replace(/\r?\n/g, "<br/>");
+					const valueString = entry.value.replace(regexM, "\\$&").replace(/\r?\n/g, "<br/>");
+					const commentString = (entry.comment ?? emptyString).replace(regexM, "\\$&").replace(/\r?\n/g, "<br/>");
 
-						propertyString = property.replace(regexM, "\\$&");
-						propertyString = property.replace(/\r?\n/g, "<br/>");
-
-						var valueString = jsObj.value?._text;
-						var commentString = jsObj.comment?._text ?? emptyString;
-
-						valueString = valueString.replace(regexM, "\\$&");
-						valueString = valueString.replace(/\r?\n/g, "<br/>");
-						commentString = commentString.replace(regexM, "\\$&");
-						commentString = commentString.replace(/\r?\n/g, "<br/>");
-
-						fileContent += `| ${propertyString} | ${valueString} | ${commentString} |\n`;
-					}
-
-					await fsPromises.writeFile(mdFile, fileContent);
-
-					let uri = vscode.Uri.file(mdFile);
-
-					await vscode.commands.executeCommand("vscode.open", uri);
-					await vscode.commands.executeCommand("markdown.showPreview");
-					await vscode.commands.executeCommand("markdown.preview.refresh");
-					await vscode.commands.executeCommand("workbench.action.previousEditor");
-					await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
+					fileContent += `| ${propertyString} | ${valueString} | ${commentString} |\n`;
 				}
-			}
-			else {
-				vscode.window.showErrorMessage("Error parsing resx data");
+
+				await fsPromises.writeFile(mdFile, fileContent);
+
+				let uri = vscode.Uri.file(mdFile);
+
+				await vscode.commands.executeCommand("vscode.open", uri);
+				await vscode.commands.executeCommand("markdown.showPreview");
+				await vscode.commands.executeCommand("markdown.preview.refresh");
+				await vscode.commands.executeCommand("workbench.action.previousEditor");
+				await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
 			}
 		}
 		else {
@@ -421,25 +309,15 @@ async function displayAsMarkdown() {
 	}
 }
 
-async function displayJsonInHtml(jsonData: any[], filename: string) {
+async function displayJsonInHtml(entries: ResxEntry[], filename: string) {
 	try {
 		var htmlContent = emptyString;
 
-		jsonData.forEach((element) => {
-			var valueStr = emptyString;
-			var commentstr = emptyString;
-			element.elements.forEach((subElement: any) => {
-				if (subElement.name === "value" && subElement.elements?.length > 0) {
-					valueStr = subElement.elements[0].text;
-				}
-				else if (subElement.name === "comment" && subElement.elements?.length > 0) {
-					commentstr = subElement.elements[0].text;
-				}
-			});
+		entries.forEach((entry) => {
 			htmlContent += `<tr>
-				<td>${element.attributes.name}</td>
-				<td>${valueStr}</td>
-				<td>${commentstr}</td>
+				<td>${escapeHtml(entry.key)}</td>
+				<td>${escapeHtml(entry.value)}</td>
+				<td>${escapeHtml(entry.comment ?? emptyString)}</td>
 			</tr>`;
 		});
 		var pathObj = path.parse(filename);
@@ -458,6 +336,14 @@ async function displayJsonInHtml(jsonData: any[], filename: string) {
 		}
 		vscode.window.showErrorMessage(errorMessage);
 	}
+}
+
+/* The preview panel builds its rows as markup, so resx content has to be inert first. */
+function escapeHtml(text: string): string {
+	return text.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;");
 }
 
 function isStringRecord(obj: any): obj is Record<string, string> {

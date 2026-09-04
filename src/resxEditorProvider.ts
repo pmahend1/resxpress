@@ -1,13 +1,15 @@
 import * as vscode from "vscode";
-import { ResxEditor } from "./resxEditor";
-import { ResxJsonHelper } from "./resxJsonHelper";
-import { WebpanelPostMessageKind } from "./webpanelMessageKind";
+import { Constants, emptyString } from "./constants";
 import { setNewNamespace, sortByKeys } from "./extension";
 import { FileHelper } from "./fileHelper";
-import { WebpanelPostMessage } from "./webpanelPostMessage";
-import *  as xmljs from "xml-js";
-import { Constants, DATA, emptyString } from "./constants";
 import { Logger } from "./logger";
+import { ResxDocumentWriter } from "./resxDocumentWriter";
+import { ResxEditor } from "./resxEditor";
+import type { ResxEntry } from "./resxEntry";
+import { ResxFile } from "./resxFile";
+import { Settings } from "./settings";
+import { WebpanelPostMessageKind } from "./webpanelMessageKind";
+import { WebpanelPostMessage } from "./webpanelPostMessage";
 
 export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
 
@@ -39,63 +41,34 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
             return;
         }
         const namespace = await FileHelper.tryGetNamespace(document);
+        webviewPanel.webview.html = this.resxEditor.getHtmlForWebview(webviewPanel.webview, namespace ?? emptyString);
 
-        var jsObj = xmljs.xml2js(document.getText());
-        var jsonData: any = [];
-        var sorted = [];
-        jsObj.elements[0].elements.forEach((x: any) => {
-            if (x.name === DATA) {
-                jsonData.push(x);
-            }
-            else {
-                sorted.push(x);
-            }
-        });
-
-        let htmlContent = emptyString;
-
-        let i = 0;
-        jsonData.forEach((element: any) => {
-            var valueStr = emptyString;
-            var commentstr = emptyString;
-            element.elements.forEach((subElement: any) => {
-                if (subElement.name === "value" && subElement.elements?.length > 0) {
-                    valueStr = subElement.elements[0].text;
-                }
-                else if (subElement.name === "comment" && subElement.elements?.length > 0) {
-                    commentstr = subElement.elements[0].text;
-                }
-            });
-            htmlContent += `<tr>
-				<td><input value="${element.attributes.name}" id="${i}.key"/></td>
-				<td><input value="${valueStr}" id="${i}.value"/></td>
-				<td><input value="${commentstr}" id="${i}.comment"/></td>
-                <td style="text-align:center;" id="${i}.delete.p"><p>X</p></td>
-			</tr>`;
-            i = i + 1;
-        });
-        webviewPanel.webview.html = this.resxEditor.getHtmlForWebview(webviewPanel.webview, namespace ?? emptyString, htmlContent);
+        let isWritingWebviewEdit = false;
 
         // Receive message from the webview.
         let webviewListener = webviewPanel.webview.onDidReceiveMessage(async (e) => {
             Logger.instance.info(`webviewPanel.webview.onDidReceiveMessage: ${JSON.stringify(e)}`);
             switch (e.type) {
-                case WebpanelPostMessageKind.TriggerTextDocumentUpdate:
-                    this.resxEditor.updateTextDocument(document, e.text);
+                case WebpanelPostMessageKind.Ready:
+                    updateWebview();
                     break;
-                case WebpanelPostMessageKind.Add:
-                    this.resxEditor.addNewKeyValue(document, e.text);
+                case WebpanelPostMessageKind.TriggerTextDocumentUpdate: {
+                    const entries = JSON.parse(e.text) as ResxEntry[];
+                    isWritingWebviewEdit = true;
+                    try {
+                        await ResxDocumentWriter.applyEntries(document, entries);
+                    }
+                    finally {
+                        isWritingWebviewEdit = false;
+                    }
                     break;
-
-                case WebpanelPostMessageKind.Delete:
-                    this.resxEditor.deleteKeyValue(document, e.text);
-                    break;
+                }
                 case WebpanelPostMessageKind.Switch:
                     vscode.window.showTextDocument(document, vscode.ViewColumn.Active);
                     break;
                 case WebpanelPostMessageKind.TriggerNamespaceUpdate:
                     let newNamespace = await setNewNamespace(document);
-                    if (newNamespace) {
+                    if (newNamespace !== undefined && newNamespace.length > 0) {
                         setNewNamespaceInWebview(newNamespace);
                     }
                     break;
@@ -106,23 +79,44 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
             }
         });
 
+        /*
+         * Without this the webview and the file diverge as soon as the same
+         * resx is touched in a text editor, and the next keystroke in the
+         * webview writes the stale copy back over it.
+         */
+        let documentListener = vscode.workspace.onDidChangeTextDocument(event => {
+            if (event.document.uri.toString() !== document.uri.toString() || event.contentChanges.length === 0) {
+                return;
+            }
+            if (isWritingWebviewEdit) {
+                return;
+            }
+            updateWebview();
+        });
+
         function setNewNamespaceInWebview(newNamespace: string) {
             webviewPanel.webview.postMessage(new WebpanelPostMessage(WebpanelPostMessageKind.NewNamespace, newNamespace));
         }
 
         function updateWebview() {
-            var jsonText = JSON.stringify(ResxJsonHelper.getJsonData(document.getText()));
-            webviewPanel.webview.postMessage(new WebpanelPostMessage(WebpanelPostMessageKind.UpdateWebPanel, jsonText));
+            try {
+                const entries = ResxFile.parse(document.getText(), Settings.indentSpaceLength).entries;
+                webviewPanel.webview.postMessage(new WebpanelPostMessage(WebpanelPostMessageKind.UpdateWebPanel, JSON.stringify(entries)));
+            }
+            catch (error) {
+                // A resx being edited as text is invalid XML for as long as a tag is half typed.
+                if (error instanceof Error) {
+                    Logger.instance.warning(`${WebpanelPostMessageKind.UpdateWebPanel} skipped: ${error.message}`);
+                }
+            }
         }
 
-
-        // Make sure we get rid of the listener when our editor is closed.
+        // Make sure we get rid of the listeners when our editor is closed.
         webviewPanel.onDidDispose(() => {
             webviewListener.dispose();
+            documentListener.dispose();
         });
 
         updateWebview();
     }
-
-    content: string = emptyString;
 }

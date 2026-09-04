@@ -6,8 +6,7 @@ export default tseslint.config(
             "out/**",
             "dist/**",
             "webpack.config.js",
-            "src/**/*.test.ts",
-            "src/test/**/*.ts"
+            "src/test/**"
         ]
     },
     {

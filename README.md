@@ -36,6 +36,8 @@ It offers the following features;
 - Checks for resx data with duplicate keys and shows error if exists.
 - To and Fro updates between Text document and ResxEditors as soon as typed valid resx data.
 - To and fro updates Text document and ResxEditors when Save triggered on either.
+- Preserves the file as it was written: indentation, line endings, comment positions and the trailing
+newline all survive an edit, and only the lines you changed are rewritten.
 - Automatically regenerate strongly typed resource class file(controlled by setting)
 - Add a new resx file.
 - Update C# namespace of a resx file.
@@ -85,7 +87,8 @@ Default: **`true`**
 **true**: File scoped namespaces.  
 **false**: Block scoped namespaces.  
 
-1. `indentSpaceLength`: Indent space length for resx xml.
+1. `indentSpaceLength`: Indent space length for resx xml, used only when a file's own indentation
+cannot be detected. A file that is already indented keeps its own style.
 Default: **4**.
 Options: **2, 4, 8**.
 
