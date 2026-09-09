@@ -13,7 +13,8 @@
 body {
   box-sizing: border-box;
   margin: 0;
-  padding: 0;
+  /* The 2rem inset webpanel.css gives the single editor; border-box keeps 100vh honest. */
+  padding: 2rem;
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -146,12 +147,14 @@ input {
   padding: 0px 2px;
 }
 
+/*
+ * No margin reset on purpose. The delete cell's <p>X</p> keeps the UA's default
+ * 1em top and bottom, and that margin is the whole of the single editor's row
+ * height - zeroing it here made these rows ~32px shorter than the ones next
+ * door. Row height is set by this and nothing else, in both editors.
+ */
 p {
   text-align: center;
-}
-
-td.delete-column p {
-  margin: 0;
 }
 
 .btn {
