@@ -5,11 +5,11 @@
 	"tasks": [
 		{
 			"type": "npm",
-			"script": "watch", // this is from package.json
-			"problemMatcher": "$ts-checker-webpack-watch", //connor4312.esbuild-problem-matchers
+			"script": "watch",
+			"problemMatcher": "$ts-checker-webpack-watch",
 			"isBackground": true,
 			"presentation": {
-				"reveal": "never",
+				"reveal": "silent",
 				"showReuseMessage": true,
 				"panel": "dedicated"
 			},
@@ -17,6 +17,20 @@
 				"kind": "build",
 				"isDefault": true
 			}
+		},
+		{
+			"type": "npm",
+			"script": "lint",
+			"problemMatcher": [
+				"$eslint-stylish"
+			],
+			"label": "npm: lint",
+			"detail": "eslint src",
+			"presentation": {
+				"reveal": "silent",
+				"panel": "dedicated"
+			},
+			"group": "test"
 		}
 	]
 }
