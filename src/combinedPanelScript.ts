@@ -9,6 +9,7 @@ import { WebpanelPostMessage } from "./webpanelPostMessage";
 const resxpressCombinedPanel = "resxpress.combinedPanel";
 const tbody = "tbody";
 const tableHead = "tableHead";
+const tableScroll = "tableScroll";
 const errorBlock = "errorBlock";
 const keyField = "key";
 const valueField = "value";
@@ -62,6 +63,7 @@ const macUserAgentMarker = "Mac";
 const macFindShortcut = "⌘F";
 const findShortcut = "Ctrl+F";
 const searchTooltip = (shortcut: string) => `Search key, value or comment (${shortcut} to focus, Esc to clear)`;
+const pixels = (length: number) => `${length}px`;
 const documentUpdateDelayInMilliseconds = 300;
 
 function logToConsole(logText: string) {
@@ -79,10 +81,12 @@ function logToConsole(logText: string) {
     const searchInputElement = getInput(searchInput);
     const searchStatusElement = document.getElementById(searchStatus);
     const commentModeElement = document.getElementById(commentModeButton);
+    const scrollContainer = document.getElementById(tableScroll);
 
     let currentColumns: CombinedColumn[] = [];
     let currentEntries: CombinedEntry[] = [];
     let unifiedComments = true;
+    let groupUri: string | undefined;
     let pendingUpdateHandle: ReturnType<typeof setTimeout> | undefined;
 
     function showError(errorMessage: string) {
@@ -372,6 +376,26 @@ function logToConsole(logText: string) {
         currentEntries.forEach((entry, index) => body.appendChild(createRow(entry, index)));
         currentEntries.forEach((_entry, index) => markMissingCells(index));
         applyFilter();
+        reserveStickyEdges();
+    }
+
+    /*
+     * Scroll-into-view measures the scrollport, not what the sticky Key column
+     * and header row paint over it, so tabbing parks the next cell underneath
+     * them. Scroll padding shrinks the region it will call "in view";
+     * remeasured every render because the Key column is sized by its content.
+     */
+    function reserveStickyEdges() {
+        if (scrollContainer === null || head === null) {
+            return;
+        }
+
+        const keyHeaderCell = head.querySelector(`${th}.${keyColumnClass}`);
+        if (keyHeaderCell instanceof HTMLElement) {
+            scrollContainer.style.scrollPaddingLeft = pixels(keyHeaderCell.offsetWidth);
+        }
+
+        scrollContainer.style.scrollPaddingTop = pixels(head.offsetHeight);
     }
 
     function entryMatches(entry: CombinedEntry, query: string): boolean {
@@ -437,8 +461,16 @@ function logToConsole(logText: string) {
     function setCommentMode(isUnified: boolean) {
         unifiedComments = isUnified;
         updateCommentModeButton();
-        vscode.setState({ unifiedComments: unifiedComments });
+        persistState();
         renderTable();
+    }
+
+    /*
+     * One writer, because setState replaces the whole object: a comment mode
+     * saved on its own would drop the uri the serializer restores from.
+     */
+    function persistState() {
+        vscode.setState({ unifiedComments: unifiedComments, groupUri: groupUri });
     }
 
     function updateCommentModeButton() {
@@ -562,11 +594,21 @@ function logToConsole(logText: string) {
         if (messageData.type === WebpanelPostMessageKind.UpdateCombinedPanel) {
             updatePanelWebContent(messageData.text);
         }
+
+        if (messageData.type === WebpanelPostMessageKind.CombinedPanelIdentity) {
+            groupUri = JSON.parse(messageData.text);
+            persistState();
+        }
     });
 
     const state = vscode.getState();
     if (state?.unifiedComments !== undefined) {
         unifiedComments = state.unifiedComments === true;
+    }
+
+    // Held until the host says otherwise, so a toggle before then does not drop it.
+    if (typeof state?.groupUri === "string") {
+        groupUri = state.groupUri;
     }
 
     updateCommentModeButton();

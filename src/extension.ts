@@ -2,19 +2,26 @@ import * as vscode from "vscode";
 
 import { promises as fsPromises } from "fs";
 import { CombinedResxPanel } from "./combinedResxPanel";
+import { CombinedResxPanelSerializer } from "./combinedResxPanelSerializer";
 import { PreviewEditPanel } from "./previewEditPanel";
 import * as path from "path";
 import { ResxEditorProvider } from "./resxEditorProvider";
 import { NotificationService } from "./notificationService";
 import { FileHelper } from "./fileHelper";
 import { TextInputBoxOptions } from "./textInputBoxOptions";
+import { CommandId } from "./commandId";
 import { Constants, emptyString } from "./constants";
+import { SettingKey } from "./settingKey";
 import { ResxDocumentWriter } from "./resxDocumentWriter";
 import type { ResxEntry } from "./resxEntry";
 import { ResxFile } from "./resxFile";
+import { ResxGroup } from "./resxGroup";
 import { Settings } from "./settings";
 import { Logger } from "./logger";
 
+
+const nothingToCombine = (fileName: string, baseName: string) =>
+	`${fileName} is the only language file for this resource. Add one named ${baseName}.<culture>.resx - ${baseName}.de.resx, say - and Edit All Languages will show a column for it.`;
 
 let currentContext: vscode.ExtensionContext;
 
@@ -35,7 +42,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	vscode.workspace.onDidChangeConfiguration(loadConfiguration);
 
-	context.subscriptions.push(vscode.commands.registerTextEditorCommand(Constants.Commands.resxpreview,
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand(CommandId.resxpreview,
 		async () => {
 			vscode.window.withProgress({
 				location: vscode.ProgressLocation.Notification,
@@ -49,7 +56,7 @@ export function activate(context: vscode.ExtensionContext) {
 			);
 		}));
 
-	context.subscriptions.push(vscode.commands.registerTextEditorCommand(Constants.Commands.sortbykeys,
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand(CommandId.sortbykeys,
 		async (editor) => {
 			if (!editor.document) {
 				return;
@@ -64,7 +71,7 @@ export function activate(context: vscode.ExtensionContext) {
 			});
 		}));
 
-	context.subscriptions.push(vscode.commands.registerTextEditorCommand(Constants.Commands.newpreview,
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand(CommandId.newpreview,
 		async () => {
 			vscode.window.withProgress({
 				location: vscode.ProgressLocation.Notification,
@@ -76,10 +83,10 @@ export function activate(context: vscode.ExtensionContext) {
 			});
 		}));
 
-	context.subscriptions.push(vscode.commands.registerCommand(Constants.Commands.setNameSpace, async (document: vscode.TextDocument) => await setNewNamespace(document)));
-	context.subscriptions.push(vscode.commands.registerCommand(Constants.Commands.createResxFile, async (uri: vscode.Uri) => await createResxFile(uri)));
-	context.subscriptions.push(vscode.commands.registerTextEditorCommand(Constants.Commands.resxeditor, async () => await newPreview()));
-	context.subscriptions.push(vscode.commands.registerCommand(Constants.Commands.combinedEditor, async (uri?: vscode.Uri) => await openCombinedEditor(context, uri)));
+	context.subscriptions.push(vscode.commands.registerCommand(CommandId.setNameSpace, async (document: vscode.TextDocument) => await setNewNamespace(document)));
+	context.subscriptions.push(vscode.commands.registerCommand(CommandId.createResxFile, async (uri: vscode.Uri) => await createResxFile(uri)));
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand(CommandId.resxeditor, async () => await newPreview()));
+	context.subscriptions.push(vscode.commands.registerCommand(CommandId.combinedEditor, async (uri?: vscode.Uri) => await openCombinedEditor(context, uri)));
 
 	/*
 	 * "Edit All Languages" is only offered for a resource that actually has more
@@ -94,6 +101,8 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.workspace.onDidDeleteFiles(() => void updateCultureSiblingsContext()));
 	context.subscriptions.push(vscode.workspace.onDidRenameFiles(() => void updateCultureSiblingsContext()));
 	void updateCultureSiblingsContext();
+
+	context.subscriptions.push(CombinedResxPanelSerializer.register(context));
 
 	context.subscriptions.push(ResxEditorProvider.register(context));
 
@@ -119,10 +128,21 @@ export function activate(context: vscode.ExtensionContext) {
 	Logger.instance.info(`Extension ${context.extension.id} activated`);
 }
 
+/*
+ * Six events feed this and none of them wait, so listings overlap. Without the
+ * token the slowest wins and the key describes a file the user has left.
+ */
+let latestCultureSiblingsRequest = 0;
+
 async function updateCultureSiblingsContext() {
+	const request = ++latestCultureSiblingsRequest;
 	const uri = resolveResxUri();
 	const isResx = uri !== undefined && uri.path.toLowerCase().endsWith(".resx");
 	const hasCultureSiblings = isResx && await ResxEditorProvider.hasCultureSiblings(uri);
+	if (request !== latestCultureSiblingsRequest) {
+		return;
+	}
+
 	await vscode.commands.executeCommand("setContext", Constants.hasCultureSiblingsContext, hasCultureSiblings);
 }
 
@@ -134,7 +154,17 @@ async function openCombinedEditor(context: vscode.ExtensionContext, uri?: vscode
 			return;
 		}
 
-		await CombinedResxPanel.createOrShow(context.extensionUri, resxUri);
+		/*
+		 * The explorer entry cannot be narrower - a context key is one value for
+		 * the whole window, not one per row - so lone files are answered here.
+		 */
+		const group = await ResxGroup.resolve(resxUri);
+		if (group.cultures.length < 2) {
+			vscode.window.showInformationMessage(nothingToCombine(group.fileNameFor(group.cultures[0]), group.baseName));
+			return;
+		}
+
+		await CombinedResxPanel.createOrShow(context.extensionUri, group);
 	}
 	catch (error) {
 		var errorMessage = emptyString;
@@ -174,10 +204,10 @@ function resolveResxUri(uri?: vscode.Uri): vscode.Uri | undefined {
 
 function loadConfiguration() {
 	let resxConfig = vscode.workspace.getConfiguration(`${Constants.resxpress}.${Constants.configuration}`);
-	Settings.shouldGenerateStronglyTypedResourceClassOnSave = resxConfig.get<boolean>(Constants.Configuration.generateStronglyTypedResourceClassOnSave) ?? false;
-	Settings.shouldUseFileScopedNamespace = resxConfig.get<boolean>(Constants.Configuration.useFileScopedNamespace) ?? true;
-	Settings.indentSpaceLength = resxConfig.get<number>(Constants.Configuration.indentSpaceLength) ?? 4;
-	Settings.enableLocalLogs = resxConfig.get<boolean>(Constants.Configuration.enableLocalLogs) ?? false;
+	Settings.shouldGenerateStronglyTypedResourceClassOnSave = resxConfig.get<boolean>(SettingKey.generateStronglyTypedResourceClassOnSave) ?? false;
+	Settings.shouldUseFileScopedNamespace = resxConfig.get<boolean>(SettingKey.useFileScopedNamespace) ?? true;
+	Settings.indentSpaceLength = resxConfig.get<number>(SettingKey.indentSpaceLength) ?? 4;
+	Settings.enableLocalLogs = resxConfig.get<boolean>(SettingKey.enableLocalLogs) ?? false;
 	Logger.instance.setIsEnabled(Settings.enableLocalLogs);
 }
 

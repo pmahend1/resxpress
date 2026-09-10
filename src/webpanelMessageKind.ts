@@ -8,6 +8,7 @@ export enum WebpanelPostMessageKind {
     NewNamespace = "new-namespace",
     SortByKeys = "sort-by-keys",
     UpdateCombinedPanel = "update-combined-panel",
+    CombinedPanelIdentity = "combined-panel-identity",
     TriggerCombinedUpdate = "trigger-combined-update",
     SaveAll = "save-all",
     OpenAllLanguages = "open-all-languages"

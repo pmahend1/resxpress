@@ -26,7 +26,8 @@
         "Other"
     ],
     "activationEvents": [
-        "workspaceContains:**/*.resx"
+        "workspaceContains:**/*.resx",
+        "onWebviewPanel:resxpress.combinedEditor"
     ],
     "main": "./out/extension.js",
     "contributes": {
@@ -107,6 +108,11 @@
                 }
             ],
             "explorer/context": [
+                {
+                    "command": "resxpress.combinededitor",
+                    "group": "3_preview",
+                    "when": "resourceExtname == .resx"
+                },
                 {
                     "command": "resxpress.setNameSpace",
                     "group": "3_preview",

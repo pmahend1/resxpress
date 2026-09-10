@@ -20,21 +20,4 @@ export class Constants {
      * can hide "Edit All Languages" for a resource that has only one file.
      */
     public static readonly hasCultureSiblingsContext = `${this.resxpress}.hasCultureSiblings`;
-
-    static Commands = class {
-        public static readonly resxpreview = `${Constants.resxpress}.resxpreview`;
-        public static readonly newpreview = `${Constants.resxpress}.newpreview`;
-        public static readonly sortbykeys = `${Constants.resxpress}.sortbykeys`;
-        public static readonly setNameSpace = `${Constants.resxpress}.setNameSpace`;
-        public static readonly createResxFile = `${Constants.resxpress}.createResxFile`;
-        public static readonly resxeditor = `${Constants.resxpress}.resxeditor`;
-        public static readonly combinedEditor = `${Constants.resxpress}.combinededitor`;
-    };
-
-    static Configuration = class {
-        public static readonly generateStronglyTypedResourceClassOnSave = "generateStronglyTypedResourceClassOnSave";
-        public static readonly useFileScopedNamespace = "useFileScopedNamespace";
-        public static readonly indentSpaceLength = "indentSpaceLength";
-        public static readonly enableLocalLogs = "enableLocalLogs";
-    };
 }

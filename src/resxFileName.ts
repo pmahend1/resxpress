@@ -67,6 +67,39 @@ export class ResxFileName {
         return culture.length === 0 ? neutralLabel : culture;
     }
 
+    /**
+     * Whether two base names name the same resource. Folded because `fs.stat`
+     * is: comparing exactly loses the Default column, and says nothing.
+     */
+    public static sameBaseName(first: string, second: string): boolean {
+        return first.toLowerCase() === second.toLowerCase();
+    }
+
+    /** Folded like the base name: `fr-CA` and `fr-ca` are one culture to .NET. */
+    public static cultureKey(culture: string): string {
+        return culture.toLowerCase();
+    }
+
+    /**
+     * Orders two spellings of one file name, best first: the one the group was
+     * resolved from, then ordinal, so a listing's order never decides it.
+     */
+    public static compareSpellings(first: string, second: string, resolvedFrom: string): number {
+        if (first === second) {
+            return 0;
+        }
+
+        if (first === resolvedFrom) {
+            return -1;
+        }
+
+        if (second === resolvedFrom) {
+            return 1;
+        }
+
+        return first < second ? -1 : 1;
+    }
+
     /** Neutral first, then alphabetical, so the key authority heads the table. */
     public static compareCultures(first: string, second: string): number {
         if (first.length === 0 || second.length === 0) {

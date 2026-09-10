@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { CommandId } from "./commandId";
 import { Constants, emptyString } from "./constants";
 import { setNewNamespace, sortByKeys } from "./extension";
 import { FileHelper } from "./fileHelper";
@@ -81,7 +82,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
                     updateWebview();
                     break;
                 case WebpanelPostMessageKind.OpenAllLanguages:
-                    await vscode.commands.executeCommand(Constants.Commands.combinedEditor, document.uri);
+                    await vscode.commands.executeCommand(CommandId.combinedEditor, document.uri);
                     break;
             }
         });

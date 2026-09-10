@@ -17,6 +17,7 @@ import { getNonce } from "./util";
 import { WebpanelPostMessageKind } from "./webpanelMessageKind";
 import { WebpanelPostMessage } from "./webpanelPostMessage";
 
+const resxInSameFolder = "*.resx";
 const panelTitle = (baseName: string) => `${baseName} - All Languages`;
 const unparseableFile = (fileName: string) => `${fileName} is not valid resx, so the combined panel is not being updated`;
 const skippedWrite = (fileName: string) => `${fileName} is not valid resx, so it was left alone`;
@@ -37,8 +38,10 @@ export class CombinedResxPanel {
     private static readonly openPanels = new Map<string, CombinedResxPanel>();
 
     private readonly panel: vscode.WebviewPanel;
-    private readonly group: ResxGroup;
     private readonly disposables: vscode.Disposable[] = [];
+
+    /* Not readonly: a culture file added or removed while the panel is open re-resolves it. */
+    private group: ResxGroup;
 
     /** Set while our own edits are being applied, so they are not echoed back as a repaint. */
     private isWritingEdits = false;
@@ -63,6 +66,7 @@ export class CombinedResxPanel {
             Logger.instance.info(`${nameof(CombinedResxPanel)}: ${message.type}`);
             switch (message.type) {
                 case WebpanelPostMessageKind.Ready:
+                    this.postIdentity();
                     this.enqueue(() => this.pushToWebview());
                     break;
                 case WebpanelPostMessageKind.TriggerCombinedUpdate:
@@ -91,11 +95,58 @@ export class CombinedResxPanel {
                 void this.pushToWebview();
             }
         }, null, this.disposables);
+
+        this.watchForCultureChanges();
     }
 
-    public static async createOrShow(extensionUri: vscode.Uri, uri: vscode.Uri): Promise<void> {
-        const group = await ResxGroup.resolve(uri);
+    /*
+     * A watcher rather than `workspace.onDidCreateFiles`, which reports only
+     * what VS Code itself did - a file written by a build never reaches it.
+     */
+    private watchForCultureChanges(): void {
+        const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(this.group.directory,
+                                                                                            resxInSameFolder),
+                                                                 false,
+                                                                 true,
+                                                                 false);
 
+        watcher.onDidCreate(() => this.enqueue(() => this.regroup()), null, this.disposables);
+        watcher.onDidDelete(() => this.enqueue(() => this.regroup()), null, this.disposables);
+        this.disposables.push(watcher);
+    }
+
+    /**
+     * Re-resolves the group, repainting if the cultures moved. Re-keys
+     * `openPanels` with it: a neutral file appearing changes the base name,
+     * and a stale key would let a second panel open for the same resource.
+     */
+    private async regroup(): Promise<void> {
+        const anchor = this.group.anchorUri;
+        if (anchor === undefined) {
+            return;
+        }
+
+        const regrouped = await ResxGroup.resolve(anchor);
+        if (JSON.stringify(regrouped.cultures) === JSON.stringify(this.group.cultures)) {
+            return;
+        }
+
+        Logger.instance.info(`${nameof(CombinedResxPanel)}: cultures are now ${regrouped.cultures.join(", ")}`);
+
+        CombinedResxPanel.openPanels.delete(this.group.key);
+        this.group = regrouped;
+        CombinedResxPanel.openPanels.set(this.group.key, this);
+
+        this.panel.title = panelTitle(this.group.baseName);
+        this.postIdentity();
+        await this.pushToWebview();
+    }
+
+    /**
+     * The group is resolved by the caller: whether a resource with a single
+     * language is worth a panel depends on where the command came from.
+     */
+    public static async createOrShow(extensionUri: vscode.Uri, group: ResxGroup): Promise<void> {
         const existing = CombinedResxPanel.openPanels.get(group.key);
         if (existing !== undefined) {
             existing.panel.reveal(existing.panel.viewColumn);
@@ -113,14 +164,41 @@ export class CombinedResxPanel {
         const panel = vscode.window.createWebviewPanel(CombinedResxPanel.viewType,
                                                        panelTitle(group.baseName),
                                                        vscode.ViewColumn.Active,
-                                                       {
-                                                           enableScripts: true,
-                                                           enableForms: true,
-                                                           localResourceRoots: [vscode.Uri.joinPath(extensionUri, "styles"),
-                                                                                vscode.Uri.joinPath(extensionUri, "out")]
-                                                       });
+                                                       CombinedResxPanel.webviewOptions(extensionUri));
 
         CombinedResxPanel.openPanels.set(group.key, new CombinedResxPanel(panel, group, extensionUri));
+    }
+
+    /**
+     * Takes over a panel VS Code restored after a reload. Only the group's uri
+     * comes out of the webview's state - the documents hold the table.
+     *
+     * @throws when the uri no longer names a resx file.
+     */
+    public static async revive(extensionUri: vscode.Uri, panel: vscode.WebviewPanel, uri: vscode.Uri): Promise<void> {
+        const group = await ResxGroup.resolve(uri);
+
+        const existing = CombinedResxPanel.openPanels.get(group.key);
+        if (existing !== undefined) {
+            panel.dispose();
+            existing.panel.reveal(existing.panel.viewColumn);
+            return;
+        }
+
+        // A restored panel keeps its title, but not the options it was created with.
+        panel.webview.options = CombinedResxPanel.webviewOptions(extensionUri);
+        panel.title = panelTitle(group.baseName);
+
+        CombinedResxPanel.openPanels.set(group.key, new CombinedResxPanel(panel, group, extensionUri));
+    }
+
+    private static webviewOptions(extensionUri: vscode.Uri): vscode.WebviewOptions {
+        return {
+            enableScripts: true,
+            enableForms: true,
+            localResourceRoots: [vscode.Uri.joinPath(extensionUri, "styles"),
+                                 vscode.Uri.joinPath(extensionUri, "out")]
+        };
     }
 
     private enqueue(work: () => Promise<void>): void {
@@ -205,6 +283,20 @@ export class CombinedResxPanel {
         }
 
         await this.pushToWebview();
+    }
+
+    /*
+     * What the webview persists for restore. Sent on Ready rather than carried
+     * on the payload, because a file that does not parse produces no payload.
+     */
+    private postIdentity(): void {
+        const anchor = this.group.anchorUri;
+        if (anchor === undefined) {
+            return;
+        }
+
+        this.panel.webview.postMessage(new WebpanelPostMessage(WebpanelPostMessageKind.CombinedPanelIdentity,
+                                                               JSON.stringify(anchor.toString())));
     }
 
     private async pushToWebview(): Promise<void> {
@@ -334,7 +426,7 @@ export class CombinedResxPanel {
         </div>
     </div>
 
-    <div class="table-scroll">
+    <div id="tableScroll" class="table-scroll">
         <table id="tbl">
             <thead id="tableHead">
             </thead>
