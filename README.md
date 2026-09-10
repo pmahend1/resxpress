@@ -122,7 +122,28 @@ Options: **2, 4, 8**.
 
 ## Known Issues
 
-None as of now.
+### A resx diff shows two ResXpress editors instead of a text diff
+
+ResXpress is the default editor for `.resx`, and VS Code gives a custom editor no way to opt
+out of diff mode - so opening a resx from Source Control paints the ResXpress editor on both
+sides instead of a text diff
+([vscode-discussions#799](https://github.com/microsoft/vscode-discussions/discussions/799)).
+There is nothing the extension can do about this; VS Code's fix for it is still a proposed
+API ([vscode#298924](https://github.com/microsoft/vscode/issues/298924)).
+
+If you diff resx files often, this user setting sends them to the plain text editor:
+
+```json
+"workbench.editorAssociations": {
+    "{git,gitlens,vscode-local-history}:/**/*.resx": "default"
+}
+```
+
+ResXpress does not add this for you, because it is a trade rather than a fix. It is a global
+setting that follows you to every workspace, and it covers more than diffs - a resx opened
+from Source Control history or from the Timeline becomes plain text too, so you lose the
+ResXpress table for reading those. Editors that are already open keep the editor they opened
+with, so close and reopen a diff after adding it.
 
 ## Release Notes
 
