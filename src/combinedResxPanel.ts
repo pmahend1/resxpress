@@ -21,6 +21,8 @@ const resxInSameFolder = "*.resx";
 const panelTitle = (baseName: string) => `${baseName} - All Languages`;
 const unparseableFile = (fileName: string) => `${fileName} is not valid resx, so the combined panel is not being updated`;
 const skippedWrite = (fileName: string) => `${fileName} is not valid resx, so it was left alone`;
+const saveAllLabel = "Save every language file this table has changed";
+const sortByKeysLabel = "Sort every language file by key";
 
 /**
  * An editable table of every culture of one resource, one column per culture.
@@ -389,6 +391,10 @@ export class CombinedResxPanel {
         const nonce = getNonce();
 
         /*
+         * Sort By Keys is icon-only, and an icon with no text has no accessible
+         * name of its own, so it carries title for the pointer and aria-label for
+         * the screen reader while the <img> is marked decorative.
+         *
          * No resx content is interpolated here at all - not even a column
          * header, since a file name is user controlled too. The shell ships
          * empty and the webview builds every header and every row with DOM APIs
@@ -406,18 +412,22 @@ export class CombinedResxPanel {
 </head>
 <body>
     <div class="toolbar">
-        <button id="addButton" class="btn primary">
-            <img src="${maPlusThick}" alt="Add Icon" class="icon filter-fefefe"> Add New Resource
-        </button>
-        <button id="saveAllButton" class="btn secondary" title="Save every language file this table has changed">
-            Save All
-        </button>
-        <button id="sortByKeysButton" class="btn secondary" title="Sort every language file by key">
-            <img src="${faSortAtoZ}" alt="Sort Icon" class="icon filter-fefefe">Sort By Keys
-        </button>
-        <button id="commentModeButton" class="btn secondary"></button>
-        <p id="errorBlock" class="error-block"></p>
-        <!-- Full width flex basis, so search takes a row of its own under the buttons. -->
+        <div class="toolbar-actions">
+            <button id="addButton" class="btn primary">
+                <img src="${maPlusThick}" alt="" class="icon filter-fefefe">Add New Resource
+            </button>
+            <button id="saveAllButton" class="btn secondary" title="${saveAllLabel}">
+                Save All
+            </button>
+            <button id="sortByKeysButton" class="btn secondary icon-only" title="${sortByKeysLabel}" aria-label="${sortByKeysLabel}">
+                <img src="${faSortAtoZ}" alt="" class="icon filter-fefefe">
+            </button>
+            <!-- Label and tooltip are written by combinedPanelScript; they say which mode it is in. -->
+            <button id="commentModeButton" class="btn secondary"></button>
+        </div>
+        <!-- Hidden until there is something to report; an empty row would still cost a line. -->
+        <p id="errorBlock" class="error-block" hidden></p>
+        <!-- A row of its own, so search gets the panel's full width. -->
         <div class="search-section">
             <input id="searchInput" class="search-input" type="search"
                    placeholder="Search key, value or comment"

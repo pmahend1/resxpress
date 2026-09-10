@@ -27,7 +27,6 @@ const hidden = "hidden";
 const deleteStr = "delete";
 const X = "X";
 const message = "message";
-const none = "none";
 const keydown = "keydown";
 const escapeKey = "Escape";
 const findKey = "f";
@@ -95,7 +94,11 @@ function logToConsole(logText: string) {
         }
 
         errorContainer.innerText = errorMessage;
-        errorContainer.style.display = errorMessage.length === 0 ? none : emptyString;
+        /*
+         * The error text is a toolbar row of its own now, so an empty one would
+         * still reserve a line's height - hence hidden rather than an empty string.
+         */
+        errorContainer.hidden = errorMessage.length === 0;
     }
 
     function getInput(id: string): HTMLInputElement | undefined {

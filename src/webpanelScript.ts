@@ -72,7 +72,13 @@ function logToConsole(text: string) {
 		}
 
 		errorContainer.innerText = errorMessage;
-		errorContainer.style.display = errorMessage.length === 0 ? none : emptyString;
+		/*
+		 * The error text is a toolbar row of its own now, so an empty one would
+		 * still reserve a line's height - hence hidden rather than an empty
+		 * string. Toggling it resizes .sticky-div, and the ResizeObserver below
+		 * republishes the height the sticky column headers sit at.
+		 */
+		errorContainer.hidden = errorMessage.length === 0;
 	}
 
 	function getInput(id: string): HTMLInputElement | undefined {
@@ -404,9 +410,10 @@ function logToConsole(text: string) {
 
 	/*
 	 * The column headers stick directly under the toolbar, so they need its
-	 * height. It is not a constant: the toolbar wraps, so the height changes with
-	 * the panel width. Publishing the measured value replaces a hardcoded 62px
-	 * that was only ever correct for a single-row toolbar.
+	 * height. It is not a constant: the toolbar is a stack of rows that wrap, and
+	 * the error row comes and goes, so the height changes with both the panel
+	 * width and the state. Publishing the measured value replaces a hardcoded
+	 * 62px that was only ever correct for a single-row toolbar.
 	 */
 	const stickyToolbar = document.querySelector(stickyToolbarSelector);
 	if (stickyToolbar !== null) {

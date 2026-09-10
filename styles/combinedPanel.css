@@ -23,6 +23,11 @@ body {
   background-color: var(--vscode-editor-background);
 }
 
+/*
+ * A stack of rows rather than one wrapping line, matching webpanel.css: the
+ * buttons keep to their own row, the error text gets a row it can vacate, and
+ * search keeps the full width underneath.
+ */
 .toolbar {
   flex: 0 0 auto;
   position: relative;
@@ -31,9 +36,16 @@ body {
   padding: 10px;
   padding-bottom: 20px;
   display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* One flex item, so a wrap can never split the run of action buttons apart. */
+.toolbar-actions {
+  display: flex;
   flex-wrap: wrap;
-  gap: 15px;
   align-items: center;
+  gap: 8px;
 }
 
 .table-scroll {
@@ -157,67 +169,100 @@ p {
   text-align: center;
 }
 
+/*
+ * The same buttons as webpanel.css, kept in step deliberately - Material 3 shape
+ * and emphasis over VS Code's own colour tokens, rather than the hardcoded
+ * #067ab8 / #5A9BD5 that ignored the theme in both panels. .btn alone is the
+ * medium-emphasis look the .secondary class in the markup names.
+ */
 .btn {
   display: inline-flex;
   align-items: center;
-  background-color: #067ab8;
-  color: var(--vscode-editor-background);
-  padding: 8px 12px;
+  justify-content: center;
+  gap: 6px;
+  /* Buttons wrap onto the next line rather than shrinking below their label. */
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 6px 14px;
   border: none;
   border-radius: 8px;
-  font-size: 18px;
+  font-family: inherit;
+  font-size: var(--vscode-font-size, 13px);
+  line-height: 1.25;
   cursor: pointer;
   text-decoration: none;
-  transition: background-color 0.3s ease;
   white-space: nowrap;
-}
-
-.btn svg {
-  margin-right: 6px;
-  fill: currentColor;
+  background-color: var(--vscode-button-secondaryBackground, #3a3d41);
+  color: var(--vscode-button-secondaryForeground, #ffffff);
+  transition: background-color 120ms ease;
 }
 
 .btn:hover {
-  background-color: #005b98;
-}
-
-.btn.primary {
-  background-color: #067ab8;
-  color: #ffffff;
-  font-weight: 500;
-}
-
-.btn.primary:hover {
-  background-color: #005b98;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.btn.secondary {
-  background-color: #5A9BD5;
-  color: #ffffff;
-}
-
-.btn.secondary:hover {
-  background-color: #1976D2;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.error-block {
-  color: #dc3e36;
-  font-size: 14px;
-  margin: 0;
-  flex-grow: 1;
+  background-color: var(--vscode-button-secondaryHoverBackground, #45494e);
 }
 
 /*
- * flex-basis of 100% drops the search row onto its own line under the buttons,
- * so the box gets the panel's full width instead of fighting the buttons for it.
+ * M3's pressed state layer, done theme-blind: the overlay is drawn from the
+ * button's own foreground, so it lifts a dark surface and settles a light one
+ * without either colour being named here.
+ */
+.btn:active {
+  box-shadow: inset 0 0 0 999px color-mix(in srgb, currentColor 12%, transparent);
+}
+
+/* The ring is offset because a filled button leaves no room for it inside. */
+.btn:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder, #0090f1);
+  outline-offset: 2px;
+}
+
+/* The one full-emphasis action in the toolbar; the pill is what marks it out. */
+.btn.primary {
+  background-color: var(--vscode-button-background, #0e639c);
+  color: var(--vscode-button-foreground, #ffffff);
+  border-radius: 999px;
+  padding: 6px 18px;
+  font-weight: 600;
+}
+
+.btn.primary:hover {
+  background-color: var(--vscode-button-hoverBackground, #1177bb);
+}
+
+/*
+ * An icon-only button has no accessible name of its own, so every one of them
+ * carries title and aria-label. Square rather than pill, so they read as a group.
+ */
+.btn.icon-only {
+  min-width: 36px;
+  padding: 6px;
+}
+
+/*
+ * No flex-grow: a grower in a wrapping row absorbs the slack and shoves whatever
+ * follows it to the right edge, which is what it did to the buttons next door.
+ * It has a row of its own now, and combinedPanelScript hides it outright when
+ * there is nothing to say, so the empty row costs no height.
+ */
+.error-block {
+  color: var(--vscode-errorForeground, #f14c4c);
+  font-size: var(--vscode-font-size, 13px);
+  margin: 0;
+  /* The bare `p` rule above centres the delete marker in its cell; not this. */
+  text-align: left;
+}
+
+/*
+ * Search keeps a row of its own, so the box gets the panel's full width instead
+ * of fighting the buttons for it. The basis has to be auto rather than the 100%
+ * it used to be: the toolbar is a column now, and a basis on a column's main
+ * axis is a height, not a width.
  */
 .search-section {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1 1 100%;
+  flex: 0 0 auto;
 }
 
 /*
@@ -237,7 +282,7 @@ p {
   height: auto;
   margin: 0;
   padding: 8px 10px;
-  font-size: 16px;
+  font-size: var(--vscode-font-size, 13px);
   font-family: inherit;
 }
 
@@ -264,11 +309,16 @@ p {
   white-space: nowrap;
 }
 
+/*
+ * The icons are single-colour SVGs loaded as <img>, so they cannot take
+ * currentColor and the filter below is what paints them. White is right for both
+ * variants: VS Code's button foregrounds are white in light and dark alike.
+ * Spacing from a label is the button's `gap`, so no margin here.
+ */
 .icon {
   width: 16px;
   height: 16px;
-  margin-right: 6px;
-  color: white;
+  flex: 0 0 auto;
 }
 
 .filter-fefefe {

@@ -3,6 +3,12 @@ import * as vscode from "vscode";
 import { emptyString } from "./constants";
 import { getNonce } from "./util";
 
+const addLabel = "Add New Resource";
+const switchToTextEditorLabel = "Switch to text editor";
+const allLanguagesLabel = "Edit every language of this resource in one table";
+const sortByKeysLabel = "Sort by keys";
+const changeNamespaceLabel = "Change namespace";
+
 export class ResxEditor {
     private readonly context: vscode.ExtensionContext;
     constructor(context: vscode.ExtensionContext) {
@@ -26,11 +32,17 @@ export class ResxEditor {
          * button would be a dead end on the majority of resx files.
          */
         const allLanguagesButton = hasCultureSiblings
-            ? `<button id="allLanguagesButton" class="btn secondary" title="Edit every language of this resource in one table">
-            <img src="${columns}" alt="All Languages Icon" class="icon filter-fefefe"> All Languages
-        </button>`
+            ? `<button id="allLanguagesButton" class="btn secondary icon-only" title="${allLanguagesLabel}" aria-label="${allLanguagesLabel}">
+                <img src="${columns}" alt="" class="icon filter-fefefe">
+            </button>`
             : emptyString;
 
+        /*
+         * Every button but Add is icon-only: four spelled-out labels are what made
+         * the toolbar wrap. An icon with no text has no accessible name of its own,
+         * so each one carries title for the pointer and aria-label for the screen
+         * reader, and the <img> is marked decorative so it does not read twice.
+         */
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -43,25 +55,30 @@ export class ResxEditor {
 </head>
 <body>
     <div class="sticky-div">
-        <button id="addButton" class="btn primary">
-           <img src="${maPlusThick}" alt="Add Icon" class="icon filter-fefefe"> Add New Resource
-        </button>
-        
-        <button id="switchToTextEditorButton" class="btn secondary">
-            <img src="${faRightLeft}" alt="Switch Icon" class="icon filter-fefefe"> Switch to Text Editor
-        </button>
-        ${allLanguagesButton}
-        <div class="namespace-section">
-            <span id="namespaceSpan">Namespace: <strong>${escapeHtml(namespace)}</strong></span>
-            <button id="changeNamespaceButton" class="btn secondary">
-                <img src="${faPenToSquare}" alt="Edit Icon" class="icon filter-fefefe"> Change Namespace
-            </button>
+        <div class="toolbar-row">
+            <div class="toolbar-actions">
+                <button id="addButton" class="btn primary">
+                    <img src="${maPlusThick}" alt="" class="icon filter-fefefe">${addLabel}
+                </button>
+                <button id="switchToTextEditorButton" class="btn secondary icon-only" title="${switchToTextEditorLabel}" aria-label="${switchToTextEditorLabel}">
+                    <img src="${faRightLeft}" alt="" class="icon filter-fefefe">
+                </button>
+                ${allLanguagesButton}
+                <button id="sortByKeysButton" class="btn secondary icon-only" title="${sortByKeysLabel}" aria-label="${sortByKeysLabel}">
+                    <img src="${faSortAtoZ}" alt="" class="icon filter-fefefe">
+                </button>
+            </div>
+            <!-- Information, not an action, so it sits at the right edge rather than among the buttons. -->
+            <div class="namespace-section">
+                <span id="namespaceSpan">Namespace: <strong>${escapeHtml(namespace)}</strong></span>
+                <button id="changeNamespaceButton" class="btn secondary icon-only" title="${changeNamespaceLabel}" aria-label="${changeNamespaceLabel}">
+                    <img src="${faPenToSquare}" alt="" class="icon filter-fefefe">
+                </button>
+            </div>
         </div>
-        <button id="sortByKeysButton" class="btn secondary">
-            <img src="${faSortAtoZ}" alt="Sort Icon" class="icon filter-fefefe">Sort By Keys
-        </button>
-        <p id="errorBlock" class="error-block"></p>
-        <!-- Last in the toolbar, and given a full-width flex basis, so it takes a row of its own under the buttons. -->
+        <!-- Hidden until there is something to report; an empty row would still cost a line. -->
+        <p id="errorBlock" class="error-block" hidden></p>
+        <!-- A row of its own, so the box gets the editor's full width. -->
         <div class="search-section">
             <input id="searchInput" class="search-input" type="search"
                    placeholder="Search key, value or comment"

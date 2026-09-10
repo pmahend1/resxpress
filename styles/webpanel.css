@@ -81,83 +81,152 @@ p {
   text-align: center;
 }
 
+/*
+ * A stack of rows, not one wrapping line. Every control used to share a single
+ * flex-wrap row, and two of them - the namespace block and the error text -
+ * carried flex-grow, so whichever came first absorbed the slack and shoved what
+ * followed it against the right edge. That is what stranded Sort By Keys out
+ * there. Each concern owns a row now: the actions and the namespace, then the
+ * error text, then search. Rows may come and go freely because webpanelScript
+ * measures this element and publishes its height as --sticky-toolbar-height,
+ * which is the offset the sticky column headers sit at.
+ */
 .sticky-div {
   position: sticky;
   top: 0;
   background-color: var(--vscode-editor-background);
   padding: 10px;
   padding-bottom: 20px;
-  border-bottom: none;
   display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  align-items: center;
+  flex-direction: column;
+  gap: 10px;
   z-index: 1000;
 }
 
-.btn {
-  display: inline-flex;
+/*
+ * Exactly two children - the action group and the namespace block - so
+ * space-between parks the namespace at the right edge with no flex-grow spacer
+ * involved. Nothing in this row grows, deliberately: a grower in a wrapping row
+ * is what stranded a button against the right edge in the first place. Too
+ * narrow, and the namespace block wraps onto a line of its own.
+ */
+.toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  background-color: #067ab8;
-  color: var(--vscode-editor-background);
-  padding: 8px 12px;
-  border: none;
-  border-radius: 8px;
-  font-size: 18px;
-  cursor: pointer;
-  text-decoration: none;
-  transition: background-color 0.3s ease;
-  white-space: nowrap;
+  justify-content: space-between;
+  gap: 8px 16px;
 }
 
-.btn svg {
-  margin-right: 6px;
-  fill: currentColor;
-}
-
-.btn:hover {
-  background-color: #005b98;
-}
-
-.btn.primary {
-  background-color: #067ab8;
-  color: #ffffff;
-  font-weight: 500;
-}
-
-.btn.primary:hover {
-  background-color: #005b98;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-/* Secondary Button Style */
-.btn.secondary {
-  background-color: #5A9BD5;
-  color: #ffffff;
-}
-
-.btn.secondary:hover {
-  background-color: #1976D2;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.error-block {
-  color: #dc3e36;
-  font-size: 14px;
-  margin: 0;
-  flex-grow: 1;
+/* One flex item, so a wrap can never split the run of action buttons apart. */
+.toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
 }
 
 /*
- * flex-basis of 100% drops the search row onto its own line under the buttons,
- * so the box gets the editor's full width instead of fighting four labelled
- * buttons and the namespace block for it.
+ * Material 3 shape, spacing and emphasis - a pill for the single high-emphasis
+ * action, 8px for the tonal ones, a 36px minimum target - over VS Code's own
+ * button tokens. The colours used to be hardcoded (#067ab8, #5A9BD5) and ignored
+ * the theme entirely; an M3 palette would have been the same mistake in nicer
+ * shades, so only the geometry comes from M3 and every colour comes from the
+ * host. Each token is given a fallback because a theme may leave one undefined.
+ *
+ * .btn alone is the medium-emphasis look, which is what the .secondary class in
+ * the markup names; there is no .secondary rule because it would only restate
+ * this one, and defaulting to it keeps a button that forgets the class legible.
+ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  /* Buttons wrap onto the next line rather than shrinking below their label. */
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: var(--vscode-font-size, 13px);
+  line-height: 1.25;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  background-color: var(--vscode-button-secondaryBackground, #3a3d41);
+  color: var(--vscode-button-secondaryForeground, #ffffff);
+  transition: background-color 120ms ease;
+}
+
+.btn:hover {
+  background-color: var(--vscode-button-secondaryHoverBackground, #45494e);
+}
+
+/*
+ * M3's pressed state layer, done theme-blind: the overlay is drawn from the
+ * button's own foreground, so it lifts a dark surface and settles a light one
+ * without either colour being named here.
+ */
+.btn:active {
+  box-shadow: inset 0 0 0 999px color-mix(in srgb, currentColor 12%, transparent);
+}
+
+/* The ring is offset because a filled button leaves no room for it inside. */
+.btn:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder, #0090f1);
+  outline-offset: 2px;
+}
+
+/* The one full-emphasis action in the toolbar; the pill is what marks it out. */
+.btn.primary {
+  background-color: var(--vscode-button-background, #0e639c);
+  color: var(--vscode-button-foreground, #ffffff);
+  border-radius: 999px;
+  padding: 6px 18px;
+  font-weight: 600;
+}
+
+.btn.primary:hover {
+  background-color: var(--vscode-button-hoverBackground, #1177bb);
+}
+
+/*
+ * The secondary actions carry no label - four of them spelled out is what forced
+ * the toolbar to wrap. Their names live in title and aria-label instead, so the
+ * button is still reachable by hover and by screen reader; every icon-only
+ * button must carry both. Square rather than pill, so the icons read as a group.
+ */
+.btn.icon-only {
+  min-width: 36px;
+  padding: 6px;
+}
+
+/*
+ * No flex-grow: this was the second grower in the old wrapping row. It gets a
+ * row of its own now, and webpanelScript hides it outright when there is nothing
+ * to say so the empty row costs no height.
+ */
+.error-block {
+  color: var(--vscode-errorForeground, #f14c4c);
+  font-size: var(--vscode-font-size, 13px);
+  margin: 0;
+  /* The bare `p` rule above centres the delete marker in its cell; not this. */
+  text-align: left;
+}
+
+/*
+ * Search keeps a row of its own, which is where item 1 put it so the box stops
+ * competing with the buttons for width. The basis has to be auto rather than the
+ * 100% it used to be: the toolbar is a column now, and a basis on a column's
+ * main axis is a height, not a width.
  */
 .search-section {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1 1 100%;
+  flex: 0 0 auto;
 }
 
 /*
@@ -177,7 +246,7 @@ p {
   height: auto;
   margin: 0;
   padding: 8px 10px;
-  font-size: 16px;
+  font-size: var(--vscode-font-size, 13px);
   font-family: inherit;
 }
 
@@ -204,30 +273,43 @@ p {
   white-space: nowrap;
 }
 
+/*
+ * Information rather than an action, so it sits at the right edge of the toolbar
+ * row instead of in the run of buttons. min-width lets the name ellipsize when
+ * the panel is narrow; without it a long namespace sets the row's min-content
+ * width and the toolbar overflows sideways.
+ */
 .namespace-section {
   display: flex;
   align-items: center;
-  gap: 10px;
-  /* Spacing between text and button */
-  flex-grow: 1;
-  /* Ensures alignment */
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .namespace-section span {
-  color: var(--vscode-editor-foreground);
+  color: var(--vscode-descriptionForeground, var(--vscode-editor-foreground));
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .namespace-section strong {
-  font-size: large;
-  font-weight: bold;
-  color: #5A9BD5;
+  font-weight: 600;
+  color: var(--vscode-editor-foreground);
 }
 
+/*
+ * The icons are single-colour SVGs loaded as <img>, so they cannot take
+ * currentColor and the filter below is what paints them. White is right for both
+ * variants: VS Code's button foregrounds are white in light and dark alike.
+ * Spacing from a label is the button's `gap`, so no margin here.
+ */
 .icon {
   width: 16px;
   height: 16px;
-  margin-right: 6px;
-  color: white;
+  flex: 0 0 auto;
 }
 
 .filter-fefefe {
