@@ -11,10 +11,10 @@ export interface ILogger {
 }
 
 enum LogLevel {
-    error = "ERROR",
-    warning = "WARNING",
-    info = "INFO",
-    debug = "DEBUG",
+    Error = "ERROR",
+    Warning = "WARNING",
+    Info = "INFO",
+    Debug = "DEBUG",
 }
 
 function isString(value: unknown): value is string {
@@ -47,20 +47,20 @@ export class Logger implements ILogger {
 
     public error(error: Error): void {
         if (error !== null) {
-            this.log(LogLevel.error, error.stack ?? `${error.name} : ${error.message}`);
+            this.log(LogLevel.Error, error.stack ?? `${error.name} : ${error.message}`);
         }
     }
 
     public info(message: string): void {
-        this.log(LogLevel.info, message);
+        this.log(LogLevel.Info, message);
     }
 
     public debug(message: string): void {
-        this.log(LogLevel.debug, message);
+        this.log(LogLevel.Debug, message);
     }
 
     public warning(message: string): void {
-        this.log(LogLevel.warning, message);
+        this.log(LogLevel.Warning, message);
     }
 
     private log(logLevel: LogLevel, message: string, data?: unknown): void {

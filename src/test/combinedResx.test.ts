@@ -39,6 +39,30 @@ test("a dotted segment that is not a culture stays part of the base name", () =>
     assert.equal(ResxFileName.parse("notes.txt"), undefined);
 });
 
+test("base names match whatever case the filesystem stored them in", () => {
+    // fs.stat is case-insensitive on macOS and Windows, so the scan has to agree with it.
+    assert.equal(ResxFileName.sameBaseName("Resources", "resources"), true);
+    assert.equal(ResxFileName.sameBaseName("My.App", "MY.APP"), true);
+    assert.equal(ResxFileName.sameBaseName("Resources", "Resource"), false);
+});
+
+test("one culture is one column however its file spells it", () => {
+    assert.equal(ResxFileName.cultureKey("fr-CA"), "fr-ca");
+    assert.equal(ResxFileName.cultureKey(neutral), neutral);
+});
+
+test("the file the group was resolved from settles two spellings of one name", () => {
+    const resolvedFrom = "Resources.de.resx";
+
+    assert.ok(ResxFileName.compareSpellings("Resources.de.resx", "resources.de.resx", resolvedFrom) < 0);
+    assert.ok(ResxFileName.compareSpellings("resources.de.resx", "Resources.de.resx", resolvedFrom) > 0);
+    assert.equal(ResxFileName.compareSpellings("Resources.de.resx", "Resources.de.resx", resolvedFrom), 0);
+
+    // Neither is the file we came in on, so ordinal order decides rather than the listing's.
+    assert.ok(ResxFileName.compareSpellings("Resources.fr-CA.resx", "Resources.fr-ca.resx", resolvedFrom) < 0);
+    assert.ok(ResxFileName.compareSpellings("Resources.fr-ca.resx", "Resources.fr-CA.resx", resolvedFrom) > 0);
+});
+
 test("the neutral file sorts ahead of every culture", () => {
     const cultures = ["fr", "de", neutral, "pt-BR", "de-AT"];
     assert.deepEqual(cultures.sort(ResxFileName.compareCultures), [neutral, "de", "de-AT", "fr", "pt-BR"]);
