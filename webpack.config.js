@@ -11,7 +11,8 @@ const config = {
 
     entry: {
         extension: "./src/extension.ts",
-        webpanelScript: "./src/webpanelScript.ts"
+        webpanelScript: "./src/webpanelScript.ts",
+        combinedPanelScript: "./src/combinedPanelScript.ts"
     },// the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
     output: {
         // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/

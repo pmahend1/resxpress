@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 512 512">
+    <!-- Three columns: the combined all-languages table. -->
+    <path d="M32 64h96v384H32V64zm128 0h96v384h-96V64zm128 0h96v384h-96V64zm128 0h64v384h-64V64z"/>
+</svg>

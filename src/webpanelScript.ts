@@ -31,6 +31,7 @@ const errorKeyMandatory = "Key is a mandatory field!";
 const changeNamespaceButton = "changeNamespaceButton";
 const addButton = "addButton";
 const switchToTextEditorButton = "switchToTextEditorButton";
+const allLanguagesButton = "allLanguagesButton";
 const message = "message";
 const none = "none";
 const namespaceSpan = "namespaceSpan";
@@ -377,6 +378,17 @@ function logToConsole(text: string) {
 				keyInput.scrollIntoView();
 				keyInput.focus();
 			}
+		});
+	}
+
+	/* Only in the shell when the resource actually has culture siblings. */
+	const allLanguagesButtonElement = document.getElementById(allLanguagesButton);
+	if (allLanguagesButtonElement !== null) {
+		allLanguagesButtonElement.addEventListener(click, () => {
+			flushDocumentUpdate();
+			vscode.postMessage(new WebpanelPostMessage(
+				WebpanelPostMessageKind.OpenAllLanguages,
+				JSON.stringify(emptyString)));
 		});
 	}
 
