@@ -1,5 +1,13 @@
 # Change Log
 
+## Unreleased
+
+- **Deprecated `resxpress.configuration.indentSpaceLength`**; it will be removed in a future
+  version. The fallback indent now comes from `editor.insertSpaces` and `editor.tabSize` for
+  the file. A value you have set explicitly is still honoured.
+- **Create Resx File** now indents the way your editor does - a tab, or `editor.tabSize`
+  spaces - instead of always a tab. Existing files keep their own indentation.
+
 ## 7.9.0 - 1-Sep-2026
 
 - Package updates.

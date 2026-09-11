@@ -115,10 +115,18 @@ Default: **`true`**
 **true**: File scoped namespaces.  
 **false**: Block scoped namespaces.  
 
-1. `indentSpaceLength`: Indent space length for resx xml, used only when a file's own indentation
-cannot be detected. A file that is already indented keeps its own style.
-Default: **4**.
+1. `indentSpaceLength`: **Deprecated, and will be removed in a future version** — use
+`editor.insertSpaces` and `editor.tabSize` instead.
+It is still honoured wherever it is explicitly set.
 Options: **2, 4, 8**.
+
+### Indentation
+
+A resx that is already indented keeps its own style, tabs included: ResXpress copies whatever
+the file uses, so a one-character edit stays a one-character edit in the diff. Indentation is
+only _chosen_ where there is nothing to copy — a new file made with **Create Resx File**, or a
+file with no indentation at all — and that choice follows your editor: a tab when
+`editor.insertSpaces` is off, otherwise `editor.tabSize` spaces.
 
 ## Known Issues
 

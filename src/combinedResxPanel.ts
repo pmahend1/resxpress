@@ -5,6 +5,7 @@ import type { CombinedEntry } from "./combinedEntry";
 import type { CombinedPayload } from "./combinedPayload";
 import { CombinedResx } from "./combinedResx";
 import { Constants } from "./constants";
+import { IndentPreference } from "./indentPreference";
 import { readInlineIcon } from "./inlineSvgIcon";
 import { Logger } from "./logger";
 import { nameof } from "./nameof";
@@ -13,7 +14,6 @@ import type { ResxEntry } from "./resxEntry";
 import { ResxFile } from "./resxFile";
 import { ResxFileName } from "./resxFileName";
 import { ResxGroup } from "./resxGroup";
-import { Settings } from "./settings";
 import { getNonce } from "./util";
 import { WebpanelPostMessageKind } from "./webpanelMessageKind";
 import { WebpanelPostMessage } from "./webpanelPostMessage";
@@ -373,7 +373,7 @@ export class CombinedResxPanel {
 
     private static readEntries(document: vscode.TextDocument): ResxEntry[] | undefined {
         try {
-            return ResxFile.parse(document.getText(), Settings.indentSpaceLength).entries;
+            return ResxFile.parse(document.getText(), IndentPreference.resolve(document.uri)).entries;
         }
         catch (error) {
             if (error instanceof Error) {

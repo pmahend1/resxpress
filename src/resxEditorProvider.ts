@@ -3,13 +3,13 @@ import { CommandId } from "./commandId";
 import { Constants, emptyString } from "./constants";
 import { setNewNamespace, sortByKeys } from "./extension";
 import { FileHelper } from "./fileHelper";
+import { IndentPreference } from "./indentPreference";
 import { Logger } from "./logger";
 import { ResxDocumentWriter } from "./resxDocumentWriter";
 import { ResxEditor } from "./resxEditor";
 import type { ResxEntry } from "./resxEntry";
 import { ResxFile } from "./resxFile";
 import { ResxGroup } from "./resxGroup";
-import { Settings } from "./settings";
 import { WebpanelPostMessageKind } from "./webpanelMessageKind";
 import { WebpanelPostMessage } from "./webpanelPostMessage";
 
@@ -108,7 +108,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
 
         function updateWebview() {
             try {
-                const entries = ResxFile.parse(document.getText(), Settings.indentSpaceLength).entries;
+                const entries = ResxFile.parse(document.getText(), IndentPreference.resolve(document.uri)).entries;
                 webviewPanel.webview.postMessage(new WebpanelPostMessage(WebpanelPostMessageKind.UpdateWebPanel, JSON.stringify(entries)));
             }
             catch (error) {

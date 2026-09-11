@@ -26,8 +26,8 @@ export class ResxFormat {
         this.trailingWhitespace = trailingWhitespace;
     }
 
-    public static detect(text: string, fallbackIndentLength: number): ResxFormat {
-        return new ResxFormat(detectIndent(text) ?? fallbackIndentLength,
+    public static detect(text: string, fallbackIndent: string | number): ResxFormat {
+        return new ResxFormat(detectIndent(text) ?? fallbackIndent,
                               text.includes(carriageReturnLineFeed) ? carriageReturnLineFeed : lineFeed,
                               detectSpaceBeforeSelfClosingSlash(text),
                               detectTrailingWhitespace(text));
