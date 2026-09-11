@@ -5,6 +5,7 @@ import type { CombinedEntry } from "./combinedEntry";
 import type { CombinedPayload } from "./combinedPayload";
 import { CombinedResx } from "./combinedResx";
 import { Constants } from "./constants";
+import { readInlineIcon } from "./inlineSvgIcon";
 import { Logger } from "./logger";
 import { nameof } from "./nameof";
 import { ResxDocumentWriter } from "./resxDocumentWriter";
@@ -21,6 +22,8 @@ const resxInSameFolder = "*.resx";
 const panelTitle = (baseName: string) => `${baseName} - All Languages`;
 const unparseableFile = (fileName: string) => `${fileName} is not valid resx, so the combined panel is not being updated`;
 const skippedWrite = (fileName: string) => `${fileName} is not valid resx, so it was left alone`;
+const saveAllLabel = "Save every language file this table has changed";
+const sortByKeysLabel = "Sort every language file by key";
 
 /**
  * An editable table of every culture of one resource, one column per culture.
@@ -384,8 +387,9 @@ export class CombinedResxPanel {
     private getHtmlForWebview(webview: vscode.Webview, extensionUri: vscode.Uri): string {
         const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(extensionUri.fsPath, "out", "combinedPanelScript.js")));
         const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(extensionUri.fsPath, "styles", "combinedPanel.css")));
-        const maPlusThick = webview.asWebviewUri(vscode.Uri.file(path.join(extensionUri.fsPath, "styles", "ma-plus-thick.svg")));
-        const faSortAtoZ = webview.asWebviewUri(vscode.Uri.file(path.join(extensionUri.fsPath, "styles", "fa-arrow-down-a-z-solid-full.svg")));
+        const addIcon = readInlineIcon(extensionUri.fsPath, "ms-add.svg");
+        const sortByKeysIcon = readInlineIcon(extensionUri.fsPath, "ms-sort-by-alpha.svg");
+        const errorIcon = readInlineIcon(extensionUri.fsPath, "ms-error.svg");
         const nonce = getNonce();
 
         /*
@@ -406,18 +410,22 @@ export class CombinedResxPanel {
 </head>
 <body>
     <div class="toolbar">
-        <button id="addButton" class="btn primary">
-            <img src="${maPlusThick}" alt="Add Icon" class="icon filter-fefefe"> Add New Resource
-        </button>
-        <button id="saveAllButton" class="btn secondary" title="Save every language file this table has changed">
-            Save All
-        </button>
-        <button id="sortByKeysButton" class="btn secondary" title="Sort every language file by key">
-            <img src="${faSortAtoZ}" alt="Sort Icon" class="icon filter-fefefe">Sort By Keys
-        </button>
-        <button id="commentModeButton" class="btn secondary"></button>
-        <p id="errorBlock" class="error-block"></p>
-        <!-- Full width flex basis, so search takes a row of its own under the buttons. -->
+        <div class="toolbar-actions">
+            <button id="addButton" class="btn primary">
+                ${addIcon}Add New Resource
+            </button>
+            <button id="saveAllButton" class="btn secondary" title="${saveAllLabel}">
+                Save All
+            </button>
+            <button id="sortByKeysButton" class="btn secondary icon-only" title="${sortByKeysLabel}" aria-label="${sortByKeysLabel}">
+                ${sortByKeysIcon}
+            </button>
+            <!-- Label and tooltip are written by combinedPanelScript; they say which mode it is in. -->
+            <button id="commentModeButton" class="btn secondary"></button>
+        </div>
+        <div id="errorBlock" class="error-block" role="alert" hidden>
+            ${errorIcon}<span id="errorText"></span>
+        </div>
         <div class="search-section">
             <input id="searchInput" class="search-input" type="search"
                    placeholder="Search key, value or comment"

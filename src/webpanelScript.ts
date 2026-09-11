@@ -9,6 +9,7 @@ let currentEntries: ResxEntry[] = [];
 const resxpressWebPanel = "resxpress.webpanel";
 const tbody = "tbody";
 const errorBlock = "errorBlock";
+const errorText = "errorText";
 const key = "key";
 const value = "value";
 const comment = "comment";
@@ -25,8 +26,8 @@ const deleteStr = "delete";
 const X = "X";
 const strong = "strong";
 const sortByKeysButton = "sortByKeysButton";
-const errorDuplicateKey = (key: string) => `Error: Data with ${key} already exists`;
-const errorInvalidResx = "Error: Document is not valid resx";
+const errorDuplicateKey = (key: string) => `Data with ${key} already exists`;
+const errorInvalidResx = "Document is not valid resx";
 const errorKeyMandatory = "Key is a mandatory field!";
 const changeNamespaceButton = "changeNamespaceButton";
 const addButton = "addButton";
@@ -62,17 +63,20 @@ function logToConsole(text: string) {
 
 	const table = document.querySelector(tbody)!;
 	const errorContainer = document.getElementById(errorBlock);
+	const errorTextElement = document.getElementById(errorText);
 	const searchInputElement = getInput(searchInput);
 	const searchStatusElement = document.getElementById(searchStatus);
 	let pendingUpdateHandle: ReturnType<typeof setTimeout> | undefined;
 
 	function showError(errorMessage: string) {
-		if (errorContainer === null) {
+		if (errorContainer === null || errorTextElement === null) {
 			return;
 		}
 
-		errorContainer.innerText = errorMessage;
-		errorContainer.style.display = errorMessage.length === 0 ? none : emptyString;
+		errorTextElement.innerText = errorMessage;
+		// Hidden rather than emptied: an empty row would still take a line's height.
+		// The ResizeObserver below republishes the toolbar height either way.
+		errorContainer.hidden = errorMessage.length === 0;
 	}
 
 	function getInput(id: string): HTMLInputElement | undefined {
@@ -403,10 +407,9 @@ function logToConsole(text: string) {
 	}
 
 	/*
-	 * The column headers stick directly under the toolbar, so they need its
-	 * height. It is not a constant: the toolbar wraps, so the height changes with
-	 * the panel width. Publishing the measured value replaces a hardcoded 62px
-	 * that was only ever correct for a single-row toolbar.
+	 * The column headers stick directly under the toolbar, so they need its height,
+	 * which changes with the panel width and the error row. This replaces a
+	 * hardcoded 62px that only ever fit a single-row toolbar.
 	 */
 	const stickyToolbar = document.querySelector(stickyToolbarSelector);
 	if (stickyToolbar !== null) {

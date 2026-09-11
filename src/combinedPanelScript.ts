@@ -11,6 +11,7 @@ const tbody = "tbody";
 const tableHead = "tableHead";
 const tableScroll = "tableScroll";
 const errorBlock = "errorBlock";
+const errorText = "errorText";
 const keyField = "key";
 const valueField = "value";
 const commentField = "comment";
@@ -27,7 +28,6 @@ const hidden = "hidden";
 const deleteStr = "delete";
 const X = "X";
 const message = "message";
-const none = "none";
 const keydown = "keydown";
 const escapeKey = "Escape";
 const findKey = "f";
@@ -55,9 +55,9 @@ const perLanguageCommentsLabel = "Comments: Per language";
 const unifiedCommentsTooltip = (fileName: string) => `One comment column, read from and written to ${fileName}. Click to give every language its own comment column.`;
 const perLanguageCommentsTooltip = "A comment column per language. Click to show only the default language's comment.";
 const deleteRowTooltip = "Remove this key from every language file";
-const errorDuplicateKey = (key: string) => `Error: Data with ${key} already exists`;
+const errorDuplicateKey = (key: string) => `Data with ${key} already exists`;
 const errorKeyMandatory = "Key is a mandatory field!";
-const errorInvalidPayload = "Error: Could not read the language files";
+const errorInvalidPayload = "Could not read the language files";
 const searchSummary = (matchCount: number, total: number) => `Showing ${matchCount} of ${total}`;
 const macUserAgentMarker = "Mac";
 const macFindShortcut = "⌘F";
@@ -78,6 +78,7 @@ function logToConsole(logText: string) {
     const body = document.querySelector(tbody)!;
     const head = document.getElementById(tableHead);
     const errorContainer = document.getElementById(errorBlock);
+    const errorTextElement = document.getElementById(errorText);
     const searchInputElement = getInput(searchInput);
     const searchStatusElement = document.getElementById(searchStatus);
     const commentModeElement = document.getElementById(commentModeButton);
@@ -90,12 +91,13 @@ function logToConsole(logText: string) {
     let pendingUpdateHandle: ReturnType<typeof setTimeout> | undefined;
 
     function showError(errorMessage: string) {
-        if (errorContainer === null) {
+        if (errorContainer === null || errorTextElement === null) {
             return;
         }
 
-        errorContainer.innerText = errorMessage;
-        errorContainer.style.display = errorMessage.length === 0 ? none : emptyString;
+        errorTextElement.innerText = errorMessage;
+        // Hidden rather than emptied: an empty row would still take a line's height.
+        errorContainer.hidden = errorMessage.length === 0;
     }
 
     function getInput(id: string): HTMLInputElement | undefined {

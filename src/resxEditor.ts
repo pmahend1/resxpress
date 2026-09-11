@@ -1,7 +1,15 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import { emptyString } from "./constants";
+import { readInlineIcon } from "./inlineSvgIcon";
 import { getNonce } from "./util";
+
+const addLabel = "Add New Resource";
+const switchToTextEditorLabel = "Switch to text editor";
+const allLanguagesLabel = "Languages";
+const allLanguagesTooltip = "Edit every language of this resource in one table";
+const sortByKeysLabel = "Sort by keys";
+const changeNamespaceLabel = "Change namespace";
 
 export class ResxEditor {
     private readonly context: vscode.ExtensionContext;
@@ -13,24 +21,27 @@ export class ResxEditor {
 
         const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "out", "webpanelScript.js")));
         const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "webpanel.css")));
-        const maPlusThick = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "ma-plus-thick.svg")));
-        const faPenToSquare = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "fa-pen-to-square.svg")));
-        const faRightLeft = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "fa-right-left.svg")));
-        const faSortAtoZ = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "fa-arrow-down-a-z-solid-full.svg")));
-        const columns = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "columns.svg")));
+        const addIcon = readInlineIcon(this.context.extensionPath, "ms-add.svg");
+        const changeNamespaceIcon = readInlineIcon(this.context.extensionPath, "ms-edit-square.svg");
+        const switchToTextEditorIcon = readInlineIcon(this.context.extensionPath, "ms-swap-horiz.svg");
+        const sortByKeysIcon = readInlineIcon(this.context.extensionPath, "ms-sort-by-alpha.svg");
+        const allLanguagesIcon = readInlineIcon(this.context.extensionPath, "ms-translate.svg");
+        const errorIcon = readInlineIcon(this.context.extensionPath, "ms-error.svg");
         const nonce = getNonce();
 
         /*
          * Offered only when there is something to combine. A resource with no
          * culture siblings has nothing to show in a second column, and the
-         * button would be a dead end on the majority of resx files.
+         * button would be a dead end on the majority of resx files. It keeps a
+         * short label because no icon says "every culture in one table" alone.
          */
         const allLanguagesButton = hasCultureSiblings
-            ? `<button id="allLanguagesButton" class="btn secondary" title="Edit every language of this resource in one table">
-            <img src="${columns}" alt="All Languages Icon" class="icon filter-fefefe"> All Languages
-        </button>`
+            ? `<button id="allLanguagesButton" class="btn secondary" title="${allLanguagesTooltip}">
+                ${allLanguagesIcon}${allLanguagesLabel}
+            </button>`
             : emptyString;
 
+        // Icon-only buttons need title and aria-label; the inlined icon itself is aria-hidden.
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -43,25 +54,30 @@ export class ResxEditor {
 </head>
 <body>
     <div class="sticky-div">
-        <button id="addButton" class="btn primary">
-           <img src="${maPlusThick}" alt="Add Icon" class="icon filter-fefefe"> Add New Resource
-        </button>
-        
-        <button id="switchToTextEditorButton" class="btn secondary">
-            <img src="${faRightLeft}" alt="Switch Icon" class="icon filter-fefefe"> Switch to Text Editor
-        </button>
-        ${allLanguagesButton}
-        <div class="namespace-section">
-            <span id="namespaceSpan">Namespace: <strong>${escapeHtml(namespace)}</strong></span>
-            <button id="changeNamespaceButton" class="btn secondary">
-                <img src="${faPenToSquare}" alt="Edit Icon" class="icon filter-fefefe"> Change Namespace
-            </button>
+        <div class="toolbar-row">
+            <div class="toolbar-actions">
+                <button id="addButton" class="btn primary">
+                    ${addIcon}${addLabel}
+                </button>
+                <button id="switchToTextEditorButton" class="btn secondary icon-only" title="${switchToTextEditorLabel}" aria-label="${switchToTextEditorLabel}">
+                    ${switchToTextEditorIcon}
+                </button>
+                ${allLanguagesButton}
+                <button id="sortByKeysButton" class="btn secondary icon-only" title="${sortByKeysLabel}" aria-label="${sortByKeysLabel}">
+                    ${sortByKeysIcon}
+                </button>
+            </div>
+            <!-- Information, not an action, so it sits at the right edge rather than among the buttons. -->
+            <div class="namespace-section">
+                <span id="namespaceSpan">Namespace: <strong>${escapeHtml(namespace)}</strong></span>
+                <button id="changeNamespaceButton" class="btn secondary icon-only" title="${changeNamespaceLabel}" aria-label="${changeNamespaceLabel}">
+                    ${changeNamespaceIcon}
+                </button>
+            </div>
         </div>
-        <button id="sortByKeysButton" class="btn secondary">
-            <img src="${faSortAtoZ}" alt="Sort Icon" class="icon filter-fefefe">Sort By Keys
-        </button>
-        <p id="errorBlock" class="error-block"></p>
-        <!-- Last in the toolbar, and given a full-width flex basis, so it takes a row of its own under the buttons. -->
+        <div id="errorBlock" class="error-block" role="alert" hidden>
+            ${errorIcon}<span id="errorText"></span>
+        </div>
         <div class="search-section">
             <input id="searchInput" class="search-input" type="search"
                    placeholder="Search key, value or comment"
