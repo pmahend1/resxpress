@@ -128,7 +128,7 @@ p {
 
 /*
  * Material 3 shape, spacing and emphasis - a pill for the single high-emphasis
- * action, 8px for the tonal ones, a 36px minimum target - over VS Code's own
+ * action, 8px for the tonal ones, 40px tall - over VS Code's own
  * button tokens. The colours used to be hardcoded (#067ab8, #5A9BD5) and ignored
  * the theme entirely; an M3 palette would have been the same mistake in nicer
  * shades, so only the geometry comes from M3 and every colour comes from the
@@ -142,11 +142,11 @@ p {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   /* Buttons wrap onto the next line rather than shrinking below their label. */
   flex: 0 0 auto;
-  min-height: 36px;
-  padding: 6px 14px;
+  min-height: 40px;
+  padding: 6px 16px;
   border: none;
   border-radius: 8px;
   font-family: inherit;
@@ -155,13 +155,32 @@ p {
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
-  background-color: var(--vscode-button-secondaryBackground, #3a3d41);
+  background-color: var(--secondary-button-background);
   color: var(--vscode-button-secondaryForeground, #ffffff);
   transition: background-color 120ms ease;
 }
 
 .btn:hover {
-  background-color: var(--vscode-button-secondaryHoverBackground, #45494e);
+  background-color: var(--secondary-button-hover-background);
+}
+
+/*
+ * The theme's secondary button colour is right in light themes, but in dark ones
+ * it sits too close to the editor background - Dark Modern's is #313131 on
+ * #1f1f1f - and the buttons barely read as buttons. vscode-dark is the class VS
+ * Code puts on a dark-themed webview's body; those themes get a surface mixed
+ * from the editor's own colours instead, lifted toward the foreground so it keeps
+ * the theme's tint. Variables rather than a body.vscode-dark .btn rule, which
+ * would outrank .btn.primary. High contrast themes keep their tokens.
+ */
+body {
+  --secondary-button-background: var(--vscode-button-secondaryBackground, #3a3d41);
+  --secondary-button-hover-background: var(--vscode-button-secondaryHoverBackground, #45494e);
+}
+
+body.vscode-dark {
+  --secondary-button-background: color-mix(in srgb, var(--vscode-editor-foreground) 20%, var(--vscode-editor-background));
+  --secondary-button-hover-background: color-mix(in srgb, var(--vscode-editor-foreground) 28%, var(--vscode-editor-background));
 }
 
 /*
@@ -199,8 +218,8 @@ p {
  * button must carry both. Square rather than pill, so the icons read as a group.
  */
 .btn.icon-only {
-  min-width: 36px;
-  padding: 6px;
+  min-width: 40px;
+  padding: 8px;
 }
 
 /*
@@ -301,17 +320,24 @@ p {
 }
 
 /*
- * The icons are single-colour SVGs loaded as <img>, so they cannot take
- * currentColor and the filter below is what paints them. White is right for both
- * variants: VS Code's button foregrounds are white in light and dark alike.
- * Spacing from a label is the button's `gap`, so no margin here.
+ * Inline SVG, so the icon takes its button's text colour: white on the primary
+ * button, the theme's own on the secondary ones. A fill on an inner <path> would
+ * beat this, so the icon files leave it off. Spacing from a label is the
+ * button's `gap`, so no margin here.
+ *
+ * Material's sizes: 20px beside a label, 24px alone in a 40px icon button. Each
+ * file is downloaded at the optical size it is shown at, because Material draws
+ * every optical size separately; rendered at 16px, the strokes thinned out and
+ * the icons looked weak beside the labels.
  */
 .icon {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   flex: 0 0 auto;
+  fill: currentColor;
 }
 
-.filter-fefefe {
-  filter: invert(100%) sepia(100%) saturate(1%) hue-rotate(208deg) brightness(109%) contrast(99%);
+.btn.icon-only .icon {
+  width: 24px;
+  height: 24px;
 }

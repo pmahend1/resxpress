@@ -5,6 +5,7 @@ import type { CombinedEntry } from "./combinedEntry";
 import type { CombinedPayload } from "./combinedPayload";
 import { CombinedResx } from "./combinedResx";
 import { Constants } from "./constants";
+import { readInlineIcon } from "./inlineSvgIcon";
 import { Logger } from "./logger";
 import { nameof } from "./nameof";
 import { ResxDocumentWriter } from "./resxDocumentWriter";
@@ -386,14 +387,14 @@ export class CombinedResxPanel {
     private getHtmlForWebview(webview: vscode.Webview, extensionUri: vscode.Uri): string {
         const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(extensionUri.fsPath, "out", "combinedPanelScript.js")));
         const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(extensionUri.fsPath, "styles", "combinedPanel.css")));
-        const maPlusThick = webview.asWebviewUri(vscode.Uri.file(path.join(extensionUri.fsPath, "styles", "ma-plus-thick.svg")));
-        const faSortAtoZ = webview.asWebviewUri(vscode.Uri.file(path.join(extensionUri.fsPath, "styles", "fa-arrow-down-a-z-solid-full.svg")));
+        const addIcon = readInlineIcon(extensionUri.fsPath, "ms-add.svg");
+        const sortByKeysIcon = readInlineIcon(extensionUri.fsPath, "ms-sort-by-alpha.svg");
         const nonce = getNonce();
 
         /*
          * Sort By Keys is icon-only, and an icon with no text has no accessible
          * name of its own, so it carries title for the pointer and aria-label for
-         * the screen reader while the <img> is marked decorative.
+         * the screen reader while the icon is marked decorative.
          *
          * No resx content is interpolated here at all - not even a column
          * header, since a file name is user controlled too. The shell ships
@@ -414,13 +415,13 @@ export class CombinedResxPanel {
     <div class="toolbar">
         <div class="toolbar-actions">
             <button id="addButton" class="btn primary">
-                <img src="${maPlusThick}" alt="" class="icon filter-fefefe">Add New Resource
+                ${addIcon}Add New Resource
             </button>
             <button id="saveAllButton" class="btn secondary" title="${saveAllLabel}">
                 Save All
             </button>
             <button id="sortByKeysButton" class="btn secondary icon-only" title="${sortByKeysLabel}" aria-label="${sortByKeysLabel}">
-                <img src="${faSortAtoZ}" alt="" class="icon filter-fefefe">
+                ${sortByKeysIcon}
             </button>
             <!-- Label and tooltip are written by combinedPanelScript; they say which mode it is in. -->
             <button id="commentModeButton" class="btn secondary"></button>
