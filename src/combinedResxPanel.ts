@@ -389,6 +389,7 @@ export class CombinedResxPanel {
         const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(extensionUri.fsPath, "styles", "combinedPanel.css")));
         const addIcon = readInlineIcon(extensionUri.fsPath, "ms-add.svg");
         const sortByKeysIcon = readInlineIcon(extensionUri.fsPath, "ms-sort-by-alpha.svg");
+        const errorIcon = readInlineIcon(extensionUri.fsPath, "ms-error.svg");
         const nonce = getNonce();
 
         /*
@@ -427,7 +428,9 @@ export class CombinedResxPanel {
             <button id="commentModeButton" class="btn secondary"></button>
         </div>
         <!-- Hidden until there is something to report; an empty row would still cost a line. -->
-        <p id="errorBlock" class="error-block" hidden></p>
+        <div id="errorBlock" class="error-block" role="alert" hidden>
+            ${errorIcon}<span id="errorText"></span>
+        </div>
         <!-- A row of its own, so search gets the panel's full width. -->
         <div class="search-section">
             <input id="searchInput" class="search-input" type="search"

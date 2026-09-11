@@ -9,6 +9,7 @@ let currentEntries: ResxEntry[] = [];
 const resxpressWebPanel = "resxpress.webpanel";
 const tbody = "tbody";
 const errorBlock = "errorBlock";
+const errorText = "errorText";
 const key = "key";
 const value = "value";
 const comment = "comment";
@@ -25,8 +26,8 @@ const deleteStr = "delete";
 const X = "X";
 const strong = "strong";
 const sortByKeysButton = "sortByKeysButton";
-const errorDuplicateKey = (key: string) => `Error: Data with ${key} already exists`;
-const errorInvalidResx = "Error: Document is not valid resx";
+const errorDuplicateKey = (key: string) => `Data with ${key} already exists`;
+const errorInvalidResx = "Document is not valid resx";
 const errorKeyMandatory = "Key is a mandatory field!";
 const changeNamespaceButton = "changeNamespaceButton";
 const addButton = "addButton";
@@ -62,16 +63,17 @@ function logToConsole(text: string) {
 
 	const table = document.querySelector(tbody)!;
 	const errorContainer = document.getElementById(errorBlock);
+	const errorTextElement = document.getElementById(errorText);
 	const searchInputElement = getInput(searchInput);
 	const searchStatusElement = document.getElementById(searchStatus);
 	let pendingUpdateHandle: ReturnType<typeof setTimeout> | undefined;
 
 	function showError(errorMessage: string) {
-		if (errorContainer === null) {
+		if (errorContainer === null || errorTextElement === null) {
 			return;
 		}
 
-		errorContainer.innerText = errorMessage;
+		errorTextElement.innerText = errorMessage;
 		/*
 		 * The error text is a toolbar row of its own now, so an empty one would
 		 * still reserve a line's height - hence hidden rather than an empty

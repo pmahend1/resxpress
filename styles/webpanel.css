@@ -184,6 +184,36 @@ body.vscode-dark {
 }
 
 /*
+ * High contrast themes draw controls as outlines rather than fills. Without one,
+ * HC Dark's primary button had no fill to set it apart from the page and its
+ * secondaries sat on the grey fallback above, which the theme never asked for;
+ * HC Light's white secondaries were bare text on a white page. Every button gets
+ * the theme's contrast border instead, and hover moves that border to the active
+ * contrast colour rather than changing the fill. Both classes are listed in case
+ * a light high contrast theme does not also carry the first.
+ */
+body.vscode-high-contrast,
+body.vscode-high-contrast-light {
+  --secondary-button-background: var(--vscode-button-secondaryBackground, transparent);
+  --secondary-button-hover-background: var(--vscode-button-secondaryBackground, transparent);
+}
+
+body.vscode-high-contrast .btn,
+body.vscode-high-contrast-light .btn {
+  border: 1px solid var(--vscode-button-border, var(--vscode-contrastBorder, currentColor));
+}
+
+body.vscode-high-contrast .btn:hover,
+body.vscode-high-contrast-light .btn:hover {
+  border-color: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+}
+
+body.vscode-high-contrast .btn.primary:hover,
+body.vscode-high-contrast-light .btn.primary:hover {
+  background-color: var(--vscode-button-background, transparent);
+}
+
+/*
  * M3's pressed state layer, done theme-blind: the overlay is drawn from the
  * button's own foreground, so it lifts a dark surface and settles a light one
  * without either colour being named here.
@@ -205,6 +235,12 @@ body.vscode-dark {
   border-radius: 999px;
   padding: 6px 18px;
   font-weight: 600;
+  /*
+   * The add glyph leaves 4.6px of empty space either side of its plus inside the
+   * 20px box, where translate leaves 1px, so the shared 8px gap put the plus
+   * visibly farther from its label. 4px lands it at the same distance.
+   */
+  gap: 4px;
 }
 
 .btn.primary:hover {
@@ -226,13 +262,31 @@ body.vscode-dark {
  * No flex-grow: this was the second grower in the old wrapping row. It gets a
  * row of its own now, and webpanelScript hides it outright when there is nothing
  * to say so the empty row costs no height.
+ *
+ * Material 3 has no inline error component, only the errorContainer and
+ * onErrorContainer colour roles. This container applies those roles through the
+ * theme: the surface and border take inputValidation.error*, the tokens VS Code's
+ * own input validation messages use, defined in every theme including high
+ * contrast. The text and icon take the plain foreground in the onErrorContainer
+ * role rather than red, because errorForeground as text on the tinted surface
+ * falls short of 4.5:1 in both Modern themes.
  */
 .error-block {
-  color: var(--vscode-errorForeground, #f14c4c);
-  font-size: var(--vscode-font-size, 13px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 0;
-  /* The bare `p` rule above centres the delete marker in its cell; not this. */
-  text-align: left;
+  padding: 8px 12px;
+  border: 1px solid var(--vscode-inputValidation-errorBorder, var(--vscode-errorForeground, #f14c4c));
+  border-radius: 8px;
+  background-color: var(--vscode-inputValidation-errorBackground, color-mix(in srgb, var(--vscode-errorForeground, #f14c4c) 15%, var(--vscode-editor-background)));
+  color: var(--vscode-inputValidation-errorForeground, var(--vscode-editor-foreground));
+  font-size: var(--vscode-font-size, 13px);
+}
+
+/* The display: flex above would otherwise beat the hidden attribute's display: none. */
+.error-block[hidden] {
+  display: none;
 }
 
 /*

@@ -26,6 +26,7 @@ export class ResxEditor {
         const switchToTextEditorIcon = readInlineIcon(this.context.extensionPath, "ms-swap-horiz.svg");
         const sortByKeysIcon = readInlineIcon(this.context.extensionPath, "ms-sort-by-alpha.svg");
         const allLanguagesIcon = readInlineIcon(this.context.extensionPath, "ms-translate.svg");
+        const errorIcon = readInlineIcon(this.context.extensionPath, "ms-error.svg");
         const nonce = getNonce();
 
         /*
@@ -80,7 +81,9 @@ export class ResxEditor {
             </div>
         </div>
         <!-- Hidden until there is something to report; an empty row would still cost a line. -->
-        <p id="errorBlock" class="error-block" hidden></p>
+        <div id="errorBlock" class="error-block" role="alert" hidden>
+            ${errorIcon}<span id="errorText"></span>
+        </div>
         <!-- A row of its own, so the box gets the editor's full width. -->
         <div class="search-section">
             <input id="searchInput" class="search-input" type="search"
