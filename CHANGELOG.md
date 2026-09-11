@@ -1,12 +1,46 @@
 # Change Log
 
-## Unreleased
+## 8.0.0 - 11-Sep-2026
 
+### New
+
+- **Edit All Languages**: a combined editor with one column per culture, so
+  `Resource1.resx`, `Resource1.de.resx`, `Resource1.fr.resx` and so on can be edited side by
+  side. Each column writes back to its own file. Missing translations are highlighted, comments
+  switch between a single column and one column per language, and **Save All** saves every
+  changed file. Open it from the **Languages** button in the resx editor, the command palette,
+  an editor tab's context menu or the Explorer. A panel left open now survives a window reload.
+- **Search** in the resx editor: filter rows by key, value or comment. `Ctrl+F` (`Cmd+F` on
+  macOS) focuses the search box and `Esc` clears it.
+
+### Changed
+
+- **The resx editor no longer reformats files.** Indentation, line endings, comment positions
+  and the trailing newline are preserved, and only the lines you change are rewritten -
+  previously the whole file was rewritten on every keystroke.
+- **Redesigned toolbars** in both editors. They follow your colour theme (including high
+  contrast), use Material Symbols icons, and no longer wrap into a cluttered row; the
+  secondary actions are icon buttons with tooltips.
+- **Create Resx File** now indents the way your editor does - a tab, or `editor.tabSize`
+  spaces - instead of always a tab. Existing files keep their own indentation.
 - **Deprecated `resxpress.configuration.indentSpaceLength`**; it will be removed in a future
   version. The fallback indent now comes from `editor.insertSpaces` and `editor.tabSize` for
   the file. A value you have set explicitly is still honoured.
-- **Create Resx File** now indents the way your editor does - a tab, or `editor.tabSize`
-  spaces - instead of always a tab. Existing files keep their own indentation.
+
+### Fixed
+
+- Keys containing `&` or `<` were written unescaped, producing a file that no longer parsed.
+- A deleted row came back if another row was edited afterwards.
+- Clicking **Add New Resource** repeatedly could give several rows the same id.
+- The resx editor did not pick up changes made to the file in a text editor.
+
+### Other
+
+- Documented under Known Issues why a resx diff shows two ResXpress editors, and the setting
+  that switches diffs to plain text.
+- Publishing is now triggered by a release tag. The Marketplace badges were replaced because
+  shields.io retired the old ones.
+- Package updates.
 
 ## 7.9.0 - 1-Sep-2026
 
