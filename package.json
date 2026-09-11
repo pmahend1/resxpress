@@ -185,15 +185,15 @@
         "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./src/test/tsExtensionResolver.mjs --test src/test/*.test.ts"
     },
     "devDependencies": {
-        "@types/node": "^24.13.3",
+        "@types/node": "^24.13.4",
         "@types/vscode": "^1.125.0",
         "@vscode/test-electron": "^3.1.0",
         "@vscode/vsce": "^3.9.2",
-        "eslint": "^10.9.1",
+        "eslint": "^10.10.0",
         "ovsx": "^1.1.1",
         "ts-loader": "^9.6.2",
         "typescript": "^6.0.3",
-        "typescript-eslint": "^8.69.0",
+        "typescript-eslint": "^8.70.0",
         "webpack": "^5.110.3",
         "webpack-cli": "^7.2.3",
         "xml-js": "^1.6.11"
