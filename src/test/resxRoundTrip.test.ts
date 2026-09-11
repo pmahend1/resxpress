@@ -102,9 +102,10 @@ test("a new entry is appended after the last data element, not at the end of the
 
 test("the first entry added to a brand new file lands below the Data marker", () => {
     /*
-     * Mirrors what createResxFile writes: tab indented, no trailing newline, and
-     * <!--Data--> as the last child, so there is no existing <data> element to append
-     * after. Every other add test starts from a file that already has entries.
+     * An empty file's shape: no trailing newline and <!--Data--> as the last child, so
+     * there is no existing <data> element to append after. Every other add test starts
+     * from a file that already has entries. Tab indented, as Create Resx File writes
+     * it when editor.insertSpaces is off.
      */
     const created = `<?xml version="1.0" encoding="utf-8"?>\n<root>\n\t<resheader name="resmimetype">\n\t\t<value>text/microsoft-resx</value>\n\t</resheader>\n\t<!--Data-->\n</root>`;
     const resxFile = ResxFile.parse(created, 4);
@@ -119,14 +120,14 @@ test("the first entry added to a brand new file lands below the Data marker", ()
     assert.ok(xml.endsWith("</root>"), "the template has no trailing newline and does not grow one");
 });
 
-test("indentation comes from the file, not from the setting", () => {
+test("indentation comes from the file, not from the fallback", () => {
     assert.ok(ResxFile.parse(fixture, 8).toXml().includes(`\n  <data name="Padded"`));
 
     const tabbed = `<root>\n\t<data name="A" xml:space="preserve">\n\t\t<value>a</value>\n\t</data>\n</root>\n`;
     assert.equal(ResxFile.parse(tabbed, 4).toXml(), tabbed);
 });
 
-test("the setting still decides indentation when the file has none to copy", () => {
+test("the fallback decides indentation when the file has none to copy", () => {
     const unformatted = `<root><data name="A" xml:space="preserve"><value>a</value></data></root>`;
     assert.ok(ResxFile.parse(unformatted, 2).toXml().includes(`\n  <data name="A"`));
 });

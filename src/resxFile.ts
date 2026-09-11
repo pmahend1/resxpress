@@ -28,11 +28,12 @@ export class ResxFile {
     }
 
     /**
+     * @param fallbackIndent used only when the text has no indentation to copy.
      * @throws when the text is not well-formed XML.
      */
-    public static parse(text: string, fallbackIndentLength: number = defaultIndentLength): ResxFile {
+    public static parse(text: string, fallbackIndent: string | number = defaultIndentLength): ResxFile {
         const document = xmljs.xml2js(text) as xmljs.Element;
-        return new ResxFile(document, ResxFormat.detect(text, fallbackIndentLength));
+        return new ResxFile(document, ResxFormat.detect(text, fallbackIndent));
     }
 
     public get entries(): ResxEntry[] {

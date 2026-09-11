@@ -8,6 +8,8 @@ import * as path from "path";
 import { ResxEditorProvider } from "./resxEditorProvider";
 import { NotificationService } from "./notificationService";
 import { FileHelper } from "./fileHelper";
+import { IndentPreference } from "./indentPreference";
+import { createResxTemplate } from "./resxTemplate";
 import { TextInputBoxOptions } from "./textInputBoxOptions";
 import { CommandId } from "./commandId";
 import { Constants, emptyString } from "./constants";
@@ -206,7 +208,6 @@ function loadConfiguration() {
 	let resxConfig = vscode.workspace.getConfiguration(`${Constants.resxpress}.${Constants.configuration}`);
 	Settings.shouldGenerateStronglyTypedResourceClassOnSave = resxConfig.get<boolean>(SettingKey.generateStronglyTypedResourceClassOnSave) ?? false;
 	Settings.shouldUseFileScopedNamespace = resxConfig.get<boolean>(SettingKey.useFileScopedNamespace) ?? true;
-	Settings.indentSpaceLength = resxConfig.get<number>(SettingKey.indentSpaceLength) ?? 4;
 	Settings.enableLocalLogs = resxConfig.get<boolean>(SettingKey.enableLocalLogs) ?? false;
 	Logger.instance.setIsEnabled(Settings.enableLocalLogs);
 }
@@ -258,7 +259,7 @@ export async function runResGenAsync(document: vscode.TextDocument): Promise<voi
 
 	let documentText = document.getText();
 	if (documentText.length > 0) {
-		const entries = ResxFile.parse(documentText, Settings.indentSpaceLength).entries;
+		const entries = ResxFile.parse(documentText, IndentPreference.resolve(document.uri)).entries;
 		var resourceCSharpClassText = emptyString;
 		let accessModifier = "public";
 		let workspacePath = FileHelper.getDirectory(document);
@@ -342,7 +343,8 @@ async function newPreview() {
 	var text = vscode.window.activeTextEditor?.document?.getText() ?? emptyString;
 	var currentFileName = vscode.window.activeTextEditor?.document.fileName;
 	if (currentFileName) {
-		await displayJsonInHtml(ResxFile.parse(text, Settings.indentSpaceLength).entries, currentFileName);
+		const indent = IndentPreference.resolve(vscode.window.activeTextEditor?.document.uri);
+		await displayJsonInHtml(ResxFile.parse(text, indent).entries, currentFileName);
 	}
 }
 
@@ -359,7 +361,8 @@ async function displayAsMarkdown() {
 				return;
 			}
 			const documentText = vscode.window.activeTextEditor?.document?.getText() ?? emptyString;
-			const entries = ResxFile.parse(documentText, Settings.indentSpaceLength).entries;
+			const indent = IndentPreference.resolve(vscode.window.activeTextEditor?.document.uri);
+			const entries = ResxFile.parse(documentText, indent).entries;
 			var currentFileName = vscode.window.activeTextEditor?.document.fileName;
 			if (currentFileName) {
 				var fileNameNoExt = vscode.window.activeTextEditor?.document.fileName.substring(
@@ -538,22 +541,8 @@ async function createResxFile(uri: vscode.Uri | null) {
 			Logger.instance.info(`Filename to be created: ${resxFilePath}`);
 			// create a Uri for a file to be created
 			const resxFileUri = vscode.Uri.file(resxFilePath);
-			const content = `<?xml version="1.0" encoding="utf-8"?>
-<root>
-	<resheader name="resmimetype">
-		<value>text/microsoft-resx</value>
-	</resheader>
-	<resheader name="version">
-		<value>2.0</value>
-	</resheader>
-	<resheader name="reader">
-		<value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-	</resheader>
-	<resheader name="writer">
-		<value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-	</resheader>
-	<!--Data-->
-</root>`;
+			// Detection preserves this indent from now on, so it has to match the user's editor.
+			const content = createResxTemplate(IndentPreference.resolve(resxFileUri));
 
 			let encoder = new TextEncoder();
 			let uInt8Array = encoder.encode(content);

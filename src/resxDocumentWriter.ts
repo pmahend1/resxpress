@@ -1,11 +1,11 @@
 import * as vscode from "vscode";
 import { emptyString } from "./constants";
+import { IndentPreference } from "./indentPreference";
 import { Logger } from "./logger";
 import { computeMinimalTextEdit } from "./minimalTextEdit";
 import { nameof } from "./nameof";
 import type { ResxEntry } from "./resxEntry";
 import { ResxFile } from "./resxFile";
-import { Settings } from "./settings";
 
 /**
  * Writes resx changes back to a document as the smallest edit that produces
@@ -23,7 +23,7 @@ export class ResxDocumentWriter {
     private static async rewrite(document: vscode.TextDocument, change: (resxFile: ResxFile) => void): Promise<boolean> {
         try {
             const currentText = document.getText();
-            const resxFile = ResxFile.parse(currentText, Settings.indentSpaceLength);
+            const resxFile = ResxFile.parse(currentText, IndentPreference.resolve(document.uri));
             change(resxFile);
             return await ResxDocumentWriter.write(document, currentText, resxFile.toXml());
         }

@@ -147,7 +147,8 @@
                             4,
                             8
                         ],
-                        "markdownDescription": "No. of spaces for resx xml, used only when a file's own indentation cannot be detected. A file that is already indented keeps its own style. Default: *4*"
+                        "markdownDescription": "No. of spaces for resx xml, used only when a file's own indentation cannot be detected. A file that is already indented keeps its own style. Default: *4*",
+                        "markdownDeprecationMessage": "**Deprecated**: use `#editor.insertSpaces#` and `#editor.tabSize#` instead, which ResXpress now reads per file. A file that is already indented still keeps its own style. This setting is honoured while it is set, and will be removed in a future version."
                     },
                     "resxpress.configuration.enableLocalLogs": {
                         "type": "boolean",
