@@ -38,7 +38,9 @@ It offers the following features;
 - To and Fro updates between Text document and ResxEditors as soon as typed valid resx data.
 - To and fro updates Text document and ResxEditors when Save triggered on either.
 - Preserves the file as it was written: indentation, line endings, comment positions and the trailing
-newline all survive an edit, and only the lines you changed are rewritten.
+newline all survive an edit, and only the lines you changed are rewritten. The one exception is
+`&apos;` and `&quot;` in values, which are written as `'` and `"` - both are valid XML and
+mean the same thing, and it is how .NET writes them too.
 - Automatically regenerate strongly typed resource class file(controlled by setting)
 - Add a new resx file.
 - Update C# namespace of a resx file.
@@ -48,12 +50,14 @@ newline all survive an edit, and only the lines you changed are rewritten.
 Every culture of a resource in one editable table, one column per language - `Resource1.resx`,
 `Resource1.de.resx`, `Resource1.fr.resx` and so on side by side, instead of one file at a time.
 
-Open it with the **All Languages** button in the resx editor's toolbar, from the command
-palette, or by right-clicking a resx editor tab. Any culture of the resource will do: the whole
-family is found from whichever file you start on.
+Open it with the **Languages** button in the resx editor's toolbar, from the command
+palette, or by right-clicking a resx editor tab or a resx file in the Explorer. Any culture of
+the resource will do: the whole family is found from whichever file you start on.
 
-The button and the menu entries appear **only when the resource actually has other languages** -
-a lone `Resource1.resx` with no `Resource1.<culture>.resx` beside it has nothing to combine.
+The button, the command palette entry and the editor menu entries appear **only when the
+resource actually has other languages** - a lone `Resource1.resx` with no
+`Resource1.<culture>.resx` beside it has nothing to combine. The Explorer entry shows on every
+resx file, and tells you when there is nothing to combine.
 
 - Each column writes back to its own file, using the same minimal-edit path as the single file
   editor, so a translation file only ever gains the lines you actually changed.
@@ -119,6 +123,9 @@ Default: **`true`**
 `editor.insertSpaces` and `editor.tabSize` instead.
 It is still honoured wherever it is explicitly set.
 Options: **2, 4, 8**.
+
+1. `enableLocalLogs`: Enable local logs, shown in the Output window.  
+Default: **`false`**.
 
 ### Indentation
 

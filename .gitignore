@@ -15,6 +15,7 @@ dist
 .DS_Store
 
 #AI
+.claude/
 AGENTS.md
 CLAUDE.md
 TODO.md
