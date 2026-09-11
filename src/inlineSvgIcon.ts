@@ -4,13 +4,8 @@ import * as path from "path";
 const svgOpenTag = "<svg";
 const iconDirectory = "styles";
 
-/*
- * Webview icons are inlined as markup rather than loaded through <img>, so they
- * take currentColor from the button they sit in. An <img> can only be recoloured
- * by a fixed filter, which suits one button colour and vanishes on another -
- * Light Modern's secondary button is light grey with dark text. The icon is
- * decorative; the button's text or aria-label is its accessible name.
- */
+// Inlined rather than an <img> so the icon takes currentColor from its button;
+// an <img> can only be recoloured by a fixed filter, which vanished on light themes.
 export function toInlineIcon(svg: string): string {
     const openTagStart = svg.indexOf(svgOpenTag);
     if (openTagStart === -1) {

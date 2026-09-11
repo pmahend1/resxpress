@@ -23,11 +23,7 @@ body {
   background-color: var(--vscode-editor-background);
 }
 
-/*
- * A stack of rows rather than one wrapping line, matching webpanel.css: the
- * buttons keep to their own row, the error text gets a row it can vacate, and
- * search keeps the full width underneath.
- */
+/* Rows, like .sticky-div in webpanel.css. */
 .toolbar {
   flex: 0 0 auto;
   position: relative;
@@ -169,18 +165,12 @@ p {
   text-align: center;
 }
 
-/*
- * The same buttons as webpanel.css, kept in step deliberately - Material 3 shape
- * and emphasis over VS Code's own colour tokens, rather than the hardcoded
- * #067ab8 / #5A9BD5 that ignored the theme in both panels. .btn alone is the
- * medium-emphasis look the .secondary class in the markup names.
- */
+/* Buttons, error row and icons are kept in step with webpanel.css, which explains them. */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  /* Buttons wrap onto the next line rather than shrinking below their label. */
   flex: 0 0 auto;
   min-height: 40px;
   padding: 6px 16px;
@@ -201,15 +191,6 @@ p {
   background-color: var(--secondary-button-hover-background);
 }
 
-/*
- * The theme's secondary button colour is right in light themes, but in dark ones
- * it sits too close to the editor background - Dark Modern's is #313131 on
- * #1f1f1f - and the buttons barely read as buttons. vscode-dark is the class VS
- * Code puts on a dark-themed webview's body; those themes get a surface mixed
- * from the editor's own colours instead, lifted toward the foreground so it keeps
- * the theme's tint. Variables rather than a body.vscode-dark .btn rule, which
- * would outrank .btn.primary. High contrast themes keep their tokens.
- */
 body {
   --secondary-button-background: var(--vscode-button-secondaryBackground, #3a3d41);
   --secondary-button-hover-background: var(--vscode-button-secondaryHoverBackground, #45494e);
@@ -220,15 +201,6 @@ body.vscode-dark {
   --secondary-button-hover-background: color-mix(in srgb, var(--vscode-editor-foreground) 28%, var(--vscode-editor-background));
 }
 
-/*
- * High contrast themes draw controls as outlines rather than fills. Without one,
- * HC Dark's primary button had no fill to set it apart from the page and its
- * secondaries sat on the grey fallback above, which the theme never asked for;
- * HC Light's white secondaries were bare text on a white page. Every button gets
- * the theme's contrast border instead, and hover moves that border to the active
- * contrast colour rather than changing the fill. Both classes are listed in case
- * a light high contrast theme does not also carry the first.
- */
 body.vscode-high-contrast,
 body.vscode-high-contrast-light {
   --secondary-button-background: var(--vscode-button-secondaryBackground, transparent);
@@ -250,33 +222,21 @@ body.vscode-high-contrast-light .btn.primary:hover {
   background-color: var(--vscode-button-background, transparent);
 }
 
-/*
- * M3's pressed state layer, done theme-blind: the overlay is drawn from the
- * button's own foreground, so it lifts a dark surface and settles a light one
- * without either colour being named here.
- */
 .btn:active {
   box-shadow: inset 0 0 0 999px color-mix(in srgb, currentColor 12%, transparent);
 }
 
-/* The ring is offset because a filled button leaves no room for it inside. */
 .btn:focus-visible {
   outline: 1px solid var(--vscode-focusBorder, #0090f1);
   outline-offset: 2px;
 }
 
-/* The one full-emphasis action in the toolbar; the pill is what marks it out. */
 .btn.primary {
   background-color: var(--vscode-button-background, #0e639c);
   color: var(--vscode-button-foreground, #ffffff);
   border-radius: 999px;
   padding: 6px 18px;
   font-weight: 600;
-  /*
-   * The add glyph leaves 4.6px of empty space either side of its plus inside the
-   * 20px box, where translate leaves 1px, so the shared 8px gap put the plus
-   * visibly farther from its label. 4px lands it at the same distance.
-   */
   gap: 4px;
 }
 
@@ -284,29 +244,11 @@ body.vscode-high-contrast-light .btn.primary:hover {
   background-color: var(--vscode-button-hoverBackground, #1177bb);
 }
 
-/*
- * An icon-only button has no accessible name of its own, so every one of them
- * carries title and aria-label. Square rather than pill, so they read as a group.
- */
 .btn.icon-only {
   min-width: 40px;
   padding: 8px;
 }
 
-/*
- * No flex-grow: a grower in a wrapping row absorbs the slack and shoves whatever
- * follows it to the right edge, which is what it did to the buttons next door.
- * It has a row of its own now, and combinedPanelScript hides it outright when
- * there is nothing to say, so the empty row costs no height.
- *
- * Material 3 has no inline error component, only the errorContainer and
- * onErrorContainer colour roles. This container applies those roles through the
- * theme: the surface and border take inputValidation.error*, the tokens VS Code's
- * own input validation messages use, defined in every theme including high
- * contrast. The text and icon take the plain foreground in the onErrorContainer
- * role rather than red, because errorForeground as text on the tinted surface
- * falls short of 4.5:1 in both Modern themes.
- */
 .error-block {
   display: flex;
   align-items: center;
@@ -320,17 +262,12 @@ body.vscode-high-contrast-light .btn.primary:hover {
   font-size: var(--vscode-font-size, 13px);
 }
 
-/* The display: flex above would otherwise beat the hidden attribute's display: none. */
+/* Without this, display: flex above beats the hidden attribute. */
 .error-block[hidden] {
   display: none;
 }
 
-/*
- * Search keeps a row of its own, so the box gets the panel's full width instead
- * of fighting the buttons for it. The basis has to be auto rather than the 100%
- * it used to be: the toolbar is a column now, and a basis on a column's main
- * axis is a height, not a width.
- */
+/* auto, not 100%: in the column toolbar a flex-basis is a height. */
 .search-section {
   display: flex;
   align-items: center;
@@ -382,17 +319,6 @@ body.vscode-high-contrast-light .btn.primary:hover {
   white-space: nowrap;
 }
 
-/*
- * Inline SVG, so the icon takes its button's text colour: white on the primary
- * button, the theme's own on the secondary ones. A fill on an inner <path> would
- * beat this, so the icon files leave it off. Spacing from a label is the
- * button's `gap`, so no margin here.
- *
- * Material's sizes: 20px beside a label, 24px alone in a 40px icon button. Each
- * file is downloaded at the optical size it is shown at, because Material draws
- * every optical size separately; rendered at 16px, the strokes thinned out and
- * the icons looked weak beside the labels.
- */
 .icon {
   width: 20px;
   height: 20px;

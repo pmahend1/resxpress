@@ -41,12 +41,7 @@ export class ResxEditor {
             </button>`
             : emptyString;
 
-        /*
-         * Switch, Sort and Change Namespace are icon-only: four spelled-out labels
-         * are what made the toolbar wrap. An icon with no text has no accessible
-         * name of its own, so each one carries title for the pointer and aria-label
-         * for the screen reader, and the icon is aria-hidden so it does not read twice.
-         */
+        // Icon-only buttons need title and aria-label; the inlined icon itself is aria-hidden.
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -80,11 +75,9 @@ export class ResxEditor {
                 </button>
             </div>
         </div>
-        <!-- Hidden until there is something to report; an empty row would still cost a line. -->
         <div id="errorBlock" class="error-block" role="alert" hidden>
             ${errorIcon}<span id="errorText"></span>
         </div>
-        <!-- A row of its own, so the box gets the editor's full width. -->
         <div class="search-section">
             <input id="searchInput" class="search-input" type="search"
                    placeholder="Search key, value or comment"

@@ -393,10 +393,6 @@ export class CombinedResxPanel {
         const nonce = getNonce();
 
         /*
-         * Sort By Keys is icon-only, and an icon with no text has no accessible
-         * name of its own, so it carries title for the pointer and aria-label for
-         * the screen reader while the icon is marked decorative.
-         *
          * No resx content is interpolated here at all - not even a column
          * header, since a file name is user controlled too. The shell ships
          * empty and the webview builds every header and every row with DOM APIs
@@ -427,11 +423,9 @@ export class CombinedResxPanel {
             <!-- Label and tooltip are written by combinedPanelScript; they say which mode it is in. -->
             <button id="commentModeButton" class="btn secondary"></button>
         </div>
-        <!-- Hidden until there is something to report; an empty row would still cost a line. -->
         <div id="errorBlock" class="error-block" role="alert" hidden>
             ${errorIcon}<span id="errorText"></span>
         </div>
-        <!-- A row of its own, so search gets the panel's full width. -->
         <div class="search-section">
             <input id="searchInput" class="search-input" type="search"
                    placeholder="Search key, value or comment"

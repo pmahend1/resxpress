@@ -21,11 +21,8 @@ test("a file with no <svg> element is refused", () => {
     assert.throws(() => toInlineIcon("<html></html>"), /no <svg> element/);
 });
 
-/*
- * .icon paints through an inherited fill: currentColor, and a fill set on an
- * inner element beats an inherited one, so that icon would ignore the button's
- * text colour. A fill on the root <svg> is fine; .icon overrides it there.
- */
+// .icon sets fill: currentColor on the root <svg>; a fill on an inner element would
+// beat the inherited one and ignore the button's text colour.
 test("every shipped icon inlines and leaves its fill to currentColor", () => {
     const iconFiles = readdirSync(stylesDirectory).filter(name => name.endsWith(".svg"));
     assert.notEqual(iconFiles.length, 0);

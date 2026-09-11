@@ -96,10 +96,7 @@ function logToConsole(logText: string) {
         }
 
         errorTextElement.innerText = errorMessage;
-        /*
-         * The error text is a toolbar row of its own now, so an empty one would
-         * still reserve a line's height - hence hidden rather than an empty string.
-         */
+        // Hidden rather than emptied: an empty row would still take a line's height.
         errorContainer.hidden = errorMessage.length === 0;
     }
 

@@ -82,14 +82,8 @@ p {
 }
 
 /*
- * A stack of rows, not one wrapping line. Every control used to share a single
- * flex-wrap row, and two of them - the namespace block and the error text -
- * carried flex-grow, so whichever came first absorbed the slack and shoved what
- * followed it against the right edge. That is what stranded Sort By Keys out
- * there. Each concern owns a row now: the actions and the namespace, then the
- * error text, then search. Rows may come and go freely because webpanelScript
- * measures this element and publishes its height as --sticky-toolbar-height,
- * which is the offset the sticky column headers sit at.
+ * Rows rather than one wrapping line, so no flex-grow can strand a button at the
+ * right edge. Rows may come and go: webpanelScript measures this for the headers.
  */
 .sticky-div {
   position: sticky;
@@ -103,13 +97,7 @@ p {
   z-index: 1000;
 }
 
-/*
- * Exactly two children - the action group and the namespace block - so
- * space-between parks the namespace at the right edge with no flex-grow spacer
- * involved. Nothing in this row grows, deliberately: a grower in a wrapping row
- * is what stranded a button against the right edge in the first place. Too
- * narrow, and the namespace block wraps onto a line of its own.
- */
+/* space-between, not a flex-grow spacer: a grower in a wrapping row strands what follows. */
 .toolbar-row {
   display: flex;
   flex-wrap: wrap;
@@ -127,16 +115,8 @@ p {
 }
 
 /*
- * Material 3 shape, spacing and emphasis - a pill for the single high-emphasis
- * action, 8px for the tonal ones, 40px tall - over VS Code's own
- * button tokens. The colours used to be hardcoded (#067ab8, #5A9BD5) and ignored
- * the theme entirely; an M3 palette would have been the same mistake in nicer
- * shades, so only the geometry comes from M3 and every colour comes from the
- * host. Each token is given a fallback because a theme may leave one undefined.
- *
- * .btn alone is the medium-emphasis look, which is what the .secondary class in
- * the markup names; there is no .secondary rule because it would only restate
- * this one, and defaulting to it keeps a button that forgets the class legible.
+ * Material 3 geometry over VS Code colour tokens, each with a fallback for themes
+ * that leave one undefined. .btn alone is the secondary look; .secondary has no rule.
  */
 .btn {
   display: inline-flex;
@@ -165,13 +145,9 @@ p {
 }
 
 /*
- * The theme's secondary button colour is right in light themes, but in dark ones
- * it sits too close to the editor background - Dark Modern's is #313131 on
- * #1f1f1f - and the buttons barely read as buttons. vscode-dark is the class VS
- * Code puts on a dark-themed webview's body; those themes get a surface mixed
- * from the editor's own colours instead, lifted toward the foreground so it keeps
- * the theme's tint. Variables rather than a body.vscode-dark .btn rule, which
- * would outrank .btn.primary. High contrast themes keep their tokens.
+ * A dark theme's secondary token sits too close to the editor background, so dark
+ * themes lift it toward the foreground. Variables, because a body.vscode-dark .btn
+ * rule would outrank .btn.primary.
  */
 body {
   --secondary-button-background: var(--vscode-button-secondaryBackground, #3a3d41);
@@ -184,13 +160,8 @@ body.vscode-dark {
 }
 
 /*
- * High contrast themes draw controls as outlines rather than fills. Without one,
- * HC Dark's primary button had no fill to set it apart from the page and its
- * secondaries sat on the grey fallback above, which the theme never asked for;
- * HC Light's white secondaries were bare text on a white page. Every button gets
- * the theme's contrast border instead, and hover moves that border to the active
- * contrast colour rather than changing the fill. Both classes are listed in case
- * a light high contrast theme does not also carry the first.
+ * High contrast themes mark controls with borders rather than fills, and may leave
+ * button backgrounds undefined. Both classes, in case HC Light lacks the first.
  */
 body.vscode-high-contrast,
 body.vscode-high-contrast-light {
@@ -213,11 +184,7 @@ body.vscode-high-contrast-light .btn.primary:hover {
   background-color: var(--vscode-button-background, transparent);
 }
 
-/*
- * M3's pressed state layer, done theme-blind: the overlay is drawn from the
- * button's own foreground, so it lifts a dark surface and settles a light one
- * without either colour being named here.
- */
+/* M3's pressed state layer, drawn from the foreground so it suits any surface. */
 .btn:active {
   box-shadow: inset 0 0 0 999px color-mix(in srgb, currentColor 12%, transparent);
 }
@@ -228,18 +195,13 @@ body.vscode-high-contrast-light .btn.primary:hover {
   outline-offset: 2px;
 }
 
-/* The one full-emphasis action in the toolbar; the pill is what marks it out. */
 .btn.primary {
   background-color: var(--vscode-button-background, #0e639c);
   color: var(--vscode-button-foreground, #ffffff);
   border-radius: 999px;
   padding: 6px 18px;
   font-weight: 600;
-  /*
-   * The add glyph leaves 4.6px of empty space either side of its plus inside the
-   * 20px box, where translate leaves 1px, so the shared 8px gap put the plus
-   * visibly farther from its label. 4px lands it at the same distance.
-   */
+  /* The add glyph has 4.6px of built-in space beside its plus; translate has 1px. */
   gap: 4px;
 }
 
@@ -247,29 +209,14 @@ body.vscode-high-contrast-light .btn.primary:hover {
   background-color: var(--vscode-button-hoverBackground, #1177bb);
 }
 
-/*
- * The secondary actions carry no label - four of them spelled out is what forced
- * the toolbar to wrap. Their names live in title and aria-label instead, so the
- * button is still reachable by hover and by screen reader; every icon-only
- * button must carry both. Square rather than pill, so the icons read as a group.
- */
 .btn.icon-only {
   min-width: 40px;
   padding: 8px;
 }
 
 /*
- * No flex-grow: this was the second grower in the old wrapping row. It gets a
- * row of its own now, and webpanelScript hides it outright when there is nothing
- * to say so the empty row costs no height.
- *
- * Material 3 has no inline error component, only the errorContainer and
- * onErrorContainer colour roles. This container applies those roles through the
- * theme: the surface and border take inputValidation.error*, the tokens VS Code's
- * own input validation messages use, defined in every theme including high
- * contrast. The text and icon take the plain foreground in the onErrorContainer
- * role rather than red, because errorForeground as text on the tinted surface
- * falls short of 4.5:1 in both Modern themes.
+ * M3's errorContainer role through inputValidation.error*, which every theme
+ * defines. Text stays the plain foreground: errorForeground on this tint misses 4.5:1.
  */
 .error-block {
   display: flex;
@@ -284,17 +231,12 @@ body.vscode-high-contrast-light .btn.primary:hover {
   font-size: var(--vscode-font-size, 13px);
 }
 
-/* The display: flex above would otherwise beat the hidden attribute's display: none. */
+/* Without this, display: flex above beats the hidden attribute. */
 .error-block[hidden] {
   display: none;
 }
 
-/*
- * Search keeps a row of its own, which is where item 1 put it so the box stops
- * competing with the buttons for width. The basis has to be auto rather than the
- * 100% it used to be: the toolbar is a column now, and a basis on a column's
- * main axis is a height, not a width.
- */
+/* auto, not 100%: in the column toolbar a flex-basis is a height. */
 .search-section {
   display: flex;
   align-items: center;
@@ -346,12 +288,7 @@ body.vscode-high-contrast-light .btn.primary:hover {
   white-space: nowrap;
 }
 
-/*
- * Information rather than an action, so it sits at the right edge of the toolbar
- * row instead of in the run of buttons. min-width lets the name ellipsize when
- * the panel is narrow; without it a long namespace sets the row's min-content
- * width and the toolbar overflows sideways.
- */
+/* min-width: 0 lets a long namespace ellipsize rather than overflow the row. */
 .namespace-section {
   display: flex;
   align-items: center;
@@ -374,15 +311,9 @@ body.vscode-high-contrast-light .btn.primary:hover {
 }
 
 /*
- * Inline SVG, so the icon takes its button's text colour: white on the primary
- * button, the theme's own on the secondary ones. A fill on an inner <path> would
- * beat this, so the icon files leave it off. Spacing from a label is the
- * button's `gap`, so no margin here.
- *
- * Material's sizes: 20px beside a label, 24px alone in a 40px icon button. Each
- * file is downloaded at the optical size it is shown at, because Material draws
- * every optical size separately; rendered at 16px, the strokes thinned out and
- * the icons looked weak beside the labels.
+ * Inline SVG takes the button's text colour, so icon files keep fill off inner
+ * paths. Material sizes, each downloaded at the matching optical size: 20px
+ * beside a label, 24px in an icon button.
  */
 .icon {
   width: 20px;
