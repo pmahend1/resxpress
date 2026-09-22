@@ -16,6 +16,7 @@ class PreviewEditPanel {
 
 	private readonly panel: vscode.WebviewPanel;
 	public content: string;
+	private renderedContent: string | undefined;
 	private disposables: vscode.Disposable[] = [];
 	private static title: string = "Resx Preview";
 
@@ -136,6 +137,14 @@ class PreviewEditPanel {
 
 	private updateKeyValues(webview: vscode.Webview, content: string) {
 		this.panel.title = PreviewEditPanel.title + " Preview";
+
+		// Assigning html reloads the webview, throwing away the offset the script just
+		// restored; createOrShow reveals an open panel rather than refilling it anyway.
+		if (this.renderedContent === content) {
+			return;
+		}
+
+		this.renderedContent = content;
 		this.panel.webview.html = this.getHtmlForWebview(webview, content);
 	}
 

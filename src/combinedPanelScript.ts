@@ -29,6 +29,7 @@ const deleteStr = "delete";
 const X = "X";
 const message = "message";
 const keydown = "keydown";
+const scroll = "scroll";
 const escapeKey = "Escape";
 const findKey = "f";
 const addButton = "addButton";
@@ -65,6 +66,7 @@ const findShortcut = "Ctrl+F";
 const searchTooltip = (shortcut: string) => `Search key, value or comment (${shortcut} to focus, Esc to clear)`;
 const pixels = (length: number) => `${length}px`;
 const documentUpdateDelayInMilliseconds = 300;
+const scrollPersistDelayInMilliseconds = 150;
 
 function logToConsole(logText: string) {
     console.log(`${resxpressCombinedPanel}: ${logText}`);
@@ -89,6 +91,8 @@ function logToConsole(logText: string) {
     let unifiedComments = true;
     let groupUri: string | undefined;
     let pendingUpdateHandle: ReturnType<typeof setTimeout> | undefined;
+    let pendingStateHandle: ReturnType<typeof setTimeout> | undefined;
+    let pendingScroll: { top: number, left: number } | undefined;
 
     function showError(errorMessage: string) {
         if (errorContainer === null || errorTextElement === null) {
@@ -225,7 +229,7 @@ function logToConsole(logText: string) {
 
         showError(emptyString);
         vscode.postMessage(new WebpanelPostMessage(WebpanelPostMessageKind.TriggerCombinedUpdate,
-                                                   JSON.stringify(entries)));
+            JSON.stringify(entries)));
     }
 
     // A row that was added but not filled in yet is not something any file should carry.
@@ -305,8 +309,8 @@ function logToConsole(logText: string) {
             const culture = keyAuthorityCulture();
             const owner = currentColumns.find(column => column.culture === culture);
             row.appendChild(createHeaderCell(commentHeader,
-                                             owner === undefined ? undefined : columnTooltip(owner.label, owner.fileName),
-                                             commentColumnClass));
+                owner === undefined ? undefined : columnTooltip(owner.label, owner.fileName),
+                commentColumnClass));
         }
 
         row.appendChild(createHeaderCell(emptyString, undefined, deleteColumnClass));
@@ -320,17 +324,17 @@ function logToConsole(logText: string) {
         for (const column of currentColumns) {
             const culture = column.culture;
             row.appendChild(createCell(createInput(inputId(index, valueField, culture), entry.values[culture] ?? emptyString),
-                                       valueColumnClass));
+                valueColumnClass));
             if (unifiedComments === false) {
                 row.appendChild(createCell(createInput(inputId(index, commentField, culture), entry.comments[culture] ?? emptyString),
-                                           commentColumnClass));
+                    commentColumnClass));
             }
         }
 
         if (unifiedComments) {
             const culture = keyAuthorityCulture();
             row.appendChild(createCell(createInput(inputId(index, commentField, culture), entry.comments[culture] ?? emptyString),
-                                       commentColumnClass));
+                commentColumnClass));
         }
 
         const deleteCell = document.createElement(td);
@@ -379,6 +383,7 @@ function logToConsole(logText: string) {
         currentEntries.forEach((_entry, index) => markMissingCells(index));
         applyFilter();
         reserveStickyEdges();
+        restoreScrollPosition();
     }
 
     /*
@@ -468,11 +473,42 @@ function logToConsole(logText: string) {
     }
 
     /*
-     * One writer, because setState replaces the whole object: a comment mode
-     * saved on its own would drop the uri the serializer restores from.
+     * One writer, because setState replaces the whole object: a comment mode saved
+     * on its own would drop the uri the serializer restores from, and the offset.
      */
     function persistState() {
-        vscode.setState({ unifiedComments: unifiedComments, groupUri: groupUri });
+        vscode.setState({
+            unifiedComments: unifiedComments,
+            groupUri: groupUri,
+            scrollTop: scrollContainer?.scrollTop ?? 0,
+            scrollLeft: scrollContainer?.scrollLeft ?? 0,
+            search: searchInputElement?.value ?? emptyString
+        });
+    }
+
+    // Nothing is readable at teardown, so the offset is saved as it moves - debounced,
+    // because one flick of a trackpad fires hundreds of scroll events.
+    function scheduleStatePersist() {
+        if (pendingStateHandle !== undefined) {
+            clearTimeout(pendingStateHandle);
+        }
+
+        pendingStateHandle = setTimeout(persistState, scrollPersistDelayInMilliseconds);
+    }
+
+    /*
+     * Applied once the rows exist - the payload arrives a message after the webview
+     * loads, and scrolling an empty table clamps to 0 - and only once, so a later
+     * repaint cannot drag the user back up. Both axes: the languages run off to the right.
+     */
+    function restoreScrollPosition() {
+        if (pendingScroll === undefined || scrollContainer === null) {
+            return;
+        }
+
+        const offset = pendingScroll;
+        pendingScroll = undefined;
+        scrollContainer.scrollTo(offset.left, offset.top);
     }
 
     function updateCommentModeButton() {
@@ -562,13 +598,17 @@ function logToConsole(logText: string) {
 
     if (searchInputElement !== undefined) {
         searchInputElement.title = searchTooltip(navigator.userAgent.includes(macUserAgentMarker)
-                                                 ? macFindShortcut
-                                                 : findShortcut);
-        searchInputElement.addEventListener(input, applyFilter, false);
+            ? macFindShortcut
+            : findShortcut);
+        searchInputElement.addEventListener(input, () => {
+            applyFilter();
+            persistState();
+        }, false);
         searchInputElement.addEventListener(keydown, event => {
             if (event.key === escapeKey) {
                 clearSearch();
                 applyFilter();
+                persistState();
             }
         }, false);
 
@@ -582,10 +622,15 @@ function logToConsole(logText: string) {
         }, false);
     }
 
+    if (scrollContainer !== null) {
+        scrollContainer.addEventListener(scroll, scheduleStatePersist, false);
+    }
+
     // A hidden webview is torn down, so whatever is still queued has to go now.
     document.addEventListener(visibilityChange, () => {
         if (document.visibilityState === hidden) {
             flushDocumentUpdate();
+            persistState();
         }
     });
 
@@ -611,6 +656,15 @@ function logToConsole(logText: string) {
     // Held until the host says otherwise, so a toggle before then does not drop it.
     if (typeof state?.groupUri === "string") {
         groupUri = state.groupUri;
+    }
+
+    // Restored with the offset: one measured over filtered rows means nothing without its filter.
+    if (typeof state?.search === "string" && searchInputElement !== undefined) {
+        searchInputElement.value = state.search;
+    }
+
+    if (typeof state?.scrollTop === "number" && typeof state?.scrollLeft === "number") {
+        pendingScroll = { top: state.scrollTop, left: state.scrollLeft };
     }
 
     updateCommentModeButton();
