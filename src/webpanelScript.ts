@@ -40,6 +40,7 @@ const searchInput = "searchInput";
 const searchStatus = "searchStatus";
 const searchSummary = (matchCount: number, total: number) => `Showing ${matchCount} of ${total}`;
 const keydown = "keydown";
+const scroll = "scroll";
 const escapeKey = "Escape";
 const findKey = "f";
 const filteredOutClass = "filtered-out";
@@ -51,6 +52,7 @@ const macFindShortcut = "⌘F";
 const findShortcut = "Ctrl+F";
 const searchTooltip = (shortcut: string) => `Search key, value or comment (${shortcut} to focus, Esc to clear)`;
 const documentUpdateDelayInMilliseconds = 300;
+const scrollPersistDelayInMilliseconds = 150;
 
 function logToConsole(text: string) {
 	console.log(`${resxpressWebPanel}: ${text}`);
@@ -67,6 +69,9 @@ function logToConsole(text: string) {
 	const searchInputElement = getInput(searchInput);
 	const searchStatusElement = document.getElementById(searchStatus);
 	let pendingUpdateHandle: ReturnType<typeof setTimeout> | undefined;
+	let pendingStateHandle: ReturnType<typeof setTimeout> | undefined;
+	let persistedText: string | undefined;
+	let pendingScrollTop: number | undefined;
 
 	function showError(errorMessage: string) {
 		if (errorContainer === null || errorTextElement === null) {
@@ -152,11 +157,43 @@ function logToConsole(text: string) {
 
 		showError(emptyString);
 		const entriesJson = JSON.stringify(entries);
-		vscode.setState({ text: entriesJson });
+		persistedText = entriesJson;
+		persistState();
 		vscode.postMessage(new WebpanelPostMessage(
 			WebpanelPostMessageKind.TriggerTextDocumentUpdate,
 			entriesJson
 		));
+	}
+
+	// One writer: setState replaces the whole object, so saving the rows alone drops the rest.
+	function persistState() {
+		vscode.setState({
+			text: persistedText,
+			scrollTop: window.scrollY,
+			search: searchInputElement?.value ?? emptyString
+		});
+	}
+
+	// Nothing is readable at teardown, so the offset is saved as it moves - debounced,
+	// because one flick of a trackpad fires hundreds of scroll events.
+	function scheduleStatePersist() {
+		if (pendingStateHandle !== undefined) {
+			clearTimeout(pendingStateHandle);
+		}
+
+		pendingStateHandle = setTimeout(persistState, scrollPersistDelayInMilliseconds);
+	}
+
+	// Applied once the rows exist, since scrolling an empty table clamps to 0, and only
+	// once, so a later repaint cannot drag the user back up.
+	function restoreScrollPosition() {
+		if (pendingScrollTop === undefined) {
+			return;
+		}
+
+		const offset = pendingScrollTop;
+		pendingScrollTop = undefined;
+		window.scrollTo(0, offset);
 	}
 
 	// A row that was added but not filled in yet is not something the file should carry.
@@ -223,6 +260,7 @@ function logToConsole(text: string) {
 		table.innerHTML = emptyString;
 		currentEntries.forEach((entry, index) => table.appendChild(createRow(entry, index)));
 		applyFilter();
+		restoreScrollPosition();
 	}
 
 	function entryMatches(entry: ResxEntry, query: string): boolean {
@@ -345,11 +383,15 @@ function logToConsole(text: string) {
 		searchInputElement.title = searchTooltip(navigator.userAgent.includes(macUserAgentMarker)
 			? macFindShortcut
 			: findShortcut);
-		searchInputElement.addEventListener(input, applyFilter, false);
+		searchInputElement.addEventListener(input, () => {
+			applyFilter();
+			persistState();
+		}, false);
 		searchInputElement.addEventListener(keydown, event => {
 			if (event.key === escapeKey) {
 				clearSearch();
 				applyFilter();
+				persistState();
 			}
 		}, false);
 
@@ -421,10 +463,13 @@ function logToConsole(text: string) {
 		new ResizeObserver(publishToolbarHeight).observe(stickyToolbar);
 	}
 
+	window.addEventListener(scroll, scheduleStatePersist, false);
+
 	// A hidden webview is torn down, so whatever is still queued has to go now.
 	document.addEventListener(visibilityChange, () => {
 		if (document.visibilityState === hidden) {
 			flushDocumentUpdate();
+			persistState();
 		}
 	});
 
@@ -437,7 +482,8 @@ function logToConsole(text: string) {
 			case WebpanelPostMessageKind.UpdateWebPanel:
 				updatePanelWebContent(messageText);
 				// Persisted so a webview that was hidden and shown again comes back with its rows.
-				vscode.setState({ text: messageText });
+				persistedText = messageText;
+				persistState();
 				break;
 			case WebpanelPostMessageKind.NewNamespace:
 				const namespaceSpanElement = document.getElementById(namespaceSpan);
@@ -452,9 +498,23 @@ function logToConsole(text: string) {
 	});
 
 	const state = vscode.getState();
+
+	// Restored with the offset: one measured over filtered rows means nothing without its filter.
+	if (typeof state?.search === "string" && searchInputElement !== undefined) {
+		searchInputElement.value = state.search;
+	}
+
+	if (typeof state?.scrollTop === "number") {
+		pendingScrollTop = state.scrollTop;
+	}
+
 	if (state?.text !== undefined) {
+		persistedText = state.text;
 		updatePanelWebContent(state.text);
 	}
+
+	// The read-only preview ships its rows in the HTML, so it has no render to wait for.
+	restoreScrollPosition();
 
 	/*
 	 * A message posted before the webview finished loading is dropped, so the
