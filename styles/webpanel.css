@@ -66,14 +66,27 @@ tr.filtered-out {
   display: none;
 }
 
+/*
+ * Rows align to the top, as Rider and Visual Studio do, so the key and the X
+ * stay beside the first line of a multi-line value instead of floating halfway
+ * down it.
+ */
+td {
+  vertical-align: top;
+}
+
+/*
+ * The vertical margin mirrors the delete cell's 1em <p> margin, less the 2px
+ * border, which puts a cell's first line level with the X and leaves a one-line
+ * row exactly as tall as it was when every cell was centered.
+ */
 input {
   background-color: transparent;
   color: var(--vscode-editor-foreground);
-  border-color: transparent;
-  height: 100%;
+  border: 2px solid transparent;
   width: 95%;
   display: inline-block;
-  margin: 0px 3px;
+  margin: calc(1em - 2px) 3px;
   padding: 0px 2px;
   /* Neither control inherits font, and the key and value cells have to match. */
   font: inherit;
@@ -94,8 +107,8 @@ textarea {
   border: 2px solid transparent;
   width: 95%;
   display: inline-block;
-  vertical-align: middle;
-  margin: 0px 3px;
+  vertical-align: top;
+  margin: calc(1em - 2px) 3px;
   padding: 0px 2px;
   font: inherit;
   resize: none;
@@ -107,6 +120,7 @@ textarea {
 /*
  * No margin reset on purpose: the delete cell's UA 1em margins set a one-line
  * row's height, which combinedPanel.css matches. A multi-line value grows past it.
+ * The input and textarea margins mirror it, so change them together.
  */
 p {
   text-align: center;
@@ -277,7 +291,7 @@ body.vscode-high-contrast-light .btn.primary:hover {
 
 /*
  * The bare `input` rule above is written for the borderless cells inside the
- * table - transparent, 95% wide, full height - so this box has to override
+ * table - transparent, 95% wide, a row's worth of margin - so this box has to override
  * every one of those declarations rather than only the ones it wants changed.
  */
 .search-input {
