@@ -149,9 +149,7 @@ export class FileHelper {
         const declarations = lines.filter(line => line.startsWith(namespaceKeyword))
                                   .map(line => line.trim()
                                                    .replace(namespaceKeyword, emptyString)
-                                                   .replace(" ", emptyString)
-                                                   .replace("{", emptyString)
-                                                   .replace(";", emptyString));
+                                                   .replace(/[\s{;}]/g, emptyString));
 
         return declarations.length > 0 ? declarations[0] : undefined;
     }
