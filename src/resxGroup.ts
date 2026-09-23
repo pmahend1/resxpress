@@ -1,10 +1,13 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import { emptyString } from "./constants";
+import { Logger } from "./logger";
 import { ResxFileName } from "./resxFileName";
 import { ResxGroupFile } from "./resxGroupFile";
 
 const notAResxFile = (fileName: string) => `${fileName} is not a resx file`;
+const notACulture = (fileName: string, candidate: string) =>
+    `${fileName} is not a culture file: "${candidate}" is not a culture .NET knows, so the file is a resource of its own.`;
 
 /**
  * Every culture variant of one resource - `Foo.resx`, `Foo.de.resx`,
@@ -100,6 +103,7 @@ export class ResxGroup {
 
             const sibling = ResxFileName.parse(entryName);
             if (sibling === undefined || ResxFileName.sameBaseName(sibling.baseName, baseName) === false) {
+                ResxGroup.reportUnknownCulture(entryName, baseName);
                 continue;
             }
 
@@ -113,6 +117,14 @@ export class ResxGroup {
         }
 
         return siblings;
+    }
+
+    /* A column that quietly stops appearing reads as the feature breaking. */
+    private static reportUnknownCulture(entryName: string, baseName: string): void {
+        const candidate = ResxFileName.unknownCultureOf(entryName, baseName);
+        if (candidate !== undefined) {
+            Logger.instance.info(notACulture(entryName, candidate));
+        }
     }
 
     /* The listing answers alike everywhere; `fs.stat` only when it failed. */

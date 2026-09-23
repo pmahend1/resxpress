@@ -4,6 +4,13 @@ import { readFile, writeFile } from "fs/promises";
 import { existsSync, mkdirSync, readFileSync } from "fs";
 import { Constants, emptyString } from "./constants";
 import { Logger } from "./logger";
+import { NamespaceLookup } from "./namespaceLookup";
+import { ResxGroup } from "./resxGroup";
+
+/** What the editor shows when neither lookup answers. */
+const unknownNamespace = "Unknown";
+
+const namespaceKeyword = "namespace ";
 
 export class FileHelper {
 
@@ -28,47 +35,25 @@ export class FileHelper {
         }
     }
 
+    /**
+     * The namespace for a resx, from `.resxpress/namespace-mapping.json` first
+     * and a sibling `Designer.cs` second, under each of
+     * {@link NamespaceLookup.candidates}. Returns {@link unknownNamespace} when
+     * neither answers, and null when the lookup itself failed.
+     */
     public static async tryGetNamespace(document: vscode.TextDocument): Promise<string | null> {
         try {
-            var namespace = "Unknown";
-            let fileNameNoExt = FileHelper.getFileNameNoExt(document);
-            let workspacePath = vscode.workspace.getWorkspaceFolder(document.uri);
-            if (workspacePath) {
-                let pathToRead = path.join(workspacePath.uri.fsPath, `.${Constants.namespaceMappingJsonPath}`);
-                let content = await this.getFileText(pathToRead);
-                if (content.length > 0) {
-                    try {
-                        var namespaceMappingRec = JSON.parse(content);
-                        if (namespaceMappingRec && fileNameNoExt && namespaceMappingRec[fileNameNoExt]) {
-                            namespace = namespaceMappingRec[fileNameNoExt];
-                        }
-                    } catch (error) {
-                        if (error instanceof Error) {
-                            Logger.instance.error(error);
-                        }
-                    }
-                }
+            const fileNameNoExt = FileHelper.getFileNameNoExt(document);
+            if (fileNameNoExt.length === 0) {
+                return unknownNamespace;
             }
-            if ((namespace === "Unknown" || namespace.length === 0) && fileNameNoExt.length > 0) {
-                let fileUrls = await vscode.workspace.findFiles(`**/${fileNameNoExt}.Designer.cs`, null, 1);
 
-                if (fileUrls.length > 0) {
-                    const fileContent = readFileSync(fileUrls[0].fsPath, "utf-8");
+            const neutralBaseName = await FileHelper.tryGetNeutralBaseName(document.uri);
+            const candidates = NamespaceLookup.candidates(fileNameNoExt, neutralBaseName);
 
-                    if (fileContent && fileContent.length > 0) {
-                        var lines = fileContent.split("\r\n");
-                        if (lines.length === 1) {
-                            lines = fileContent.split("\n");
-                        }
-                        var newLines = lines.filter(x => x.startsWith("namespace ")).map(x => x.trim().replace("namespace ", emptyString).replace(" ", emptyString).replace("{", emptyString).replace(";", emptyString));
-                        if (newLines.length > 0) {
-                            namespace = newLines[0];
-                        }
-                    }
-                }
-            }
-            return namespace;
-
+            return await FileHelper.fromNamespaceMapping(document.uri, candidates)
+                ?? await FileHelper.fromDesignerFile(candidates)
+                ?? unknownNamespace;
         } catch (error) {
             if (error instanceof Error) {
                 Logger.instance.error(error);
@@ -83,5 +68,89 @@ export class FileHelper {
             return content;
         }
         return emptyString;
+    }
+
+    /**
+     * `ResxGroup` owns the rule that a dotted segment only names a culture when
+     * the neutral file is there to be a variant of, so the base name it reports
+     * is the neutral spelling on disk or the whole file name - never a guess.
+     */
+    private static async tryGetNeutralBaseName(uri: vscode.Uri): Promise<string> {
+        try {
+            return (await ResxGroup.resolve(uri)).baseName;
+        } catch (error) {
+            if (error instanceof Error) {
+                Logger.instance.warning(error.message);
+            }
+            return emptyString;
+        }
+    }
+
+    private static async fromNamespaceMapping(uri: vscode.Uri, candidates: string[]): Promise<string | undefined> {
+        const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
+        if (workspaceFolder === undefined) {
+            return undefined;
+        }
+
+        const mappingPath = path.join(workspaceFolder.uri.fsPath, `.${Constants.namespaceMappingJsonPath}`);
+        const content = await FileHelper.getFileText(mappingPath);
+        if (content.length === 0) {
+            return undefined;
+        }
+
+        try {
+            const mapping = JSON.parse(content) as Record<string, string> | null;
+            if (mapping === null) {
+                return undefined;
+            }
+
+            for (const candidate of candidates) {
+                const mapped = mapping[candidate];
+                if (typeof mapped === "string" && mapped.length > 0) {
+                    return mapped;
+                }
+            }
+        } catch (error) {
+            if (error instanceof Error) {
+                Logger.instance.error(error);
+            }
+        }
+
+        return undefined;
+    }
+
+    private static async fromDesignerFile(candidates: string[]): Promise<string | undefined> {
+        for (const candidate of candidates) {
+            const fileUrls = await vscode.workspace.findFiles(`**/${candidate}.Designer.cs`, null, 1);
+            if (fileUrls.length === 0) {
+                continue;
+            }
+
+            const namespace = FileHelper.readNamespaceDeclaration(readFileSync(fileUrls[0].fsPath, "utf-8"));
+            if (namespace !== undefined) {
+                return namespace;
+            }
+        }
+
+        return undefined;
+    }
+
+    /** The first `namespace Foo` line of a C# file, block or file scoped. */
+    private static readNamespaceDeclaration(fileContent: string): string | undefined {
+        if (fileContent.length === 0) {
+            return undefined;
+        }
+
+        var lines = fileContent.split("\r\n");
+        if (lines.length === 1) {
+            lines = fileContent.split("\n");
+        }
+
+        const declarations = lines.filter(line => line.startsWith(namespaceKeyword))
+                                  .map(line => line.trim()
+                                                   .replace(namespaceKeyword, emptyString)
+                                                   .replace(/[\s{;}]/g, emptyString));
+
+        return declarations.length > 0 ? declarations[0] : undefined;
     }
 }

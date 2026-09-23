@@ -1,17 +1,9 @@
+import { CultureNames } from "./cultureNames";
+
 const resxExtension = ".resx";
 const neutralCulture = "";
 const neutralLabel = "Default";
 const separator = ".";
-
-/*
- * A culture as .NET spells it in a satellite resx name: a two or three letter
- * language subtag followed by any number of script, region or variant subtags.
- * The language subtag has to be lowercase, which is what stops "My.App.resx"
- * from reading as the culture "App". A lowercase three letter segment is
- * genuinely ambiguous with an ISO 639-3 code, so ResxGroup only trusts this
- * once it has also seen the neutral file sitting next to it.
- */
-const cultureTagPattern = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/;
 
 /**
  * A resx file name split into `<baseName>[.<culture>].resx`.
@@ -28,8 +20,11 @@ export class ResxFileName {
     }
 
     /**
-     * Splits a resx file name, or returns undefined when it is not a resx at
-     * all. The culture is only a candidate - see {@link cultureTagPattern}.
+     * Splits a resx file name, or returns undefined when it is not a resx.
+     *
+     * A dotted segment is a culture only when {@link CultureNames} has it - and
+     * `no` and `my` are languages as well as English, so `ResxGroup` trusts the
+     * split only once it has seen the neutral file beside it too.
      */
     public static parse(fileName: string): ResxFileName | undefined {
         if (fileName.toLowerCase().endsWith(resxExtension) === false) {
@@ -45,7 +40,7 @@ export class ResxFileName {
         }
 
         const candidate = withoutExtension.slice(lastSeparator + 1);
-        if (cultureTagPattern.test(candidate) === false) {
+        if (CultureNames.has(candidate) === false) {
             return new ResxFileName(withoutExtension, neutralCulture);
         }
 
@@ -107,6 +102,25 @@ export class ResxFileName {
         }
 
         return first < second ? -1 : first > second ? 1 : 0;
+    }
+
+    /**
+     * The segment that would have made `fileName` a variant of `baseName` had it
+     * been a culture. Only for reporting a column that went missing.
+     */
+    public static unknownCultureOf(fileName: string, baseName: string): string | undefined {
+        const parsed = ResxFileName.parse(fileName);
+        if (parsed === undefined || parsed.culture.length > 0) {
+            return undefined;
+        }
+
+        const lastSeparator = parsed.baseName.lastIndexOf(separator);
+        if (lastSeparator <= 0
+         || ResxFileName.sameBaseName(parsed.baseName.slice(0, lastSeparator), baseName) === false) {
+            return undefined;
+        }
+
+        return parsed.baseName.slice(lastSeparator + 1);
     }
 
     public get fileName(): string {
