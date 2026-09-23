@@ -26,6 +26,12 @@ const visibilityChange = "visibilitychange";
 const hidden = "hidden";
 const deleteStr = "delete";
 const X = "X";
+const buttonTag = "button";
+const buttonType = "button";
+const ariaLabel = "aria-label";
+const deleteButtonClass = "delete-button";
+const deleteIconTemplate = "deleteIconTemplate";
+const deleteRowLabel = "Delete this resource";
 const strong = "strong";
 const sortByKeysButton = "sortByKeysButton";
 const errorDuplicateKey = (key: string) => `Data with ${key} already exists`;
@@ -230,6 +236,25 @@ function logToConsole(text: string) {
 		return cell;
 	}
 
+	// The X survives only as a fallback, should the shell ever ship without the icon.
+	function createDeleteButton(): HTMLButtonElement {
+		const deleteButton = document.createElement(buttonTag);
+		deleteButton.type = buttonType;
+		deleteButton.className = deleteButtonClass;
+		deleteButton.title = deleteRowLabel;
+		deleteButton.setAttribute(ariaLabel, deleteRowLabel);
+
+		const template = document.getElementById(deleteIconTemplate);
+		if (template instanceof HTMLTemplateElement) {
+			deleteButton.appendChild(template.content.cloneNode(true));
+		}
+		else {
+			deleteButton.textContent = X;
+		}
+
+		return deleteButton;
+	}
+
 	function createRow(entry: ResxEntry, index: number): HTMLTableRowElement {
 		const deleteCell = document.createElement(td);
 		deleteCell.id = `${index}.${deleteStr}.${td}`;
@@ -237,7 +262,7 @@ function logToConsole(text: string) {
 
 		const deleteMarker = document.createElement(p);
 		deleteMarker.id = `${index}.${deleteStr}.${p}`;
-		deleteMarker.textContent = X;
+		deleteMarker.appendChild(createDeleteButton());
 		deleteCell.appendChild(deleteMarker);
 
 		const row = document.createElement(tr);

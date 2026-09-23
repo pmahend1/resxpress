@@ -127,6 +127,32 @@ p {
 }
 
 /*
+ * One line of text tall, so the <p> around it is exactly the height the X was
+ * and the row height and the cells' mirrored margins stay as they are.
+ */
+.delete-button {
+  display: block;
+  margin: 0 auto;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background-color: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.delete-button .icon {
+  display: block;
+  width: 1lh;
+  height: 1lh;
+}
+
+.delete-button:hover {
+  background-color: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+/*
  * Rows rather than one wrapping line, so no flex-grow can strand a button at the
  * right edge. Rows may come and go: webpanelScript measures this for the headers.
  */

@@ -196,7 +196,7 @@ textarea {
 }
 
 /*
- * No margin reset on purpose. The delete cell's <p>X</p> keeps the UA's default
+ * No margin reset on purpose. The <p> around the delete button keeps the UA's default
  * 1em top and bottom, and that margin is the single editor's row height for a
  * one-line row - zeroing it here made these rows ~32px shorter than the ones
  * next door. A multi-line value's textarea grows the row past it, in both editors.
@@ -204,6 +204,32 @@ textarea {
  */
 p {
   text-align: center;
+}
+
+/*
+ * One line of text tall, so the <p> around it is exactly the height the X was
+ * and the row height and the cells' mirrored margins stay as they are.
+ */
+.delete-button {
+  display: block;
+  margin: 0 auto;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background-color: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.delete-button .icon {
+  display: block;
+  width: 1lh;
+  height: 1lh;
+}
+
+.delete-button:hover {
+  background-color: color-mix(in srgb, currentColor 12%, transparent);
 }
 
 /* Buttons, error row and icons are kept in step with webpanel.css, which explains them. */

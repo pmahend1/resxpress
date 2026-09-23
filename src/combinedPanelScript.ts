@@ -29,6 +29,10 @@ const visibilityChange = "visibilitychange";
 const hidden = "hidden";
 const deleteStr = "delete";
 const X = "X";
+const buttonTag = "button";
+const buttonType = "button";
+const deleteButtonClass = "delete-button";
+const deleteIconTemplate = "deleteIconTemplate";
 const message = "message";
 const keydown = "keydown";
 const scroll = "scroll";
@@ -41,6 +45,7 @@ const commentModeButton = "commentModeButton";
 const searchInput = "searchInput";
 const searchStatus = "searchStatus";
 const ariaPressed = "aria-pressed";
+const ariaLabel = "aria-label";
 const keyColumnClass = "key-column";
 const valueColumnClass = "value-column";
 const commentColumnClass = "comment-column";
@@ -282,6 +287,25 @@ function logToConsole(logText: string) {
         head.appendChild(row);
     }
 
+    // The X survives only as a fallback, should the shell ever ship without the icon.
+    function createDeleteButton(): HTMLButtonElement {
+        const deleteButton = document.createElement(buttonTag);
+        deleteButton.type = buttonType;
+        deleteButton.className = deleteButtonClass;
+        deleteButton.title = deleteRowTooltip;
+        deleteButton.setAttribute(ariaLabel, deleteRowTooltip);
+
+        const template = document.getElementById(deleteIconTemplate);
+        if (template instanceof HTMLTemplateElement) {
+            deleteButton.appendChild(template.content.cloneNode(true));
+        }
+        else {
+            deleteButton.textContent = X;
+        }
+
+        return deleteButton;
+    }
+
     function createRow(entry: CombinedEntry, index: number): HTMLTableRowElement {
         const row = document.createElement(tr);
         row.appendChild(createCell(createInput(`${index}.${keyField}`, entry.key), keyColumnClass));
@@ -310,7 +334,7 @@ function logToConsole(logText: string) {
 
         const deleteMarker = document.createElement(p);
         deleteMarker.id = `${index}.${deleteStr}.${p}`;
-        deleteMarker.textContent = X;
+        deleteMarker.appendChild(createDeleteButton());
         deleteCell.appendChild(deleteMarker);
         row.appendChild(deleteCell);
 

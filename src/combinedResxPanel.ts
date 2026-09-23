@@ -390,6 +390,7 @@ export class CombinedResxPanel {
         const addIcon = readInlineIcon(extensionUri.fsPath, "ms-add.svg");
         const sortByKeysIcon = readInlineIcon(extensionUri.fsPath, "ms-sort-by-alpha.svg");
         const errorIcon = readInlineIcon(extensionUri.fsPath, "ms-error.svg");
+        const deleteIcon = readInlineIcon(extensionUri.fsPath, "ms-delete.svg");
         const nonce = getNonce();
 
         /*
@@ -442,6 +443,8 @@ export class CombinedResxPanel {
             </tbody>
         </table>
     </div>
+    <!-- Cloned into every row's delete button by combinedPanelScript. -->
+    <template id="deleteIconTemplate">${deleteIcon}</template>
     <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>
 </html>`;
