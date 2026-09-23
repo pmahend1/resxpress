@@ -256,7 +256,6 @@ export async function runResGenAsync(document: vscode.TextDocument): Promise<voi
 		nameSpace = path.basename(path.dirname(filename));
 	}
 
-
 	let documentText = document.getText();
 	if (documentText.length > 0) {
 		const entries = ResxFile.parse(documentText, IndentPreference.resolve(document.uri)).entries;

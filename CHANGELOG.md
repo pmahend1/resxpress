@@ -1,5 +1,23 @@
 # Change Log
 
+## Unreleased
+
+### Changed
+
+- **A resx is treated as a translation only when its suffix is a real culture.**
+  `Resources.es.resx` and `Resources.zh-TW.resx` group with `Resources.resx` as before, but
+  `Resources.bak.resx` and `Resources.app.resx` are now resources in their own right rather
+  than "bak" and "app" languages. Turn on `resxpress.configuration.enableLocalLogs` to see
+  which suffix was rejected.
+
+### Fixed
+
+- The editor showed the namespace as `Unknown` for a culture file. `Resource.es.resx` now
+  falls back to the neutral file's namespace; an explicit `.resxpress/namespace-mapping.json`
+  entry for the culture file still wins.
+- Webviews returned to the top of the file after a tab switch. The scroll position and the
+  search filter are now kept, in the resx editor, Edit All Languages and the Web Preview.
+
 ## 8.0.0 - 11-Sep-2026
 
 ### New
