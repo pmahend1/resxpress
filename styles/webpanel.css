@@ -75,8 +75,39 @@ input {
   display: inline-block;
   margin: 0px 3px;
   padding: 0px 2px;
+  /* Neither control inherits font, and the key and value cells have to match. */
+  font: inherit;
 }
 
+/*
+ * Value and comment cells. Without the width and font here the UA's cols="20",
+ * rows="2" monospace box renders instead of something that fills the cell.
+ * field-sizing grows a multi-line value to fit and leaves a one-line value the
+ * height of the key's input. It sizes the width too, so inline-size containment
+ * keeps a long value from widening its column; the intrinsic width stands in
+ * for an input's default size="20".
+ */
+textarea {
+  box-sizing: border-box;
+  background-color: transparent;
+  color: var(--vscode-editor-foreground);
+  border: 2px solid transparent;
+  width: 95%;
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0px 3px;
+  padding: 0px 2px;
+  font: inherit;
+  resize: none;
+  field-sizing: content;
+  contain: inline-size;
+  contain-intrinsic-inline-size: 20ch;
+}
+
+/*
+ * No margin reset on purpose: the delete cell's UA 1em margins set a one-line
+ * row's height, which combinedPanel.css matches. A multi-line value grows past it.
+ */
 p {
   text-align: center;
 }

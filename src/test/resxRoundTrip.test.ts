@@ -56,7 +56,7 @@ test("editing one value rewrites one line and leaves every comment in place", ()
 
     const xml = resxFile.toXml();
     assert.deepEqual(changedLines(fixture, xml),
-                     ["43:     <value>   leading and trailing   </value> =>     <value>edited</value>"]);
+                     ["44:     <value>   leading and trailing   </value> =>     <value>edited</value>"]);
 
     // The compact-mode bug this replaces hoisted every comment above the schema block.
     assert.ok(xml.indexOf("Microsoft ResX Schema") < xml.indexOf("<!--Data-->"));
@@ -71,7 +71,7 @@ test("renaming a key rewrites only the data element's own line", () => {
     resxFile.applyEntries(entries);
 
     assert.deepEqual(changedLines(fixture, resxFile.toXml()),
-                     [`42:   <data name="Padded" xml:space="preserve"> =>   <data name="Renamed" xml:space="preserve">`]);
+                     [`43:   <data name="Padded" xml:space="preserve"> =>   <data name="Renamed" xml:space="preserve">`]);
 });
 
 test("deleting an entry removes that entry's lines and nothing else", () => {
@@ -118,6 +118,29 @@ test("the first entry added to a brand new file lands below the Data marker", ()
     assert.ok(xml.includes(`\t<data name="Hello" xml:space="preserve">\n\t\t<value>World</value>\n\t\t<comment>first one</comment>\n\t</data>`),
               "the entry copies the template's tabs");
     assert.ok(xml.endsWith("</root>"), "the template has no trailing newline and does not grow one");
+});
+
+test("blank and whitespace-only lines between elements survive an edit elsewhere", () => {
+    // The shape of the #130 report: a blank line above the first entry and a lone space above </root>.
+    const source = `<root>\r\n  <resheader name="resmimetype">\r\n    <value>text/microsoft-resx</value>\r\n  </resheader>\r\n\r\n`
+        + `  <data name="A" xml:space="preserve">\r\n    <value>a</value>\r\n  </data>  \r\n\r\n\r\n`
+        + `  <data name="B" xml:space="preserve">\r\n    <value>b</value>\r\n  </data>\r\n \r\n</root>\r\n`;
+    const resxFile = ResxFile.parse(source);
+    assert.equal(resxFile.toXml(), source);
+
+    const entries = resxFile.entries;
+    entries[1].value = "edited";
+    resxFile.applyEntries(entries);
+    assert.deepEqual(changedLines(source, resxFile.toXml()),
+                     ["12:     <value>b</value> =>     <value>edited</value>"]);
+});
+
+test("a value that is only whitespace is read as that whitespace", () => {
+    const source = `<root>\n  <data name="A" xml:space="preserve">\n    <value>   </value>\n  </data>\n</root>\n`;
+    const resxFile = ResxFile.parse(source);
+
+    assert.equal(resxFile.entries[0].value, "   ");
+    assert.equal(resxFile.toXml(), source);
 });
 
 test("indentation comes from the file, not from the fallback", () => {
@@ -195,6 +218,17 @@ test("sorting by key reorders entries without reformatting the file", () => {
     assert.ok(xml.includes(`\n  <data name="Empty"`));
     assert.ok(xml.includes("<value />"));
     assert.ok(xml.includes(`<value>   leading and trailing   </value>`));
+});
+
+test("sorting by key leaves blank lines where they were", () => {
+    const source = `<root>\n  <!--Data-->\n\n  <data name="B">\n    <value>b</value>\n  </data>\n\n`
+        + `  <data name="A">\n    <value>a</value>\n  </data>\n \n</root>\n`;
+    const resxFile = ResxFile.parse(source);
+    resxFile.sortEntriesByKey();
+
+    assert.equal(resxFile.toXml(),
+                 `<root>\n  <!--Data-->\n\n  <data name="A">\n    <value>a</value>\n  </data>\n\n`
+                 + `  <data name="B">\n    <value>b</value>\n  </data>\n \n</root>\n`);
 });
 
 test("an unchanged document produces no edit", () => {

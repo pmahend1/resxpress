@@ -1,6 +1,7 @@
 import type { CombinedColumn } from "./combinedColumn";
 import type { CombinedEntry } from "./combinedEntry";
 import type { CombinedPayload } from "./combinedPayload";
+import { CellEdit } from "./cellEdit";
 import { emptyString } from "./constants";
 import { nameof } from "./nameof";
 import { WebpanelPostMessageKind } from "./webpanelMessageKind";
@@ -12,13 +13,14 @@ const tableHead = "tableHead";
 const tableScroll = "tableScroll";
 const errorBlock = "errorBlock";
 const errorText = "errorText";
-const keyField = "key";
-const valueField = "value";
-const commentField = "comment";
+const keyField = CellEdit.keyField;
+const valueField = CellEdit.valueField;
+const commentField = CellEdit.commentField;
 const tr = "tr";
 const td = "td";
 const th = "th";
 const input = "input";
+const textarea = "textarea";
 const p = "p";
 const text = "text";
 const click = "click";
@@ -109,6 +111,11 @@ function logToConsole(logText: string) {
         return element instanceof HTMLInputElement ? element : undefined;
     }
 
+    function getField(id: string): HTMLInputElement | HTMLTextAreaElement | undefined {
+        const element = document.getElementById(id);
+        return element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement ? element : undefined;
+    }
+
     function inputId(index: number, field: string, culture: string): string {
         return `${index}.${field}.${culture}`;
     }
@@ -123,73 +130,20 @@ function logToConsole(logText: string) {
         return neutral?.culture ?? currentColumns[0]?.culture ?? emptyString;
     }
 
-    /**
-     * Reads a row back out of the DOM.
-     *
-     * A cell's *presence* is as meaningful as its text: a missing `values`
-     * property means the key is absent from that language's file, and an empty
-     * string means it is there and blank. So an empty cell keeps its property
-     * only when it already had one, which makes clearing a translation the
-     * gesture that removes it, and leaves a deliberately blank entry alone.
-     */
-    function readRow(index: number): CombinedEntry | undefined {
-        const keyInput = getInput(`${index}.${keyField}`);
-        const previous = currentEntries[index];
-        if (keyInput === undefined || previous === undefined) {
-            return undefined;
-        }
-
-        const entry: CombinedEntry = { key: keyInput.value, values: {}, comments: {} };
-
-        for (const column of currentColumns) {
-            const culture = column.culture;
-            const valueInput = getInput(inputId(index, valueField, culture));
-            const stored = previous.values[culture];
-
-            if (valueInput === undefined) {
-                if (stored !== undefined) {
-                    entry.values[culture] = stored;
-                }
-            }
-            else if (valueInput.value.length > 0) {
-                entry.values[culture] = valueInput.value;
-            }
-            else if (stored === emptyString) {
-                entry.values[culture] = emptyString;
-            }
-
-            /*
-             * A comment column that is not on screen is carried through
-             * untouched rather than dropped - collapsing the comment columns is
-             * a view, and must never rewrite a translator's own comment.
-             */
-            const commentInput = getInput(inputId(index, commentField, culture));
-            if (commentInput === undefined) {
-                const storedComment = previous.comments[culture];
-                if (storedComment !== undefined) {
-                    entry.comments[culture] = storedComment;
-                }
-            }
-            else if (commentInput.value.length > 0) {
-                entry.comments[culture] = commentInput.value;
-            }
-        }
-
-        return entry;
-    }
-
     function inputEvent(event: Event) {
-        const target = event.target instanceof HTMLInputElement ? event.target : undefined;
-        if (target === undefined) {
+        const target = event.target;
+        if (target instanceof HTMLInputElement === false && target instanceof HTMLTextAreaElement === false) {
             return;
         }
 
-        const index = Number(target.id.split(".")[0]);
+        // The neutral culture is the empty string, so its ids end in a bare dot.
+        const [indexText, field, culture = emptyString] = target.id.split(".");
+        const index = Number(indexText);
         if (Number.isInteger(index) === false || index < 0 || index >= currentEntries.length) {
             return;
         }
 
-        const entry = readRow(index);
+        const entry = CellEdit.applyCombined(currentEntries[index], field, culture, target.value);
         if (entry === undefined) {
             return;
         }
@@ -270,6 +224,17 @@ function logToConsole(logText: string) {
         return inputElement;
     }
 
+    // Always a textarea, never swapped in by length: a swap mid-edit loses the caret and undo.
+    function createTextArea(id: string, initialValue: string): HTMLTextAreaElement {
+        const textAreaElement = document.createElement(textarea);
+        textAreaElement.id = id;
+        textAreaElement.rows = 1;
+        textAreaElement.value = initialValue;
+        textAreaElement.addEventListener(input, inputEvent, false);
+        textAreaElement.addEventListener(change, flushDocumentUpdate, false);
+        return textAreaElement;
+    }
+
     function createCell(content: HTMLElement, className: string): HTMLTableCellElement {
         const cell = document.createElement(td);
         cell.className = className;
@@ -323,17 +288,17 @@ function logToConsole(logText: string) {
 
         for (const column of currentColumns) {
             const culture = column.culture;
-            row.appendChild(createCell(createInput(inputId(index, valueField, culture), entry.values[culture] ?? emptyString),
+            row.appendChild(createCell(createTextArea(inputId(index, valueField, culture), entry.values[culture] ?? emptyString),
                 valueColumnClass));
             if (unifiedComments === false) {
-                row.appendChild(createCell(createInput(inputId(index, commentField, culture), entry.comments[culture] ?? emptyString),
+                row.appendChild(createCell(createTextArea(inputId(index, commentField, culture), entry.comments[culture] ?? emptyString),
                     commentColumnClass));
             }
         }
 
         if (unifiedComments) {
             const culture = keyAuthorityCulture();
-            row.appendChild(createCell(createInput(inputId(index, commentField, culture), entry.comments[culture] ?? emptyString),
+            row.appendChild(createCell(createTextArea(inputId(index, commentField, culture), entry.comments[culture] ?? emptyString),
                 commentColumnClass));
         }
 
@@ -360,7 +325,7 @@ function logToConsole(logText: string) {
         }
 
         for (const column of currentColumns) {
-            const cell = getInput(inputId(index, valueField, column.culture))?.parentElement;
+            const cell = getField(inputId(index, valueField, column.culture))?.parentElement;
             if (cell === null || cell === undefined) {
                 continue;
             }
@@ -612,7 +577,7 @@ function logToConsole(logText: string) {
             }
         }, false);
 
-        // VS Code's own find widget cannot see into <input> values, and every cell here is one.
+        // VS Code's own find widget cannot see into <input> or <textarea> values, and every cell here is one.
         document.addEventListener(keydown, event => {
             if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === findKey) {
                 event.preventDefault();

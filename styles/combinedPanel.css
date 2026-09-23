@@ -153,13 +153,40 @@ input {
   display: inline-block;
   margin: 0px 3px;
   padding: 0px 2px;
+  /* Neither control inherits font, and the key and value cells have to match. */
+  font: inherit;
+}
+
+/*
+ * Value and comment cells. Without the width and font here the UA's cols="20",
+ * rows="2" monospace box renders instead of something that fills the cell.
+ * field-sizing grows a multi-line value to fit and leaves a one-line value the
+ * height of the key's input. It sizes the width too, so inline-size containment
+ * keeps a long value from widening its column; the intrinsic width stands in
+ * for an input's default size="20".
+ */
+textarea {
+  box-sizing: border-box;
+  background-color: transparent;
+  color: var(--vscode-editor-foreground);
+  border: 2px solid transparent;
+  width: 95%;
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0px 3px;
+  padding: 0px 2px;
+  font: inherit;
+  resize: none;
+  field-sizing: content;
+  contain: inline-size;
+  contain-intrinsic-inline-size: 20ch;
 }
 
 /*
  * No margin reset on purpose. The delete cell's <p>X</p> keeps the UA's default
- * 1em top and bottom, and that margin is the whole of the single editor's row
- * height - zeroing it here made these rows ~32px shorter than the ones next
- * door. Row height is set by this and nothing else, in both editors.
+ * 1em top and bottom, and that margin is the single editor's row height for a
+ * one-line row - zeroing it here made these rows ~32px shorter than the ones
+ * next door. A multi-line value's textarea grows the row past it, in both editors.
  */
 p {
   text-align: center;
