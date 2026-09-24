@@ -153,6 +153,11 @@ td {
   vertical-align: top;
 }
 
+/* The whole cell focuses its field, so it should look editable all over. */
+td:has(> input, > textarea) {
+  cursor: text;
+}
+
 /*
  * The vertical margin mirrors the delete cell's 1em <p> margin, less the 2px
  * border, which puts a cell's first line level with the X and leaves a one-line

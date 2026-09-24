@@ -240,11 +240,25 @@ function logToConsole(logText: string) {
         return textAreaElement;
     }
 
-    function createCell(content: HTMLElement, className: string): HTMLTableCellElement {
+    function createCell(field: HTMLInputElement | HTMLTextAreaElement, className: string): HTMLTableCellElement {
         const cell = document.createElement(td);
         cell.className = className;
-        cell.appendChild(content);
+        cell.appendChild(field);
+        focusFieldOnCellClick(cell, field);
         return cell;
+    }
+
+    // A taller neighbour stretches the row while this field stays top-aligned,
+    // so a click on the space below it lands on the cell and would do nothing.
+    function focusFieldOnCellClick(cell: HTMLTableCellElement, field: HTMLInputElement | HTMLTextAreaElement) {
+        cell.addEventListener(click, event => {
+            if (event.target !== cell) {
+                return;
+            }
+
+            field.focus();
+            field.setSelectionRange(field.value.length, field.value.length);
+        }, false);
     }
 
     function createHeaderCell(label: string, tooltip: string | undefined, className: string): HTMLTableCellElement {
