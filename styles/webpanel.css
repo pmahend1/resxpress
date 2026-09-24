@@ -126,13 +126,10 @@ p {
   text-align: center;
 }
 
-/*
- * One line of text tall, so the <p> around it is exactly the height the X was
- * and the row height and the cells' mirrored margins stay as they are.
- */
+/* 20px optical size; the negative margin keeps the <p>, and so the row, one line tall. */
 .delete-button {
   display: block;
-  margin: 0 auto;
+  margin: calc((1lh - 20px) / 2) auto;
   padding: 0;
   border: none;
   border-radius: 4px;
@@ -144,11 +141,14 @@ p {
 
 .delete-button .icon {
   display: block;
-  width: 1lh;
-  height: 1lh;
+  width: 20px;
+  height: 20px;
 }
 
-.delete-button:hover {
+/* Red only on hover and focus, not down every row. */
+.delete-button:hover,
+.delete-button:focus-visible {
+  color: var(--vscode-errorForeground, #f14c4c);
   background-color: color-mix(in srgb, currentColor 12%, transparent);
 }
 
