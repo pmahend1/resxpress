@@ -9,9 +9,21 @@
   `Resources.bak.resx` and `Resources.app.resx` are now resources in their own right rather
   than "bak" and "app" languages. Turn on `resxpress.configuration.enableLocalLogs` to see
   which suffix was rejected.
+- **Table rows are top-aligned**, so a key stays level with the first line of a tall value
+  instead of floating halfway down it. Clicking anywhere in a cell now edits it, including the
+  empty space below a short value or comment beside a taller one.
+- The delete **X** is now a trash-can button, reachable with `Tab`.
+- **Smaller download.** The README images are no longer packed into the extension, which
+  shrinks the vsix from about 16 MB to under 1 MB.
 
 ### Fixed
 
+- **Multi-line values** showed as one line, and editing only a row's key or comment wrote the
+  value back with its line breaks removed. Values and comments now show every line and each
+  row grows to fit, in the resx editor and in Edit All Languages
+  ([#130](https://github.com/pmahend1/resxpress/issues/130)).
+- The first edit to a file deleted blank and whitespace-only lines between entries. They are
+  now kept.
 - The editor showed the namespace as `Unknown` for a culture file. `Resource.es.resx` now
   falls back to the neutral file's namespace; an explicit `.resxpress/namespace-mapping.json`
   entry for the culture file still wins.
