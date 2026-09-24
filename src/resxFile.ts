@@ -12,6 +12,7 @@ const elementNodeType = "element";
 const textNodeType = "text";
 const cdataNodeType = "cdata";
 const carriageReturnLineFeed = "\r\n";
+const lineFeed = "\n";
 const defaultIndentLength = 4;
 
 /**
@@ -32,7 +33,14 @@ export class ResxFile {
      * @throws when the text is not well-formed XML.
      */
     public static parse(text: string, fallbackIndent: string | number = defaultIndentLength): ResxFile {
-        const document = xmljs.xml2js(text) as xmljs.Element;
+        const document = xmljs.xml2js(text, { captureSpacesBetweenElements: true }) as xmljs.Element;
+        keepBlankLines(document);
+
+        // Whatever follows the root is ResxFormat.trailingWhitespace's to restore.
+        while (document.elements?.at(-1)?.type === textNodeType) {
+            document.elements.pop();
+        }
+
         return new ResxFile(document, ResxFormat.detect(text, fallbackIndent));
     }
 
@@ -88,16 +96,25 @@ export class ResxFile {
         root.elements = fillSlots(children, slots, updated);
     }
 
+    /**
+     * Moves every `<data>` element after the other children, in key order.
+     * Blank lines are layout rather than content, so they stay at the positions
+     * they held and the elements are laid back out between them.
+     */
     public sortEntriesByKey(reverse: boolean = false): void {
         const root = this.rootElement;
         if (root?.elements === undefined) {
             return;
         }
 
-        const others = root.elements.filter(element => element.name !== DATA);
-        const data = root.elements.filter(element => element.name === DATA);
+        const content = root.elements.filter(element => element.type !== textNodeType);
+        const others = content.filter(element => element.name !== DATA);
+        const data = content.filter(element => element.name === DATA);
         data.sort((first, second) => compareKeys(readKey(first), readKey(second), reverse));
-        root.elements = others.concat(data);
+
+        const sorted = others.concat(data);
+        let next = 0;
+        root.elements = root.elements.map(element => element.type === textNodeType ? element : sorted[next++]);
     }
 
     public toXml(): string {
@@ -122,6 +139,41 @@ export class ResxFile {
     private get dataElements(): xmljs.Element[] {
         return this.rootElement?.elements?.filter(element => element.name === DATA) ?? [];
     }
+}
+
+/*
+ * xml-js drops the whitespace between elements and js2xml regenerates it as a
+ * line break plus indent, so blank lines, whitespace-only lines and trailing
+ * spaces vanished on the first edit. Each captured run is cut down to what
+ * js2xml will not regenerate: everything before its last line break. Only
+ * element content is touched - whitespace inside a leaf, such as a value that
+ * is all spaces, is text and is left as it is.
+ */
+function keepBlankLines(element: xmljs.Element): void {
+    const children = element.elements;
+    if (children === undefined) {
+        return;
+    }
+
+    if (isElementContent(children)) {
+        element.elements = children.flatMap(child => {
+            if (child.type !== textNodeType) {
+                return [child];
+            }
+
+            const text = String(child.text);
+            const lastLineBreak = text.lastIndexOf(lineFeed);
+            return lastLineBreak > 0 ? [{ type: textNodeType, text: text.slice(0, lastLineBreak) }] : [];
+        });
+    }
+
+    element.elements?.forEach(keepBlankLines);
+}
+
+function isElementContent(children: xmljs.Element[]): boolean {
+    return children.some(child => child.type === elementNodeType)
+        && children.every(child => child.type !== cdataNodeType
+            && (child.type !== textNodeType || /^\s*$/.test(String(child.text))));
 }
 
 function toEntry(element: xmljs.Element): ResxEntry {

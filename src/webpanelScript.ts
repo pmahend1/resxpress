@@ -1,3 +1,4 @@
+import { CellEdit } from "./cellEdit";
 import { emptyString } from "./constants";
 import { nameof } from "./nameof";
 import type { ResxEntry } from "./resxEntry";
@@ -10,12 +11,13 @@ const resxpressWebPanel = "resxpress.webpanel";
 const tbody = "tbody";
 const errorBlock = "errorBlock";
 const errorText = "errorText";
-const key = "key";
-const value = "value";
-const comment = "comment";
+const key = CellEdit.keyField;
+const value = CellEdit.valueField;
+const comment = CellEdit.commentField;
 const tr = "tr";
 const td = "td";
 const input = "input";
+const textarea = "textarea";
 const p = "p";
 const text = "text";
 const click = "click";
@@ -24,6 +26,12 @@ const visibilityChange = "visibilitychange";
 const hidden = "hidden";
 const deleteStr = "delete";
 const X = "X";
+const buttonTag = "button";
+const buttonType = "button";
+const ariaLabel = "aria-label";
+const deleteButtonClass = "delete-button";
+const deleteIconTemplate = "deleteIconTemplate";
+const deleteRowLabel = "Delete this resource";
 const strong = "strong";
 const sortByKeysButton = "sortByKeysButton";
 const errorDuplicateKey = (key: string) => `Data with ${key} already exists`;
@@ -89,35 +97,19 @@ function logToConsole(text: string) {
 		return element instanceof HTMLInputElement ? element : undefined;
 	}
 
-	function readRow(index: number): ResxEntry | undefined {
-		const keyInput = getInput(`${index}.${key}`);
-		const valueInput = getInput(`${index}.${value}`);
-		const commentInput = getInput(`${index}.${comment}`);
-
-		if (keyInput === undefined || valueInput === undefined || commentInput === undefined) {
-			return undefined;
-		}
-
-		const entry: ResxEntry = { key: keyInput.value, value: valueInput.value };
-		if (commentInput.value.length > 0) {
-			entry.comment = commentInput.value;
-		}
-
-		return entry;
-	}
-
 	function inputEvent(event: Event) {
-		const target = event.target instanceof HTMLInputElement ? event.target : undefined;
-		if (target === undefined) {
+		const target = event.target;
+		if (target instanceof HTMLInputElement === false && target instanceof HTMLTextAreaElement === false) {
 			return;
 		}
 
-		const index = Number(target.id.split(".")[0]);
+		const [indexText, field] = target.id.split(".");
+		const index = Number(indexText);
 		if (Number.isInteger(index) === false || index < 0 || index >= currentEntries.length) {
 			return;
 		}
 
-		const entry = readRow(index);
+		const entry = CellEdit.apply(currentEntries[index], field, target.value);
 		if (entry === undefined) {
 			return;
 		}
@@ -227,10 +219,40 @@ function logToConsole(text: string) {
 		return inputElement;
 	}
 
+	// Always a textarea, never swapped in by length: a swap mid-edit loses the caret and undo.
+	function createTextArea(id: string, initialValue: string): HTMLTextAreaElement {
+		const textAreaElement = document.createElement(textarea);
+		textAreaElement.id = id;
+		textAreaElement.rows = 1;
+		textAreaElement.value = initialValue;
+		textAreaElement.addEventListener(input, inputEvent, false);
+		textAreaElement.addEventListener(change, flushDocumentUpdate, false);
+		return textAreaElement;
+	}
+
 	function createCell(content: HTMLElement): HTMLTableCellElement {
 		const cell = document.createElement(td);
 		cell.appendChild(content);
 		return cell;
+	}
+
+	// The X survives only as a fallback, should the shell ever ship without the icon.
+	function createDeleteButton(): HTMLButtonElement {
+		const deleteButton = document.createElement(buttonTag);
+		deleteButton.type = buttonType;
+		deleteButton.className = deleteButtonClass;
+		deleteButton.title = deleteRowLabel;
+		deleteButton.setAttribute(ariaLabel, deleteRowLabel);
+
+		const template = document.getElementById(deleteIconTemplate);
+		if (template instanceof HTMLTemplateElement) {
+			deleteButton.appendChild(template.content.cloneNode(true));
+		}
+		else {
+			deleteButton.textContent = X;
+		}
+
+		return deleteButton;
 	}
 
 	function createRow(entry: ResxEntry, index: number): HTMLTableRowElement {
@@ -240,13 +262,13 @@ function logToConsole(text: string) {
 
 		const deleteMarker = document.createElement(p);
 		deleteMarker.id = `${index}.${deleteStr}.${p}`;
-		deleteMarker.textContent = X;
+		deleteMarker.appendChild(createDeleteButton());
 		deleteCell.appendChild(deleteMarker);
 
 		const row = document.createElement(tr);
 		row.append(createCell(createInput(`${index}.${key}`, entry.key)),
-			createCell(createInput(`${index}.${value}`, entry.value)),
-			createCell(createInput(`${index}.${comment}`, entry.comment ?? emptyString)),
+			createCell(createTextArea(`${index}.${value}`, entry.value)),
+			createCell(createTextArea(`${index}.${comment}`, entry.comment ?? emptyString)),
 			deleteCell);
 		return row;
 	}
@@ -399,7 +421,7 @@ function logToConsole(text: string) {
 		 * Ctrl+F is what anyone will reach for first, and nothing else claims it
 		 * here: VS Code's webview find widget is opt-in and would be useless even
 		 * if it were on, because it drives Chromium's find-in-page, which does not
-		 * look inside <input> values - and every resx field is an input.
+		 * look inside <input> or <textarea> values - and every resx field is one.
 		 */
 		document.addEventListener(keydown, event => {
 			if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === findKey) {

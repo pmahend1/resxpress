@@ -27,6 +27,7 @@ export class ResxEditor {
         const sortByKeysIcon = readInlineIcon(this.context.extensionPath, "ms-sort-by-alpha.svg");
         const allLanguagesIcon = readInlineIcon(this.context.extensionPath, "ms-translate.svg");
         const errorIcon = readInlineIcon(this.context.extensionPath, "ms-error.svg");
+        const deleteIcon = readInlineIcon(this.context.extensionPath, "ms-delete.svg");
         const nonce = getNonce();
 
         /*
@@ -96,6 +97,8 @@ export class ResxEditor {
         <tbody>
         </tbody>
     </table>
+    <!-- Cloned into every row's delete button by webpanelScript. -->
+    <template id="deleteIconTemplate">${deleteIcon}</template>
     <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>
 </html>`;
