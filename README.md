@@ -14,26 +14,42 @@ Resx editor, previewer and reorganizer extension for Visual Studio Code and VSCo
 
 ---
 
+## Contents
+
+- [Features](#features)
+  - [Custom Resx Editor](#custom-resx-editor)
+  - [Search within a resx file](#search-within-a-resx-file)
+  - [ResXpress: Edit All Languages](#resxpress-edit-all-languages)
+  - [ResXpress: Markdown Preview](#resxpress-markdown-preview)
+  - [ResXpress: Sort By Keys](#resxpress-sort-by-keys)
+  - [ResXpress: Web Preview](#resxpress-web-preview)
+  - [Adding new resx file](#adding-new-resx-file)
+  - [Updating resx C# namespace](#updating-resx-c-namespace)
+  - [Resx Data Snippet](#resx-data-snippet)
+  - [Settings](#settings)
+  - [Indentation](#indentation)
+- [Known Issues](#known-issues)
+  - [A resx diff shows two ResXpress editors instead of a text diff](#a-resx-diff-shows-two-resxpress-editors-instead-of-a-text-diff)
+  - [Search results open the ResXpress editor at the top, not at the match](#search-results-open-the-resxpress-editor-at-the-top-not-at-the-match)
+- [Release Notes](#release-notes)
+
 ## Features
 
 ### Custom Resx Editor
 
-![Resx Editor](./images/../images/resxEditor.png)
+![Resx Editor](./images/resx-editor.png)
 
-This is **active by default** when the file is opened, _however_ you can choose to open from **Explorer Panel - Right Click on the resx file - Choose ResXpress Editor**
+This is **active by default** when the file is opened. To switch between it and the text editor, right-click the resx file in the Explorer and choose **Open With...**, or run **View: Reopen Editor With...** on an open tab.
 
-![Custom Editor Option](./images/resxEditorOption.png)
-
-Below is the **Text Editor** vs. **Resx Editor** side by side comparision.
-
-![Compare Editors](/images/textVsResxEditor.png)
+![Custom Editor Option](./images/resx-editor-option.png)
 
 It offers the following features;
 
 - Adding a new resx data.
 - Editing an existing resx data.
 - Deleting an existing resx data.
-- Searching by key, value or comment to filter down a large resx file. `Ctrl+F` (`Cmd+F` on macOS) focuses the search box and `Esc` clears it.
+- Multi-line values and comments are shown and edited in full; each row grows to fit.
+- [Searching](#search-within-a-resx-file) by key, value or comment to filter down a large resx file.
 - Checks for resx data with duplicate keys and shows error if exists.
 - To and Fro updates between Text document and ResxEditors as soon as typed valid resx data.
 - To and fro updates Text document and ResxEditors when Save triggered on either.
@@ -44,6 +60,21 @@ mean the same thing, and it is how .NET writes them too.
 - Automatically regenerate strongly typed resource class file(controlled by setting)
 - Add a new resx file.
 - Update C# namespace of a resx file.
+
+### Search within a resx file
+
+The search box under the toolbar filters the table as you type, matching the key, value or
+comment of each row, case-insensitively. Rows that don't match are hidden, and a counter such
+as `Showing 3 of 240` shows how many are left.
+
+- `Ctrl+F` (`Cmd+F` on macOS) focuses the search box, and `Esc` clears it.
+- Editing, adding and deleting rows all work while a filter is on.
+- The filter and the scroll position are kept when you switch to another tab and back.
+- **Edit All Languages** has the same search box, and it matches every language column.
+
+To search across every resx file in the workspace, use VS Code's own Search view - but see
+[the known issue](#search-results-open-the-resxpress-editor-at-the-top-not-at-the-match)
+about where a result opens.
 
 ### ResXpress: Edit All Languages
 
@@ -74,31 +105,33 @@ resx file, and tells you when there is nothing to combine.
 - Files you edit here show as unsaved until you save them, exactly as they would if you had
   edited them by hand - including in any tab that already had one of them open.
 
+![All Languages Mode](./images/all-languages-mode.png)
+
 ### ResXpress: Markdown Preview
 
 Preview resx file as Markdown table.
-
-![Screenshot1](./images/preview.gif)
 
 ### ResXpress: Sort By Keys
 
 Reorganize file by sorting by Keys.
 
-![Screenshot2](./images/sortByKeys.gif)
-
 ### ResXpress: Web Preview
 
 Preview resx file as a nice Webview table.
 
-![Screenshot3](./images/webPreview.gif)
-
 ### Adding new resx file
 
-![Adding resx file](./images/createNewResxFile.gif)
+![Adding resx file](./images/create-new-resx-file.gif)
 
 ### Updating resx C# namespace
 
-![Resx namespace](./images/updateResxNamespace.gif)
+The resx editor shows the resource's namespace beside the toolbar, and the edit button next to
+it changes it. The namespace is saved in `.resxpress/namespace-mapping.json` at the workspace
+root and is used when generating the strongly typed `Designer.cs` class.
+
+When there is no mapping, the namespace is read from the resource's existing `Designer.cs`. A
+culture file such as `Resource1.es.resx` uses the namespace of its default file,
+`Resource1.resx`, unless it has a mapping of its own.
 
 ### Resx Data Snippet
 
@@ -160,6 +193,19 @@ from Source Control history or from the Timeline becomes plain text too, so you 
 ResXpress table for reading those. Editors that are already open keep the editor they opened
 with, so close and reopen a diff after adding it.
 
+### Search results open the ResXpress editor at the top, not at the match
+
+VS Code's Search view (`Ctrl+Shift+F`, `Cmd+Shift+F` on macOS) finds text inside resx files,
+but clicking a result opens the ResXpress editor without scrolling to or highlighting the
+match. VS Code passes a result's position only to text editors. A custom editor like ResXpress
+is never told what was searched for or where the match is, and no extension API exists to get
+it.
+
+To find the entry, type the same text into the editor's own
+[search box](#search-within-a-resx-file). To land on the exact line, switch that file to the text
+editor, using the swap button in the ResXpress toolbar or the editor picker at the top right of
+the tab, and click the result again.
+
 ## Release Notes
 
-[ChangeLog](./CHANGELOG.md)
+See the [ChangeLog](./CHANGELOG.md) for what changed in each version.

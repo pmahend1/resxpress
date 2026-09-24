@@ -13,3 +13,12 @@ node_modules
 webpack.config.js
 *.yml
 .github/**
+.claude/**
+images/**
+!images/logo.png
+AGENTS.md
+TODO.md
+pnpm-lock.yaml
+pnpm-workspace.yaml
+eslint.config.mjs
+*.vsix
