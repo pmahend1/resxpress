@@ -28,6 +28,7 @@ export class ResxEditor {
         const allLanguagesIcon = readInlineIcon(this.context.extensionPath, "ms-translate.svg");
         const errorIcon = readInlineIcon(this.context.extensionPath, "ms-error.svg");
         const deleteIcon = readInlineIcon(this.context.extensionPath, "ms-delete.svg");
+        const duplicateIcon = readInlineIcon(this.context.extensionPath, "ms-content-copy.svg");
         const nonce = getNonce();
 
         /*
@@ -89,15 +90,17 @@ export class ResxEditor {
 
     <table id="tbl">
         <thead class="thead th">
+            <th class="duplicate-column"> </th>
             <th>Key</th>
             <th>Value</th>
             <th>Comment</th>
-            <th> </th>
+            <th class="delete-column"> </th>
         </thead>
         <tbody>
         </tbody>
     </table>
-    <!-- Cloned into every row's delete button by webpanelScript. -->
+    <!-- Cloned into every row's action buttons by webpanelScript. -->
+    <template id="duplicateIconTemplate">${duplicateIcon}</template>
     <template id="deleteIconTemplate">${deleteIcon}</template>
     <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>

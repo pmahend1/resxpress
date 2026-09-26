@@ -46,10 +46,15 @@ export class CombinedResx {
      * order, rewriting files nobody asked to restructure.
      *
      * A key the file no longer has leaves its place open, and the keys that are
-     * new to the file fill those places before being appended. That is what
-     * keeps a rename a rename: the new name lands exactly where the old one sat,
-     * so `applyEntries` rewrites that one `<data>` element instead of shuffling
-     * every element after it.
+     * new to the file fill those places first. That is what keeps a rename a
+     * rename: the new name lands exactly where the old one sat, so `applyEntries`
+     * rewrites that one `<data>` element instead of shuffling every element
+     * after it.
+     *
+     * Any other new key - a duplicate, or a first translation - goes next to its
+     * neighbour in the table: after the nearest key above it that the file holds,
+     * else before the nearest one below it. Appending instead would leave it
+     * wherever the file happens to end, and move its row on the next load.
      */
     public static split(entries: CombinedEntry[], culture: string, existingKeys: string[] = []): ResxEntry[] {
         const projected = new Map<string, ResxEntry>();
@@ -102,10 +107,34 @@ export class CombinedResx {
             }
         }
 
+        // In table order, so a run of new keys lands in that order behind one neighbour.
+        const tableKeys = entries.map(combined => combined.key);
         while (addedIndex < added.length) {
-            ordered.push(added[addedIndex++]);
+            const entry = added[addedIndex++];
+            ordered.splice(CombinedResx.neighbourPosition(entry.key, tableKeys, ordered), 0, entry);
         }
 
         return ordered;
+    }
+
+    private static neighbourPosition(key: string, tableKeys: string[], ordered: ResxEntry[]): number {
+        const orderedKeys = ordered.map(entry => entry.key);
+        const row = tableKeys.indexOf(key);
+
+        for (let above = row - 1; above >= 0; above--) {
+            const position = orderedKeys.indexOf(tableKeys[above]);
+            if (position !== -1) {
+                return position + 1;
+            }
+        }
+
+        for (let below = row + 1; below < tableKeys.length; below++) {
+            const position = orderedKeys.indexOf(tableKeys[below]);
+            if (position !== -1) {
+                return position;
+            }
+        }
+
+        return ordered.length;
     }
 }

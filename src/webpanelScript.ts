@@ -1,5 +1,6 @@
 import { CellEdit } from "./cellEdit";
 import { emptyString } from "./constants";
+import { DuplicateKey } from "./duplicateKey";
 import { nameof } from "./nameof";
 import type { ResxEntry } from "./resxEntry";
 import { WebpanelPostMessageKind } from "./webpanelMessageKind";
@@ -24,14 +25,18 @@ const click = "click";
 const change = "change";
 const visibilityChange = "visibilitychange";
 const hidden = "hidden";
-const deleteStr = "delete";
 const X = "X";
+const duplicateFallbackText = "+";
 const buttonTag = "button";
 const buttonType = "button";
 const ariaLabel = "aria-label";
+const rowActionClass = "row-action";
 const deleteButtonClass = "delete-button";
+const duplicateButtonClass = "duplicate-button";
 const deleteIconTemplate = "deleteIconTemplate";
 const deleteRowLabel = "Delete this resource";
+const duplicateIconTemplate = "duplicateIconTemplate";
+const duplicateRowLabel = "Duplicate this resource below";
 const strong = "strong";
 const sortByKeysButton = "sortByKeysButton";
 const errorDuplicateKey = (key: string) => `Data with ${key} already exists`;
@@ -50,6 +55,11 @@ const searchSummary = (matchCount: number, total: number) => `Showing ${matchCou
 const keydown = "keydown";
 const scroll = "scroll";
 const escapeKey = "Escape";
+const pointerLeave = "pointerleave";
+const blur = "blur";
+const tooltipDismissedClass = "tooltip-dismissed";
+const duplicateColumnClass = "duplicate-column";
+const deleteColumnClass = "delete-column";
 const findKey = "f";
 const filteredOutClass = "filtered-out";
 const altRowClass = "alt-row";
@@ -80,6 +90,13 @@ function logToConsole(text: string) {
 	let pendingStateHandle: ReturnType<typeof setTimeout> | undefined;
 	let persistedText: string | undefined;
 	let pendingScrollTop: number | undefined;
+
+	/*
+	 * Rows added or duplicated while a filter is on stay visible until the query
+	 * changes: an empty new row matches nothing, and hiding the row that was just
+	 * asked for is what used to force Add to clear the filter.
+	 */
+	const revealedEntries = new Set<ResxEntry>();
 
 	function showError(errorMessage: string) {
 		if (errorContainer === null || errorTextElement === null) {
@@ -115,6 +132,9 @@ function logToConsole(text: string) {
 		}
 
 		logToConsole(`${nameof(inputEvent)}: row ${index} is now ${JSON.stringify(entry)}`);
+		if (revealedEntries.delete(currentEntries[index])) {
+			revealedEntries.add(entry);
+		}
 		currentEntries[index] = entry;
 		scheduleDocumentUpdate();
 	}
@@ -250,40 +270,56 @@ function logToConsole(text: string) {
 		}, false);
 	}
 
-	// The X survives only as a fallback, should the shell ever ship without the icon.
-	function createDeleteButton(): HTMLButtonElement {
-		const deleteButton = document.createElement(buttonTag);
-		deleteButton.type = buttonType;
-		deleteButton.className = deleteButtonClass;
-		deleteButton.title = deleteRowLabel;
-		deleteButton.setAttribute(ariaLabel, deleteRowLabel);
-
-		const template = document.getElementById(deleteIconTemplate);
-		if (template instanceof HTMLTemplateElement) {
-			deleteButton.appendChild(template.content.cloneNode(true));
-		}
-		else {
-			deleteButton.textContent = X;
-		}
-
-		return deleteButton;
+	// An Esc-dismissed tooltip stays hidden until the pointer or focus leaves its button.
+	function restoreTooltips() {
+		document.body.classList.remove(tooltipDismissedClass);
 	}
 
+	// The fallback text is only for a shell that ever ships without the icon.
+	function createRowActionButton(className: string, label: string, iconTemplateId: string, fallbackText: string, onClick: () => void): HTMLButtonElement {
+		const button = document.createElement(buttonTag);
+		button.type = buttonType;
+		button.className = `${rowActionClass} ${className}`;
+		// Not title: Chromium holds its tooltip back for most of a second. The CSS draws this one.
+		button.dataset.tooltip = label;
+		button.setAttribute(ariaLabel, label);
+		button.addEventListener(click, onClick, false);
+		button.addEventListener(pointerLeave, restoreTooltips, false);
+		button.addEventListener(blur, restoreTooltips, false);
+
+		const template = document.getElementById(iconTemplateId);
+		if (template instanceof HTMLTemplateElement) {
+			button.appendChild(template.content.cloneNode(true));
+		}
+		else {
+			button.textContent = fallbackText;
+		}
+
+		return button;
+	}
+
+	// The <p> is load-bearing: its UA margin sets a one-line row's height.
+	function createActionCell(button: HTMLButtonElement, className: string): HTMLTableCellElement {
+		const marker = document.createElement(p);
+		marker.appendChild(button);
+		const cell = document.createElement(td);
+		cell.className = className;
+		cell.appendChild(marker);
+		return cell;
+	}
+
+	/*
+	 * Rows are rebuilt on every add, duplicate and delete, so the index each
+	 * button closes over is always the row's current position. Duplicate has a
+	 * column of its own left of Key: inside the key cell it read as copying the key.
+	 */
 	function createRow(entry: ResxEntry, index: number): HTMLTableRowElement {
-		const deleteCell = document.createElement(td);
-		deleteCell.id = `${index}.${deleteStr}.${td}`;
-		deleteCell.addEventListener(click, deleteEvent, false);
-
-		const deleteMarker = document.createElement(p);
-		deleteMarker.id = `${index}.${deleteStr}.${p}`;
-		deleteMarker.appendChild(createDeleteButton());
-		deleteCell.appendChild(deleteMarker);
-
 		const row = document.createElement(tr);
-		row.append(createCell(createInput(`${index}.${key}`, entry.key)),
+		row.append(createActionCell(createRowActionButton(duplicateButtonClass, duplicateRowLabel, duplicateIconTemplate, duplicateFallbackText, () => duplicateRow(index)), duplicateColumnClass),
+			createCell(createInput(`${index}.${key}`, entry.key)),
 			createCell(createTextArea(`${index}.${value}`, entry.value)),
 			createCell(createTextArea(`${index}.${comment}`, entry.comment ?? emptyString)),
-			deleteCell);
+			createActionCell(createRowActionButton(deleteButtonClass, deleteRowLabel, deleteIconTemplate, X, () => deleteRow(index)), deleteColumnClass));
 		return row;
 	}
 
@@ -324,7 +360,7 @@ function logToConsole(text: string) {
 				return;
 			}
 
-			const isMatch = query.length === 0 || entryMatches(entry, query);
+			const isMatch = query.length === 0 || revealedEntries.has(entry) || entryMatches(entry, query);
 			row.classList.toggle(filteredOutClass, isMatch === false);
 			row.classList.toggle(altRowClass, isMatch && visibleCount % 2 === 1);
 			if (isMatch) {
@@ -347,21 +383,40 @@ function logToConsole(text: string) {
 		searchInputElement.value = emptyString;
 	}
 
-	function deleteEvent(event: MouseEvent) {
-		const cell = event.currentTarget instanceof HTMLElement ? event.currentTarget : undefined;
-		if (cell === undefined) {
-			return;
-		}
+	// A new query is a fresh filter, so rows kept visible under the old one are let go.
+	function queryChanged() {
+		revealedEntries.clear();
+		applyFilter();
+		persistState();
+	}
 
-		const index = Number(cell.id.split(".")[0]);
-		if (Number.isInteger(index) === false || index < 0 || index >= currentEntries.length) {
-			return;
-		}
-
-		logToConsole(`${nameof(deleteEvent)}: deleting row ${index}`);
-		currentEntries.splice(index, 1);
+	function deleteRow(index: number) {
+		logToConsole(`${nameof(deleteRow)}: deleting row ${index}`);
+		const [removed] = currentEntries.splice(index, 1);
+		revealedEntries.delete(removed);
 		renderEntries();
 		flushDocumentUpdate();
+	}
+
+	/*
+	 * The copy goes directly below its source, in the table and in the file,
+	 * and is written at once like a delete: it has a unique key, so it is a
+	 * complete entry. The suffix is selected so typing replaces it.
+	 */
+	function duplicateRow(index: number) {
+		const source = currentEntries[index];
+		const copy: ResxEntry = { ...source, key: DuplicateKey.for(source.key, currentEntries.map(entry => entry.key)) };
+		logToConsole(`${nameof(duplicateRow)}: row ${index} copied as ${copy.key}`);
+		currentEntries.splice(index + 1, 0, copy);
+		revealedEntries.add(copy);
+		renderEntries();
+		flushDocumentUpdate();
+
+		const keyInput = getInput(`${index + 1}.${key}`);
+		if (keyInput !== undefined) {
+			keyInput.focus();
+			keyInput.setSelectionRange(source.key.length, copy.key.length);
+		}
 	}
 
 	function updatePanelWebContent(entriesJson: string) {
@@ -385,6 +440,7 @@ function logToConsole(text: string) {
 		}
 
 		logToConsole(`${nameof(updatePanelWebContent)}: ${entries.length} entries received`);
+		revealedEntries.clear();
 		currentEntries = entries;
 		table.style.display = emptyString;
 		showError(emptyString);
@@ -410,6 +466,13 @@ function logToConsole(text: string) {
 		});
 	}
 
+	// WCAG 1.4.13: content shown on hover or focus must be dismissible without moving the pointer.
+	document.addEventListener(keydown, event => {
+		if (event.key === escapeKey) {
+			document.body.classList.add(tooltipDismissedClass);
+		}
+	}, false);
+
 	if (searchInputElement !== undefined) {
 		/*
 		 * The shortcut is named on hover rather than in the placeholder, which has
@@ -419,15 +482,11 @@ function logToConsole(text: string) {
 		searchInputElement.title = searchTooltip(navigator.userAgent.includes(macUserAgentMarker)
 			? macFindShortcut
 			: findShortcut);
-		searchInputElement.addEventListener(input, () => {
-			applyFilter();
-			persistState();
-		}, false);
+		searchInputElement.addEventListener(input, queryChanged, false);
 		searchInputElement.addEventListener(keydown, event => {
 			if (event.key === escapeKey) {
 				clearSearch();
-				applyFilter();
-				persistState();
+				queryChanged();
 			}
 		}, false);
 
@@ -450,9 +509,10 @@ function logToConsole(text: string) {
 	if (addButtonElement !== null) {
 		addButtonElement.addEventListener(click, () => {
 			logToConsole("addButton clicked");
-			// The new row is empty, so an active filter would hide the row that was just asked for.
-			clearSearch();
-			currentEntries.push({ key: emptyString, value: emptyString });
+			// Under a filter the new row lands straight below the matches, next to what it is likely modelled on.
+			const entry: ResxEntry = { key: emptyString, value: emptyString };
+			currentEntries.push(entry);
+			revealedEntries.add(entry);
 			renderEntries();
 
 			const keyInput = getInput(`${currentEntries.length - 1}.${key}`);

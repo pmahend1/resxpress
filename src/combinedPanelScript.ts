@@ -3,6 +3,7 @@ import type { CombinedEntry } from "./combinedEntry";
 import type { CombinedPayload } from "./combinedPayload";
 import { CellEdit } from "./cellEdit";
 import { emptyString } from "./constants";
+import { DuplicateKey } from "./duplicateKey";
 import { nameof } from "./nameof";
 import { WebpanelPostMessageKind } from "./webpanelMessageKind";
 import { WebpanelPostMessage } from "./webpanelPostMessage";
@@ -27,16 +28,22 @@ const click = "click";
 const change = "change";
 const visibilityChange = "visibilitychange";
 const hidden = "hidden";
-const deleteStr = "delete";
 const X = "X";
+const duplicateFallbackText = "+";
 const buttonTag = "button";
 const buttonType = "button";
+const rowActionClass = "row-action";
 const deleteButtonClass = "delete-button";
+const duplicateButtonClass = "duplicate-button";
 const deleteIconTemplate = "deleteIconTemplate";
+const duplicateIconTemplate = "duplicateIconTemplate";
 const message = "message";
 const keydown = "keydown";
 const scroll = "scroll";
 const escapeKey = "Escape";
+const pointerLeave = "pointerleave";
+const blur = "blur";
+const tooltipDismissedClass = "tooltip-dismissed";
 const findKey = "f";
 const addButton = "addButton";
 const saveAllButton = "saveAllButton";
@@ -49,6 +56,7 @@ const ariaLabel = "aria-label";
 const keyColumnClass = "key-column";
 const valueColumnClass = "value-column";
 const commentColumnClass = "comment-column";
+const duplicateColumnClass = "duplicate-column";
 const deleteColumnClass = "delete-column";
 const missingCellClass = "missing-cell";
 const filteredOutClass = "filtered-out";
@@ -63,6 +71,7 @@ const perLanguageCommentsLabel = "Comments: Per language";
 const unifiedCommentsTooltip = (fileName: string) => `One comment column, read from and written to ${fileName}. Click to give every language its own comment column.`;
 const perLanguageCommentsTooltip = "A comment column per language. Click to show only the default language's comment.";
 const deleteRowTooltip = "Remove this key from every language file";
+const duplicateRowTooltip = "Duplicate this key below, in every language that has it";
 const errorDuplicateKey = (key: string) => `Data with ${key} already exists`;
 const errorKeyMandatory = "Key is a mandatory field!";
 const errorInvalidPayload = "Could not read the language files";
@@ -72,6 +81,7 @@ const macFindShortcut = "⌘F";
 const findShortcut = "Ctrl+F";
 const searchTooltip = (shortcut: string) => `Search key, value or comment (${shortcut} to focus, Esc to clear)`;
 const pixels = (length: number) => `${length}px`;
+const duplicateColumnWidthProperty = "--duplicate-column-width";
 const documentUpdateDelayInMilliseconds = 300;
 const scrollPersistDelayInMilliseconds = 150;
 
@@ -100,6 +110,9 @@ function logToConsole(logText: string) {
     let pendingUpdateHandle: ReturnType<typeof setTimeout> | undefined;
     let pendingStateHandle: ReturnType<typeof setTimeout> | undefined;
     let pendingScroll: { top: number, left: number } | undefined;
+
+    // Rows added or duplicated under a filter stay visible until the query changes; webpanelScript explains why.
+    const revealedEntries = new Set<CombinedEntry>();
 
     function showError(errorMessage: string) {
         if (errorContainer === null || errorTextElement === null) {
@@ -154,6 +167,9 @@ function logToConsole(logText: string) {
         }
 
         logToConsole(`${nameof(inputEvent)}: row ${index} is now ${JSON.stringify(entry)}`);
+        if (revealedEntries.delete(currentEntries[index])) {
+            revealedEntries.add(entry);
+        }
         currentEntries[index] = entry;
         markMissingCells(index);
         scheduleDocumentUpdate();
@@ -279,6 +295,7 @@ function logToConsole(logText: string) {
 
         head.innerHTML = emptyString;
         const row = document.createElement(tr);
+        row.appendChild(createHeaderCell(emptyString, undefined, duplicateColumnClass));
         row.appendChild(createHeaderCell(keyHeader, undefined, keyColumnClass));
 
         for (const column of currentColumns) {
@@ -301,27 +318,49 @@ function logToConsole(logText: string) {
         head.appendChild(row);
     }
 
-    // The X survives only as a fallback, should the shell ever ship without the icon.
-    function createDeleteButton(): HTMLButtonElement {
-        const deleteButton = document.createElement(buttonTag);
-        deleteButton.type = buttonType;
-        deleteButton.className = deleteButtonClass;
-        deleteButton.title = deleteRowTooltip;
-        deleteButton.setAttribute(ariaLabel, deleteRowTooltip);
-
-        const template = document.getElementById(deleteIconTemplate);
-        if (template instanceof HTMLTemplateElement) {
-            deleteButton.appendChild(template.content.cloneNode(true));
-        }
-        else {
-            deleteButton.textContent = X;
-        }
-
-        return deleteButton;
+    // An Esc-dismissed tooltip stays hidden until the pointer or focus leaves its button.
+    function restoreTooltips() {
+        document.body.classList.remove(tooltipDismissedClass);
     }
 
+    // The fallback text is only for a shell that ever ships without the icon.
+    function createRowActionButton(className: string, label: string, iconTemplateId: string, fallbackText: string, onClick: () => void): HTMLButtonElement {
+        const button = document.createElement(buttonTag);
+        button.type = buttonType;
+        button.className = `${rowActionClass} ${className}`;
+        // Not title: Chromium holds its tooltip back for most of a second. The CSS draws this one.
+        button.dataset.tooltip = label;
+        button.setAttribute(ariaLabel, label);
+        button.addEventListener(click, onClick, false);
+        button.addEventListener(pointerLeave, restoreTooltips, false);
+        button.addEventListener(blur, restoreTooltips, false);
+
+        const template = document.getElementById(iconTemplateId);
+        if (template instanceof HTMLTemplateElement) {
+            button.appendChild(template.content.cloneNode(true));
+        }
+        else {
+            button.textContent = fallbackText;
+        }
+
+        return button;
+    }
+
+    // The <p> is load-bearing: its UA margin sets a one-line row's height.
+    function createActionCell(button: HTMLButtonElement, className: string): HTMLTableCellElement {
+        const marker = document.createElement(p);
+        marker.appendChild(button);
+        const cell = document.createElement(td);
+        cell.className = className;
+        cell.appendChild(marker);
+        return cell;
+    }
+
+    // Rebuilt on every render, so the index each button closes over stays current.
     function createRow(entry: CombinedEntry, index: number): HTMLTableRowElement {
         const row = document.createElement(tr);
+        row.appendChild(createActionCell(createRowActionButton(duplicateButtonClass, duplicateRowTooltip, duplicateIconTemplate, duplicateFallbackText, () => duplicateRow(index)),
+                                         duplicateColumnClass));
         row.appendChild(createCell(createInput(`${index}.${keyField}`, entry.key), keyColumnClass));
 
         for (const column of currentColumns) {
@@ -340,17 +379,8 @@ function logToConsole(logText: string) {
                 commentColumnClass));
         }
 
-        const deleteCell = document.createElement(td);
-        deleteCell.className = deleteColumnClass;
-        deleteCell.id = `${index}.${deleteStr}.${td}`;
-        deleteCell.title = deleteRowTooltip;
-        deleteCell.addEventListener(click, deleteEvent, false);
-
-        const deleteMarker = document.createElement(p);
-        deleteMarker.id = `${index}.${deleteStr}.${p}`;
-        deleteMarker.appendChild(createDeleteButton());
-        deleteCell.appendChild(deleteMarker);
-        row.appendChild(deleteCell);
+        row.appendChild(createActionCell(createRowActionButton(deleteButtonClass, deleteRowTooltip, deleteIconTemplate, X, () => deleteRow(index)),
+                                         deleteColumnClass));
 
         return row;
     }
@@ -390,19 +420,24 @@ function logToConsole(logText: string) {
     }
 
     /*
-     * Scroll-into-view measures the scrollport, not what the sticky Key column
-     * and header row paint over it, so tabbing parks the next cell underneath
-     * them. Scroll padding shrinks the region it will call "in view";
+     * Scroll-into-view measures the scrollport, not what the sticky Duplicate and
+     * Key columns and header row paint over it, so tabbing parks the next cell
+     * underneath them. Scroll padding shrinks the region it will call "in view";
      * remeasured every render because the Key column is sized by its content.
+     * Key sticks just right of Duplicate, so that width is published for its left.
      */
     function reserveStickyEdges() {
         if (scrollContainer === null || head === null) {
             return;
         }
 
+        const duplicateHeaderCell = head.querySelector(`${th}.${duplicateColumnClass}`);
+        const duplicateWidth = duplicateHeaderCell instanceof HTMLElement ? duplicateHeaderCell.offsetWidth : 0;
+        scrollContainer.style.setProperty(duplicateColumnWidthProperty, pixels(duplicateWidth));
+
         const keyHeaderCell = head.querySelector(`${th}.${keyColumnClass}`);
         if (keyHeaderCell instanceof HTMLElement) {
-            scrollContainer.style.scrollPaddingLeft = pixels(keyHeaderCell.offsetWidth);
+            scrollContainer.style.scrollPaddingLeft = pixels(duplicateWidth + keyHeaderCell.offsetWidth);
         }
 
         scrollContainer.style.scrollPaddingTop = pixels(head.offsetHeight);
@@ -430,7 +465,7 @@ function logToConsole(logText: string) {
                 return;
             }
 
-            const isMatch = query.length === 0 || entryMatches(entry, query);
+            const isMatch = query.length === 0 || revealedEntries.has(entry) || entryMatches(entry, query);
             row.classList.toggle(filteredOutClass, isMatch === false);
             row.classList.toggle(altRowClass, isMatch && visibleCount % 2 === 1);
             if (isMatch) {
@@ -451,21 +486,44 @@ function logToConsole(logText: string) {
         }
     }
 
-    function deleteEvent(event: MouseEvent) {
-        const cell = event.currentTarget instanceof HTMLElement ? event.currentTarget : undefined;
-        if (cell === undefined) {
-            return;
-        }
+    // A new query is a fresh filter, so rows kept visible under the old one are let go.
+    function queryChanged() {
+        revealedEntries.clear();
+        applyFilter();
+        persistState();
+    }
 
-        const index = Number(cell.id.split(".")[0]);
-        if (Number.isInteger(index) === false || index < 0 || index >= currentEntries.length) {
-            return;
-        }
-
-        logToConsole(`${nameof(deleteEvent)}: deleting row ${index} from every language`);
-        currentEntries.splice(index, 1);
+    function deleteRow(index: number) {
+        logToConsole(`${nameof(deleteRow)}: deleting row ${index} from every language`);
+        const [removed] = currentEntries.splice(index, 1);
+        revealedEntries.delete(removed);
         renderTable();
         flushDocumentUpdate();
+    }
+
+    /*
+     * Copies every language's value and comment, presence included, so the new
+     * key lands in exactly the files that had its source, and split() puts it
+     * right after the source in each of them.
+     */
+    function duplicateRow(index: number) {
+        const source = currentEntries[index];
+        const copy: CombinedEntry = {
+            key: DuplicateKey.for(source.key, currentEntries.map(entry => entry.key)),
+            values: { ...source.values },
+            comments: { ...source.comments }
+        };
+        logToConsole(`${nameof(duplicateRow)}: row ${index} copied as ${copy.key}`);
+        currentEntries.splice(index + 1, 0, copy);
+        revealedEntries.add(copy);
+        renderTable();
+        flushDocumentUpdate();
+
+        const keyInput = getInput(`${index + 1}.${keyField}`);
+        if (keyInput !== undefined) {
+            keyInput.focus();
+            keyInput.setSelectionRange(source.key.length, copy.key.length);
+        }
     }
 
     function setCommentMode(isUnified: boolean) {
@@ -549,6 +607,7 @@ function logToConsole(logText: string) {
 
         logToConsole(`${nameof(updatePanelWebContent)}: ${payload.entries.length} keys across ${payload.columns.length} languages`);
         currentColumns = payload.columns;
+        revealedEntries.clear();
         currentEntries = payload.entries;
         showError(emptyString);
         updateCommentModeButton();
@@ -558,9 +617,6 @@ function logToConsole(logText: string) {
     const addButtonElement = document.getElementById(addButton);
     if (addButtonElement !== null) {
         addButtonElement.addEventListener(click, () => {
-            // The new row is empty, so an active filter would hide the row that was just asked for.
-            clearSearch();
-
             /*
              * The key is created in the neutral file and nowhere else. A
              * translation gets the key when someone types one in, which is what
@@ -569,6 +625,7 @@ function logToConsole(logText: string) {
             const entry: CombinedEntry = { key: emptyString, values: {}, comments: {} };
             entry.values[keyAuthorityCulture()] = emptyString;
             currentEntries.push(entry);
+            revealedEntries.add(entry);
             renderTable();
 
             const keyInput = getInput(`${currentEntries.length - 1}.${keyField}`);
@@ -599,19 +656,22 @@ function logToConsole(logText: string) {
         commentModeElement.addEventListener(click, () => setCommentMode(unifiedComments === false));
     }
 
+    // WCAG 1.4.13: content shown on hover or focus must be dismissible without moving the pointer.
+    document.addEventListener(keydown, event => {
+        if (event.key === escapeKey) {
+            document.body.classList.add(tooltipDismissedClass);
+        }
+    }, false);
+
     if (searchInputElement !== undefined) {
         searchInputElement.title = searchTooltip(navigator.userAgent.includes(macUserAgentMarker)
             ? macFindShortcut
             : findShortcut);
-        searchInputElement.addEventListener(input, () => {
-            applyFilter();
-            persistState();
-        }, false);
+        searchInputElement.addEventListener(input, queryChanged, false);
         searchInputElement.addEventListener(keydown, event => {
             if (event.key === escapeKey) {
                 clearSearch();
-                applyFilter();
-                persistState();
+                queryChanged();
             }
         }, false);
 
