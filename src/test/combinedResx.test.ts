@@ -163,9 +163,60 @@ test("typing a translation adds it to that file alone", () => {
     germanFile.applyEntries(CombinedResx.split(combined, "de", ["Bye"]));
 
     const written = germanFile.toXml();
-    // Hello is new to this file, so it lands after the entry the file already had.
-    assert.deepEqual(ResxFile.parse(written).entries.map((entry: ResxEntry) => entry.key), ["Bye", "Hello"]);
+    // Hello is new to this file and sits above Bye in the table, so it lands above Bye here too.
+    assert.deepEqual(ResxFile.parse(written).entries.map((entry: ResxEntry) => entry.key), ["Hello", "Bye"]);
     assert.ok(written.includes("<value>Hallo</value>"));
+});
+
+test("a duplicated row lands after its source in every file that has the source", () => {
+    const german = resx(data("Alpha", "Alpha"), data("Beta", "Beta"), data("Gamma", "Gamma"));
+    const combined: CombinedEntry[] = [
+        { key: "Alpha", values: { "de": "Alpha" }, comments: {} },
+        { key: "Beta", values: { "de": "Beta" }, comments: {} },
+        { key: "BetaCopy", values: { "de": "Beta" }, comments: {} },
+        { key: "Gamma", values: { "de": "Gamma" }, comments: {} }
+    ];
+
+    const germanFile = ResxFile.parse(german);
+    germanFile.applyEntries(CombinedResx.split(combined, "de", ["Alpha", "Beta", "Gamma"]));
+
+    // One element inserted, nothing after it moved.
+    const written = germanFile.toXml();
+    assert.equal(written, german.replace(data("Gamma", "Gamma"), `${data("BetaCopy", "Beta")}\n${data("Gamma", "Gamma")}`));
+});
+
+test("a new key finds its neighbour in the file's own order, not the table's", () => {
+    // The file disagrees with the table's order; the new key still sits beside its neighbour.
+    const combined: CombinedEntry[] = [
+        { key: "Apple", values: { "de": "Apfel" }, comments: {} },
+        { key: "AppleCopy", values: { "de": "Apfel" }, comments: {} },
+        { key: "Mango", values: { "de": "Mango" }, comments: {} },
+        { key: "First", values: { "de": "Erste" }, comments: {} },
+        { key: "Zebra", values: { "de": "Zebra" }, comments: {} }
+    ];
+
+    assert.deepEqual(CombinedResx.split(combined, "de", ["Zebra", "Apple"]).map(entry => entry.key),
+                     ["Zebra", "Apple", "AppleCopy", "Mango", "First"]);
+
+    // With nothing above it in the file, a key goes before its nearest neighbour below.
+    const leading: CombinedEntry[] = [
+        { key: "New", values: { "de": "Neu" }, comments: {} },
+        { key: "Apple", values: { "de": "Apfel" }, comments: {} },
+        { key: "Zebra", values: { "de": "Zebra" }, comments: {} }
+    ];
+    assert.deepEqual(CombinedResx.split(leading, "de", ["Zebra", "Apple"]).map(entry => entry.key),
+                     ["Zebra", "New", "Apple"]);
+});
+
+test("a rename still takes the vacated place when the file's order differs from the table's", () => {
+    const combined: CombinedEntry[] = [
+        { key: "Alpha", values: { "de": "Alpha" }, comments: {} },
+        { key: "Renamed", values: { "de": "Beta" }, comments: {} },
+        { key: "Gamma", values: { "de": "Gamma" }, comments: {} }
+    ];
+
+    assert.deepEqual(CombinedResx.split(combined, "de", ["Gamma", "Beta", "Alpha"]).map(entry => entry.key),
+                     ["Gamma", "Renamed", "Alpha"]);
 });
 
 test("renaming a key rewrites that entry in place in every language", () => {

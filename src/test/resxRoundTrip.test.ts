@@ -100,6 +100,24 @@ test("a new entry is appended after the last data element, not at the end of the
     assert.ok(xml.indexOf(`name="Added"`) < xml.indexOf("<!--Trailing comment before the close tag-->"));
 });
 
+// What Duplicate in the custom editor sends: the copy directly after its source.
+test("an entry inserted mid-list lands after its neighbour and is the whole edit", () => {
+    const resxFile = ResxFile.parse(fixture);
+    const entries = resxFile.entries;
+    const sourceIndex = entries.findIndex(entry => entry.key === "Unicode");
+    entries.splice(sourceIndex + 1, 0, { ...entries[sourceIndex], key: "UnicodeCopy" });
+    resxFile.applyEntries(entries);
+
+    const copyBlock = `  <data name="UnicodeCopy" xml:space="preserve">\n    <value>café — 日本語 🎉</value>\n  </data>\n`;
+    const emptyEntryStart = fixture.indexOf(`  <data name="Empty"`);
+    const xml = resxFile.toXml();
+    assert.equal(xml, fixture.slice(0, emptyEntryStart) + copyBlock + fixture.slice(emptyEntryStart));
+
+    const minimalEdit = computeMinimalTextEdit(fixture, xml);
+    assert.equal(minimalEdit!.end - minimalEdit!.start, 0);
+    assert.equal(minimalEdit!.newText.length, copyBlock.length);
+});
+
 test("the first entry added to a brand new file lands below the Data marker", () => {
     /*
      * An empty file's shape: no trailing newline and <!--Data--> as the last child, so

@@ -90,7 +90,12 @@ th {
   padding: 15px 15px;
 }
 
-/* The Key column stays put while the languages scroll past it. */
+/*
+ * The Duplicate and Key columns stay put while the languages scroll past them.
+ * Key sticks just right of Duplicate, whose width combinedPanelScript measures.
+ */
+th.duplicate-column,
+td.duplicate-column,
 th.key-column,
 td.key-column {
   position: sticky;
@@ -99,8 +104,14 @@ td.key-column {
   background-color: var(--vscode-editor-background);
 }
 
+th.key-column,
+td.key-column {
+  left: var(--duplicate-column-width, 0px);
+}
+
+th.duplicate-column,
 th.key-column {
-  /* Above both the sticky header row and the sticky column it corners. */
+  /* Above both the sticky header row and the sticky columns they corner. */
   z-index: 3;
   background-color: var(--vscode-sideBar-background);
 }
@@ -117,11 +128,12 @@ td.comment-column {
   min-width: 15rem;
 }
 
+th.duplicate-column,
+td.duplicate-column,
 th.delete-column,
 td.delete-column {
   min-width: 2.5rem;
   width: 2.5rem;
-  cursor: pointer;
 }
 
 /*
@@ -130,6 +142,7 @@ td.delete-column {
  * applyFilter in combinedPanelScript assigns it over the visible rows instead.
  */
 tr.alt-row td,
+tr.alt-row td.duplicate-column,
 tr.alt-row td.key-column {
   background-color: var(--vscode-sideBar-background);
 }
@@ -212,9 +225,10 @@ p {
 }
 
 /* 20px optical size; the negative margin keeps the <p>, and so the row, one line tall. */
-.delete-button {
-  display: block;
-  margin: calc((1lh - 20px) / 2) auto;
+.row-action {
+  display: inline-block;
+  vertical-align: top;
+  margin: calc((1lh - 20px) / 2) 2px;
   padding: 0;
   border: none;
   border-radius: 4px;
@@ -224,17 +238,78 @@ p {
   cursor: pointer;
 }
 
-.delete-button .icon {
+.row-action .icon {
   display: block;
   width: 20px;
   height: 20px;
+}
+
+.row-action:hover,
+.row-action:focus-visible {
+  background-color: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+/*
+ * The row actions' tooltip, drawn here because Chromium delays a title tooltip by
+ * a second or more, long enough to read as no hover at all. 750ms sits between VS
+ * Code's own 500ms and macOS's second, and keeps it from flashing while the pointer
+ * sweeps down the rows. Duplicate sits at the
+ * table's left edge and Delete at its right, so each opens toward the middle.
+ */
+.row-action {
+  position: relative;
+}
+
+.row-action::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+  z-index: 10;
+  padding: 2px 8px;
+  white-space: nowrap;
+  color: var(--vscode-editorHoverWidget-foreground, var(--vscode-editor-foreground));
+  background-color: var(--vscode-editorHoverWidget-background, var(--vscode-editor-background));
+  border: 1px solid var(--vscode-editorHoverWidget-border, currentColor);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.36));
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 80ms ease, visibility 0s linear 80ms;
+}
+
+.row-action:hover::after,
+.row-action:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 80ms ease 750ms, visibility 0s linear 750ms;
+}
+
+/* Esc hides it until the pointer or focus leaves the button, as WCAG 1.4.13 asks. */
+.tooltip-dismissed .row-action::after {
+  opacity: 0;
+  visibility: hidden;
+  transition: none;
+}
+
+.duplicate-button::after {
+  left: calc(100% + 6px);
+}
+
+.delete-button::after {
+  right: calc(100% + 6px);
+}
+
+/* A sticky cell is its own stack, and Key's comes later, so it would cover the tooltip. */
+td.duplicate-column:has(.row-action:hover, .row-action:focus-visible) {
+  z-index: 2;
 }
 
 /* Red only on hover and focus, not down every row. */
 .delete-button:hover,
 .delete-button:focus-visible {
   color: var(--vscode-errorForeground, #f14c4c);
-  background-color: color-mix(in srgb, currentColor 12%, transparent);
 }
 
 /* Buttons, error row and icons are kept in step with webpanel.css, which explains them. */

@@ -391,6 +391,7 @@ export class CombinedResxPanel {
         const sortByKeysIcon = readInlineIcon(extensionUri.fsPath, "ms-sort-by-alpha.svg");
         const errorIcon = readInlineIcon(extensionUri.fsPath, "ms-error.svg");
         const deleteIcon = readInlineIcon(extensionUri.fsPath, "ms-delete.svg");
+        const duplicateIcon = readInlineIcon(extensionUri.fsPath, "ms-content-copy.svg");
         const nonce = getNonce();
 
         /*
@@ -443,7 +444,8 @@ export class CombinedResxPanel {
             </tbody>
         </table>
     </div>
-    <!-- Cloned into every row's delete button by combinedPanelScript. -->
+    <!-- Cloned into every row's action buttons by combinedPanelScript. -->
+    <template id="duplicateIconTemplate">${duplicateIcon}</template>
     <template id="deleteIconTemplate">${deleteIcon}</template>
     <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>
