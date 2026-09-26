@@ -38,12 +38,16 @@ export class ResxEditor {
          * short label because no icon says "every culture in one table" alone.
          */
         const allLanguagesButton = hasCultureSiblings
-            ? `<button id="allLanguagesButton" class="btn secondary" title="${allLanguagesTooltip}">
+            ? `<button id="allLanguagesButton" class="btn secondary" data-tooltip="${allLanguagesTooltip}" aria-description="${allLanguagesTooltip}">
                 ${allLanguagesIcon}${allLanguagesLabel}
             </button>`
             : emptyString;
 
-        // Icon-only buttons need title and aria-label; the inlined icon itself is aria-hidden.
+        /*
+         * data-tooltip rather than title: the CSS draws it sooner. It is not announced,
+         * so icon-only buttons carry aria-label and labelled ones aria-description.
+         * The inlined icon itself is aria-hidden.
+         */
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -61,18 +65,18 @@ export class ResxEditor {
                 <button id="addButton" class="btn primary">
                     ${addIcon}${addLabel}
                 </button>
-                <button id="switchToTextEditorButton" class="btn secondary icon-only" title="${switchToTextEditorLabel}" aria-label="${switchToTextEditorLabel}">
+                <button id="switchToTextEditorButton" class="btn secondary icon-only" data-tooltip="${switchToTextEditorLabel}" aria-label="${switchToTextEditorLabel}">
                     ${switchToTextEditorIcon}
                 </button>
                 ${allLanguagesButton}
-                <button id="sortByKeysButton" class="btn secondary icon-only" title="${sortByKeysLabel}" aria-label="${sortByKeysLabel}">
+                <button id="sortByKeysButton" class="btn secondary icon-only" data-tooltip="${sortByKeysLabel}" aria-label="${sortByKeysLabel}">
                     ${sortByKeysIcon}
                 </button>
             </div>
             <!-- Information, not an action, so it sits at the right edge rather than among the buttons. -->
             <div class="namespace-section">
                 <span id="namespaceSpan">Namespace: <strong>${escapeHtml(namespace)}</strong></span>
-                <button id="changeNamespaceButton" class="btn secondary icon-only" title="${changeNamespaceLabel}" aria-label="${changeNamespaceLabel}">
+                <button id="changeNamespaceButton" class="btn secondary icon-only" data-tooltip="${changeNamespaceLabel}" aria-label="${changeNamespaceLabel}">
                     ${changeNamespaceIcon}
                 </button>
             </div>

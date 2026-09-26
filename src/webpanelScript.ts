@@ -58,6 +58,7 @@ const escapeKey = "Escape";
 const pointerLeave = "pointerleave";
 const blur = "blur";
 const tooltipDismissedClass = "tooltip-dismissed";
+const toolbarButtonSelector = ".btn";
 const duplicateColumnClass = "duplicate-column";
 const deleteColumnClass = "delete-column";
 const findKey = "f";
@@ -271,8 +272,10 @@ function logToConsole(text: string) {
 	}
 
 	// An Esc-dismissed tooltip stays hidden until the pointer or focus leaves its button.
-	function restoreTooltips() {
-		document.body.classList.remove(tooltipDismissedClass);
+	function restoreTooltipsOnLeave(element: Element) {
+		const restore = () => document.body.classList.remove(tooltipDismissedClass);
+		element.addEventListener(pointerLeave, restore, false);
+		element.addEventListener(blur, restore, false);
 	}
 
 	// The fallback text is only for a shell that ever ships without the icon.
@@ -284,8 +287,7 @@ function logToConsole(text: string) {
 		button.dataset.tooltip = label;
 		button.setAttribute(ariaLabel, label);
 		button.addEventListener(click, onClick, false);
-		button.addEventListener(pointerLeave, restoreTooltips, false);
-		button.addEventListener(blur, restoreTooltips, false);
+		restoreTooltipsOnLeave(button);
 
 		const template = document.getElementById(iconTemplateId);
 		if (template instanceof HTMLTemplateElement) {
@@ -465,6 +467,8 @@ function logToConsole(text: string) {
 				JSON.stringify(emptyString)));
 		});
 	}
+
+	document.querySelectorAll(toolbarButtonSelector).forEach(restoreTooltipsOnLeave);
 
 	// WCAG 1.4.13: content shown on hover or focus must be dismissible without moving the pointer.
 	document.addEventListener(keydown, event => {

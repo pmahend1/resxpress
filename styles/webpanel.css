@@ -157,24 +157,20 @@ p {
 }
 
 /*
- * The row actions' tooltip, drawn here because Chromium delays a title tooltip by
- * a second or more, long enough to read as no hover at all. 750ms sits between VS
+ * Drawn here rather than as a title, because Chromium delays a title tooltip by a
+ * second or more, long enough to read as no hover at all. 750ms sits between VS
  * Code's own 500ms and macOS's second, and keeps it from flashing while the pointer
- * sweeps down the rows. Duplicate sits at the
- * table's left edge and Delete at its right, so each opens toward the middle.
+ * sweeps down the rows or along the toolbar.
  */
-.row-action {
+[data-tooltip] {
   position: relative;
 }
 
-.row-action::after {
+[data-tooltip]::after {
   content: attr(data-tooltip);
   position: absolute;
-  top: 50%;
-  translate: 0 -50%;
   z-index: 10;
   padding: 2px 8px;
-  white-space: nowrap;
   color: var(--vscode-editorHoverWidget-foreground, var(--vscode-editor-foreground));
   background-color: var(--vscode-editorHoverWidget-background, var(--vscode-editor-background));
   border: 1px solid var(--vscode-editorHoverWidget-border, currentColor);
@@ -186,18 +182,42 @@ p {
   transition: opacity 80ms ease, visibility 0s linear 80ms;
 }
 
-.row-action:hover::after,
-.row-action:focus-visible::after {
+[data-tooltip]:hover::after,
+[data-tooltip]:focus-visible::after {
   opacity: 1;
   visibility: visible;
   transition: opacity 80ms ease 750ms, visibility 0s linear 750ms;
 }
 
 /* Esc hides it until the pointer or focus leaves the button, as WCAG 1.4.13 asks. */
-.tooltip-dismissed .row-action::after {
+.tooltip-dismissed [data-tooltip]::after {
   opacity: 0;
   visibility: hidden;
   transition: none;
+}
+
+/* Duplicate sits at the table's left edge and Delete at its right, so each opens toward the middle. */
+.row-action::after {
+  top: 50%;
+  translate: 0 -50%;
+  white-space: nowrap;
+}
+
+/* Below the button, wrapping, since some toolbar tooltips are a sentence or two. */
+.btn::after {
+  top: calc(100% + 6px);
+  left: 0;
+  width: max-content;
+  max-width: 20rem;
+  white-space: normal;
+  text-align: start;
+  font-weight: normal;
+}
+
+/* Change Namespace sits at the right edge, where a left-anchored tooltip would run off the page. */
+.namespace-section .btn::after {
+  left: auto;
+  right: 0;
 }
 
 .duplicate-button::after {
