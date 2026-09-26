@@ -120,13 +120,17 @@ export class FileHelper {
     }
 
     private static async fromDesignerFile(candidates: string[]): Promise<string | undefined> {
+        // With two candidates the walk cannot stop at the first hit, which may be the less specific one.
+        const maxResults = candidates.length === 1 ? 1 : undefined;
+        const fileUris = await vscode.workspace.findFiles(NamespaceLookup.designerFileGlob(candidates), null, maxResults);
+
         for (const candidate of candidates) {
-            const fileUrls = await vscode.workspace.findFiles(`**/${candidate}.Designer.cs`, null, 1);
-            if (fileUrls.length === 0) {
+            const fileUri = fileUris.find(uri => NamespaceLookup.isDesignerFileOf(candidate, path.basename(uri.fsPath)));
+            if (fileUri === undefined) {
                 continue;
             }
 
-            const namespace = FileHelper.readNamespaceDeclaration(readFileSync(fileUrls[0].fsPath, "utf-8"));
+            const namespace = FileHelper.readNamespaceDeclaration(readFileSync(fileUri.fsPath, "utf-8"));
             if (namespace !== undefined) {
                 return namespace;
             }

@@ -37,3 +37,25 @@ test("a base name differing only in case is not looked up twice", () => {
 test("an unresolvable group leaves the file's own name as the only candidate", () => {
     assert.deepEqual(NamespaceLookup.candidates("Resource.es", ""), ["Resource.es"]);
 });
+
+test("one candidate is globbed on its own", () => {
+    assert.equal(NamespaceLookup.designerFileGlob(["Resource"]), "**/Resource.Designer.cs");
+});
+
+test("every candidate shares one glob, so the workspace is walked once", () => {
+    assert.equal(NamespaceLookup.designerFileGlob(["Resource.es", "Resource"]), "**/{Resource.es,Resource}.Designer.cs");
+});
+
+test("glob syntax in a name is matched literally", () => {
+    // A comma would otherwise split the brace group; a brace or star would widen the match.
+    assert.equal(NamespaceLookup.designerFileGlob(["A,B", "C{1}"]), "**/{A[,]B,C[{]1[}]}.Designer.cs");
+    assert.equal(NamespaceLookup.designerFileGlob(["Strings[1]*?"]), "**/Strings[[]1][*][?].Designer.cs");
+});
+
+test("a Designer.cs belongs to the candidate its name spells, in any case", () => {
+    assert.equal(NamespaceLookup.isDesignerFileOf("Resource", "Resource.Designer.cs"), true);
+    assert.equal(NamespaceLookup.isDesignerFileOf("Resource", "resource.designer.cs"), true);
+    assert.equal(NamespaceLookup.isDesignerFileOf("Resource", "Resource.es.Designer.cs"), false);
+    assert.equal(NamespaceLookup.isDesignerFileOf("Resource.es", "Resource.Designer.cs"), false);
+    assert.equal(NamespaceLookup.isDesignerFileOf("Resource", "Resource.cs"), false);
+});

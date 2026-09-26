@@ -446,7 +446,11 @@ function logToConsole(text: string) {
 		currentEntries = entries;
 		table.style.display = emptyString;
 		showError(emptyString);
+		const renderStarted = performance.now();
 		renderEntries();
+		logToConsole(`${nameof(renderEntries)}: ${entries.length} rows built in ${Math.round(performance.now() - renderStarted)} ms`);
+		// Style and layout run after the script yields, so the frame after next is roughly the first paint.
+		requestAnimationFrame(() => setTimeout(() => logToConsole(`${nameof(renderEntries)}: painted ${Math.round(performance.now() - renderStarted)} ms after render began`)));
 	}
 
 	const changeNamespaceButtonElement = document.getElementById(changeNamespaceButton);

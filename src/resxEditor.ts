@@ -10,6 +10,7 @@ const allLanguagesLabel = "Languages";
 const allLanguagesTooltip = "Edit every language of this resource in one table";
 const sortByKeysLabel = "Sort by keys";
 const changeNamespaceLabel = "Change namespace";
+const resolvingNamespaceLabel = "Resolving namespace";
 
 export class ResxEditor {
     private readonly context: vscode.ExtensionContext;
@@ -17,7 +18,7 @@ export class ResxEditor {
         this.context = context;
     }
 
-    public getHtmlForWebview(webview: vscode.Webview, namespace: string, hasCultureSiblings: boolean): string {
+    public getHtmlForWebview(webview: vscode.Webview, hasCultureSiblings: boolean): string {
 
         const scriptUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "out", "webpanelScript.js")));
         const styleUri = webview.asWebviewUri(vscode.Uri.file(path.join(this.context.extensionPath, "styles", "webpanel.css")));
@@ -75,7 +76,8 @@ export class ResxEditor {
             </div>
             <!-- Information, not an action, so it sits at the right edge rather than among the buttons. -->
             <div class="namespace-section">
-                <span id="namespaceSpan">Namespace: <strong>${escapeHtml(namespace)}</strong></span>
+                <!-- The host posts NewNamespace once its lookup answers, which replaces the spinner. -->
+                <span id="namespaceSpan">Namespace: <span class="spinner" role="status" aria-label="${resolvingNamespaceLabel}"></span></span>
                 <button id="changeNamespaceButton" class="btn secondary icon-only" data-tooltip="${changeNamespaceLabel}" aria-label="${changeNamespaceLabel}">
                     ${changeNamespaceIcon}
                 </button>
@@ -110,16 +112,4 @@ export class ResxEditor {
 </body>
 </html>`;
     }
-}
-
-/*
- * The rows themselves are built with DOM APIs in webpanelScript, which is what
- * keeps resx content out of the HTML. The namespace is the one value still
- * interpolated here, and it comes from a Designer.cs file or a user prompt.
- */
-function escapeHtml(text: string): string {
-    return text.replace(/&/g, "&amp;")
-               .replace(/</g, "&lt;")
-               .replace(/>/g, "&gt;")
-               .replace(/"/g, "&quot;");
 }

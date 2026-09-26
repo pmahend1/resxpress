@@ -472,6 +472,30 @@ body.vscode-high-contrast-light .btn.primary:hover {
   color: var(--vscode-editor-foreground);
 }
 
+/* Stands in for the namespace until the host's lookup answers. */
+.namespace-section .spinner {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .namespace-section .spinner {
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /*
  * Inline SVG takes the button's text colour, so icon files keep fill off inner
  * paths. Material sizes, each downloaded at the matching optical size: 20px
