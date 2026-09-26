@@ -44,6 +44,7 @@ const escapeKey = "Escape";
 const pointerLeave = "pointerleave";
 const blur = "blur";
 const tooltipDismissedClass = "tooltip-dismissed";
+const toolbarButtonSelector = ".btn";
 const findKey = "f";
 const addButton = "addButton";
 const saveAllButton = "saveAllButton";
@@ -53,6 +54,7 @@ const searchInput = "searchInput";
 const searchStatus = "searchStatus";
 const ariaPressed = "aria-pressed";
 const ariaLabel = "aria-label";
+const ariaDescription = "aria-description";
 const keyColumnClass = "key-column";
 const valueColumnClass = "value-column";
 const commentColumnClass = "comment-column";
@@ -319,8 +321,10 @@ function logToConsole(logText: string) {
     }
 
     // An Esc-dismissed tooltip stays hidden until the pointer or focus leaves its button.
-    function restoreTooltips() {
-        document.body.classList.remove(tooltipDismissedClass);
+    function restoreTooltipsOnLeave(element: Element) {
+        const restore = () => document.body.classList.remove(tooltipDismissedClass);
+        element.addEventListener(pointerLeave, restore, false);
+        element.addEventListener(blur, restore, false);
     }
 
     // The fallback text is only for a shell that ever ships without the icon.
@@ -332,8 +336,7 @@ function logToConsole(logText: string) {
         button.dataset.tooltip = label;
         button.setAttribute(ariaLabel, label);
         button.addEventListener(click, onClick, false);
-        button.addEventListener(pointerLeave, restoreTooltips, false);
-        button.addEventListener(blur, restoreTooltips, false);
+        restoreTooltipsOnLeave(button);
 
         const template = document.getElementById(iconTemplateId);
         if (template instanceof HTMLTemplateElement) {
@@ -579,9 +582,11 @@ function logToConsole(logText: string) {
 
         const owner = currentColumns.find(column => column.culture === keyAuthorityCulture());
         commentModeElement.textContent = unifiedComments ? unifiedCommentsLabel : perLanguageCommentsLabel;
-        commentModeElement.title = unifiedComments
+        const tooltip = unifiedComments
             ? unifiedCommentsTooltip(owner?.fileName ?? emptyString)
             : perLanguageCommentsTooltip;
+        commentModeElement.dataset.tooltip = tooltip;
+        commentModeElement.setAttribute(ariaDescription, tooltip);
         commentModeElement.setAttribute(ariaPressed, String(unifiedComments));
     }
 
@@ -655,6 +660,8 @@ function logToConsole(logText: string) {
     if (commentModeElement !== null) {
         commentModeElement.addEventListener(click, () => setCommentMode(unifiedComments === false));
     }
+
+    document.querySelectorAll(toolbarButtonSelector).forEach(restoreTooltipsOnLeave);
 
     // WCAG 1.4.13: content shown on hover or focus must be dismissible without moving the pointer.
     document.addEventListener(keydown, event => {

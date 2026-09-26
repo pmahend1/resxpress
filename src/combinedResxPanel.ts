@@ -416,10 +416,10 @@ export class CombinedResxPanel {
             <button id="addButton" class="btn primary">
                 ${addIcon}Add New Resource
             </button>
-            <button id="saveAllButton" class="btn secondary" title="${saveAllLabel}">
+            <button id="saveAllButton" class="btn secondary" data-tooltip="${saveAllLabel}" aria-description="${saveAllLabel}">
                 Save All
             </button>
-            <button id="sortByKeysButton" class="btn secondary icon-only" title="${sortByKeysLabel}" aria-label="${sortByKeysLabel}">
+            <button id="sortByKeysButton" class="btn secondary icon-only" data-tooltip="${sortByKeysLabel}" aria-label="${sortByKeysLabel}">
                 ${sortByKeysIcon}
             </button>
             <!-- Label and tooltip are written by combinedPanelScript; they say which mode it is in. -->
