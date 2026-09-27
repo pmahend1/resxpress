@@ -45,9 +45,11 @@ const extensionConfig = {
 };
 
 // A webview has no `module`, so these export nothing; the web target also rejects Node and vscode imports.
+// Maps are inline because the webview CSP blocks fetching a .map file.
 /**@type {import('webpack').Configuration}*/
 const webviewConfig = {
     ...shared,
+    devtool: "inline-source-map",
     target: "web",
     entry: {
         webpanelScript: "./src/webpanelScript.ts",
