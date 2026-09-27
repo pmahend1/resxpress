@@ -167,9 +167,8 @@ p {
 }
 
 /*
- * No box at rest: a hidden pseudo-element is still styled and laid out, and two per
- * row cost a 5,000-row file ~15% of its first paint. The 750ms delay is an animation,
- * since an element created on hover has no earlier style for a transition to start from.
+ * No box at rest, since a hidden pseudo-element is still laid out. The delay is an
+ * animation: one created on hover has no earlier style to transition from.
  */
 [data-tooltip]::after {
   content: none;
@@ -477,10 +476,7 @@ body.vscode-high-contrast-light .btn.primary:hover {
   color: var(--vscode-editor-foreground);
 }
 
-/*
- * Stands in for the namespace, and for the table while its rows load. Hidden for
- * its first 300ms, so a fast open shows nothing rather than a spinner flashing.
- */
+/* Transparent for 300ms, so a fast open never flashes a spinner. */
 .spinner {
   display: inline-block;
   box-sizing: border-box;
@@ -517,7 +513,7 @@ body.loading #tbl {
     animation: appear 0s linear 300ms forwards, spin 0.8s linear infinite;
   }
 
-  /* Runs whenever the table goes from hidden to shown, which is the loader ending. */
+  /* Plays when the loader ends and the table is shown. */
   #tbl {
     animation: fade-in 150ms ease-out;
   }

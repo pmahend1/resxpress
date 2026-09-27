@@ -44,11 +44,7 @@ const extensionConfig = {
     }
 };
 
-/*
- * The scripts inside the two webviews. A webview is a browser page with no `module`,
- * so as commonjs2 bundles they threw on their trailing `module.exports`; these export
- * nothing. `target: "web"` also fails the build on a Node built-in or `vscode` import.
- */
+// A webview has no `module`, so these export nothing; the web target also rejects Node and vscode imports.
 /**@type {import('webpack').Configuration}*/
 const webviewConfig = {
     ...shared,

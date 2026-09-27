@@ -73,6 +73,7 @@ const findShortcut = "Ctrl+F";
 const searchTooltip = (shortcut: string) => `Search key, value or comment (${shortcut} to focus, Esc to clear)`;
 const documentUpdateDelayInMilliseconds = 300;
 const scrollPersistDelayInMilliseconds = 150;
+// Small first chunk to paint soon; larger ones after, since each yield costs a frame.
 const firstRenderChunkSize = 200;
 const renderChunkSize = 500;
 
@@ -335,13 +336,9 @@ function logToConsole(text: string) {
 	 * next edit from landing on the wrong entry.
 	 */
 	/*
-	 * Built in chunks with a yield between them, so the first rows paint while the
-	 * rest follow; laid out at once, 5,000 rows kept the webview blank for ~2s. Every
-	 * row is still built without waiting for a scroll, because search hides rendered
-	 * rows and a row never built could never match. The first chunk is small, to
-	 * paint soon; later ones larger, since each yield costs a frame. `throughIndex`
-	 * is built before the first yield, for a caller about to focus it. A newer render
-	 * abandons this one.
+	 * Built in chunks so the first rows paint while the rest follow. Every row is still
+	 * built without a scroll, because search only hides rendered rows. `throughIndex` is
+	 * built before the first yield, for a caller about to focus it.
 	 */
 	function renderEntries(throughIndex: number = -1) {
 		const generation = ++renderGeneration;
@@ -471,7 +468,7 @@ function logToConsole(text: string) {
 	}
 
 	function updatePanelWebContent(entriesJson: string) {
-		// Any answer ends the loader, an invalid file included, or it would spin forever.
+		// Any answer ends the loader, or an invalid file would leave it spinning.
 		document.body.classList.remove(loadingClass);
 		let entries: ResxEntry[];
 		try {

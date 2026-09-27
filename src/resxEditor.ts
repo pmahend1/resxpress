@@ -60,7 +60,7 @@ export class ResxEditor {
     <link href="${styleUri}" rel="stylesheet" />
     <title>ResxFileName</title>
 </head>
-<!-- webpanelScript drops "loading" with the first rows, so the table never shows empty. -->
+<!-- webpanelScript removes "loading" when the rows arrive. -->
 <body class="loading">
     <div class="sticky-div">
         <div class="toolbar-row">
@@ -78,7 +78,7 @@ export class ResxEditor {
             </div>
             <!-- Information, not an action, so it sits at the right edge rather than among the buttons. -->
             <div class="namespace-section">
-                <!-- The host posts NewNamespace once its lookup answers, which replaces the spinner. -->
+                <!-- Replaced by NewNamespace once the lookup answers. -->
                 <span id="namespaceSpan">Namespace: <span class="spinner" role="status" aria-label="${resolvingNamespaceLabel}"></span></span>
                 <button id="changeNamespaceButton" class="btn secondary icon-only" data-tooltip="${changeNamespaceLabel}" aria-label="${changeNamespaceLabel}">
                     ${changeNamespaceIcon}

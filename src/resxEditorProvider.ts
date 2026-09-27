@@ -44,11 +44,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
         }
         const resolveStarted = Date.now();
 
-        /*
-         * Not awaited before the HTML: without a mapping entry the lookup walks the
-         * workspace, and the tab stayed blank for as long as that took. The shell
-         * shows a spinner in its place until postNamespace answers it.
-         */
+        // Not awaited: without a mapping entry the lookup walks the workspace, and the tab stayed blank.
         let namespace = FileHelper.tryGetNamespace(document).then(resolved => {
             Logger.instance.info(`Namespace resolved ${Date.now() - resolveStarted} ms after resolve`);
             return resolved ?? emptyString;
@@ -118,10 +114,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
             webviewPanel.webview.postMessage(new WebpanelPostMessage(WebpanelPostMessageKind.NewNamespace, newNamespace));
         }
 
-        /*
-         * On every Ready, since a webview rebuilt after its tab was hidden comes back
-         * with the spinner in its HTML. A lookup overtaken by Change Namespace is dropped.
-         */
+        // On every Ready, since a rebuilt webview comes back with the spinner. A superseded lookup is dropped.
         function postNamespace() {
             const pending = namespace;
             pending.then(resolved => {
@@ -131,11 +124,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
             });
         }
 
-        /*
-         * A file that does not parse on Ready is reported, since the webview is
-         * still showing its loader and would otherwise wait forever. A later
-         * failure keeps the last good table while a tag is half typed as text.
-         */
+        // Reported on Ready, or the loader spins forever. Later failures keep the last good table.
         function updateWebview(reportInvalid: boolean = false) {
             try {
                 const parseStarted = Date.now();

@@ -120,7 +120,7 @@ export class FileHelper {
     }
 
     private static async fromDesignerFile(candidates: string[]): Promise<string | undefined> {
-        // With two candidates the walk cannot stop at the first hit, which may be the less specific one.
+        // Two candidates need every hit: the first may be the less specific one.
         const maxResults = candidates.length === 1 ? 1 : undefined;
         const fileUris = await vscode.workspace.findFiles(NamespaceLookup.designerFileGlob(candidates), null, maxResults);
 

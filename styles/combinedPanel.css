@@ -260,9 +260,8 @@ p {
 }
 
 /*
- * No box at rest: a hidden pseudo-element is still styled and laid out, and two per
- * row cost a 5,000-row file ~15% of its first paint. The 750ms delay is an animation,
- * since an element created on hover has no earlier style for a transition to start from.
+ * No box at rest, since a hidden pseudo-element is still laid out. The delay is an
+ * animation: one created on hover has no earlier style to transition from.
  */
 [data-tooltip]::after {
   content: none;
