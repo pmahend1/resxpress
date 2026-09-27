@@ -86,6 +86,10 @@ const pixels = (length: number) => `${length}px`;
 const duplicateColumnWidthProperty = "--duplicate-column-width";
 const documentUpdateDelayInMilliseconds = 300;
 const scrollPersistDelayInMilliseconds = 150;
+const loadingClass = "loading";
+// Half the single editor's, as a row here holds a field or two per language.
+const firstRenderChunkSize = 100;
+const renderChunkSize = 250;
 
 function logToConsole(logText: string) {
     console.log(`${resxpressCombinedPanel}: ${logText}`);
@@ -112,6 +116,7 @@ function logToConsole(logText: string) {
     let pendingUpdateHandle: ReturnType<typeof setTimeout> | undefined;
     let pendingStateHandle: ReturnType<typeof setTimeout> | undefined;
     let pendingScroll: { top: number, left: number } | undefined;
+    let renderGeneration = 0;
 
     // Rows added or duplicated under a filter stay visible until the query changes; webpanelScript explains why.
     const revealedEntries = new Set<CombinedEntry>();
@@ -412,14 +417,55 @@ function logToConsole(logText: string) {
      * whole table. Renumbering after an add or a delete is what keeps the next
      * edit from landing on the wrong entry.
      */
-    function renderTable() {
+    function renderTable(throughIndex: number = -1) {
+        const generation = ++renderGeneration;
+        const renderStarted = performance.now();
+        let next = 0;
         renderHeader();
         body.innerHTML = emptyString;
-        currentEntries.forEach((entry, index) => body.appendChild(createRow(entry, index)));
-        currentEntries.forEach((_entry, index) => markMissingCells(index));
-        applyFilter();
-        reserveStickyEdges();
-        restoreScrollPosition();
+
+        function buildChunk() {
+            const size = next === 0 ? firstRenderChunkSize : renderChunkSize;
+            const end = Math.min(currentEntries.length, Math.max(next + size, throughIndex + 1));
+            const start = next;
+            for (; next < end; next++) {
+                body.appendChild(createRow(currentEntries[next], next));
+            }
+            for (let index = start; index < end; index++) {
+                markMissingCells(index);
+            }
+        }
+
+        // A restored offset past the built rows would clamp, so build until it is reachable.
+        function isRestoredOffsetReachable(): boolean {
+            return pendingScroll === undefined
+                || scrollContainer === null
+                || scrollContainer.scrollHeight >= pendingScroll.top + scrollContainer.clientHeight;
+        }
+
+        function step() {
+            if (generation !== renderGeneration) {
+                return;
+            }
+
+            buildChunk();
+            while (next < currentEntries.length && isRestoredOffsetReachable() === false) {
+                buildChunk();
+            }
+
+            applyFilter();
+            // The Key column is sized by its content, so it can widen with every chunk.
+            reserveStickyEdges();
+            restoreScrollPosition();
+            if (next < currentEntries.length) {
+                setTimeout(step, 0);
+                return;
+            }
+
+            logToConsole(`${nameof(renderTable)}: all ${currentEntries.length} rows built ${Math.round(performance.now() - renderStarted)} ms after render began`);
+        }
+
+        step();
     }
 
     /*
@@ -519,7 +565,7 @@ function logToConsole(logText: string) {
         logToConsole(`${nameof(duplicateRow)}: row ${index} copied as ${copy.key}`);
         currentEntries.splice(index + 1, 0, copy);
         revealedEntries.add(copy);
-        renderTable();
+        renderTable(index + 1);
         flushDocumentUpdate();
 
         const keyInput = getInput(`${index + 1}.${keyField}`);
@@ -591,7 +637,9 @@ function logToConsole(logText: string) {
     }
 
     function updatePanelWebContent(payloadJson: string) {
-        let payload: CombinedPayload | undefined;
+        // Any answer ends the loader, or an invalid file would leave it spinning.
+        document.body.classList.remove(loadingClass);
+        let payload: CombinedPayload | null | undefined;
         try {
             payload = JSON.parse(payloadJson);
         }
@@ -599,7 +647,7 @@ function logToConsole(logText: string) {
             payload = undefined;
         }
 
-        if (payload === undefined || Array.isArray(payload.columns) === false || Array.isArray(payload.entries) === false) {
+        if (payload === undefined || payload === null || Array.isArray(payload.columns) === false || Array.isArray(payload.entries) === false) {
             showError(errorInvalidPayload);
             return;
         }
@@ -616,7 +664,10 @@ function logToConsole(logText: string) {
         currentEntries = payload.entries;
         showError(emptyString);
         updateCommentModeButton();
+        const renderStarted = performance.now();
         renderTable();
+        // Style and layout run after the script yields, so the frame after next is roughly the first paint.
+        requestAnimationFrame(() => setTimeout(() => logToConsole(`${nameof(renderTable)}: first rows painted ${Math.round(performance.now() - renderStarted)} ms after render began`)));
     }
 
     const addButtonElement = document.getElementById(addButton);
@@ -631,7 +682,7 @@ function logToConsole(logText: string) {
             entry.values[keyAuthorityCulture()] = emptyString;
             currentEntries.push(entry);
             revealedEntries.add(entry);
-            renderTable();
+            renderTable(currentEntries.length - 1);
 
             const keyInput = getInput(`${currentEntries.length - 1}.${keyField}`);
             if (keyInput !== undefined) {

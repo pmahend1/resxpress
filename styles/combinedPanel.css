@@ -495,3 +495,64 @@ body.vscode-high-contrast-light .btn.primary:hover {
   width: 24px;
   height: 24px;
 }
+
+/* Transparent for 300ms, so a fast open never flashes a spinner. */
+.spinner {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  opacity: 0;
+  animation: appear 0s linear 300ms forwards;
+}
+
+.loading-indicator {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 1rem 0;
+  color: var(--vscode-descriptionForeground, var(--vscode-editor-foreground));
+}
+
+body.loading .loading-indicator {
+  display: flex;
+  opacity: 0;
+  animation: appear 0s linear 300ms forwards;
+}
+
+body.loading #tbl {
+  display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .spinner {
+    animation: appear 0s linear 300ms forwards, spin 0.8s linear infinite;
+  }
+
+  /* Plays when the loader ends and the table is shown. */
+  #tbl {
+    animation: fade-in 150ms ease-out;
+  }
+}
+
+@keyframes appear {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
