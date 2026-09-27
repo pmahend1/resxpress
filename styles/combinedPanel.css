@@ -259,8 +259,13 @@ p {
   position: relative;
 }
 
+/*
+ * No box at rest: a hidden pseudo-element is still styled and laid out, and two per
+ * row cost a 5,000-row file ~15% of its first paint. The 750ms delay is an animation,
+ * since an element created on hover has no earlier style for a transition to start from.
+ */
 [data-tooltip]::after {
-  content: attr(data-tooltip);
+  content: none;
   position: absolute;
   z-index: 10;
   padding: 2px 8px;
@@ -270,23 +275,23 @@ p {
   border-radius: 4px;
   box-shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.36));
   pointer-events: none;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 80ms ease, visibility 0s linear 80ms;
 }
 
 [data-tooltip]:hover::after,
 [data-tooltip]:focus-visible::after {
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 80ms ease 750ms, visibility 0s linear 750ms;
+  content: attr(data-tooltip);
+  animation: tooltip-appear 80ms ease 750ms both;
+}
+
+@keyframes tooltip-appear {
+  from {
+    opacity: 0;
+  }
 }
 
 /* Esc hides it until the pointer or focus leaves the button, as WCAG 1.4.13 asks. */
 .tooltip-dismissed [data-tooltip]::after {
-  opacity: 0;
-  visibility: hidden;
-  transition: none;
+  content: none;
 }
 
 /* Duplicate sits at the table's left edge and Delete at its right, so each opens toward the middle. */

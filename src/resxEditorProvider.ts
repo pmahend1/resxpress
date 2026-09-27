@@ -65,7 +65,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
             switch (e.type) {
                 case WebpanelPostMessageKind.Ready:
                     Logger.instance.info(`Webview ready ${Date.now() - resolveStarted} ms after resolve`);
-                    updateWebview();
+                    updateWebview(true);
                     postNamespace();
                     break;
                 case WebpanelPostMessageKind.TriggerTextDocumentUpdate: {
@@ -131,7 +131,12 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
             });
         }
 
-        function updateWebview() {
+        /*
+         * A file that does not parse on Ready is reported, since the webview is
+         * still showing its loader and would otherwise wait forever. A later
+         * failure keeps the last good table while a tag is half typed as text.
+         */
+        function updateWebview(reportInvalid: boolean = false) {
             try {
                 const parseStarted = Date.now();
                 const entries = ResxFile.parse(document.getText(), IndentPreference.resolve(document.uri)).entries;
@@ -143,6 +148,9 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
                 if (error instanceof Error) {
                     Logger.instance.warning(`${WebpanelPostMessageKind.UpdateWebPanel} skipped: ${error.message}`);
                 }
+                if (reportInvalid) {
+                    webviewPanel.webview.postMessage(new WebpanelPostMessage(WebpanelPostMessageKind.UpdateWebPanel, JSON.stringify(null)));
+                }
             }
         }
 
@@ -151,8 +159,6 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
             webviewListener.dispose();
             documentListener.dispose();
         });
-
-        updateWebview();
     }
 
     /* Whether this resource has more than the one file, and so anything to combine. */

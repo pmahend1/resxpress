@@ -64,6 +64,7 @@ const deleteColumnClass = "delete-column";
 const findKey = "f";
 const filteredOutClass = "filtered-out";
 const altRowClass = "alt-row";
+const loadingClass = "loading";
 const stickyToolbarSelector = ".sticky-div";
 const stickyToolbarHeightProperty = "--sticky-toolbar-height";
 const macUserAgentMarker = "Mac";
@@ -72,6 +73,8 @@ const findShortcut = "Ctrl+F";
 const searchTooltip = (shortcut: string) => `Search key, value or comment (${shortcut} to focus, Esc to clear)`;
 const documentUpdateDelayInMilliseconds = 300;
 const scrollPersistDelayInMilliseconds = 150;
+const firstRenderChunkSize = 200;
+const renderChunkSize = 500;
 
 function logToConsole(text: string) {
 	console.log(`${resxpressWebPanel}: ${text}`);
@@ -91,6 +94,7 @@ function logToConsole(text: string) {
 	let pendingStateHandle: ReturnType<typeof setTimeout> | undefined;
 	let persistedText: string | undefined;
 	let pendingScrollTop: number | undefined;
+	let renderGeneration = 0;
 
 	/*
 	 * Rows added or duplicated while a filter is on stay visible until the query
@@ -330,11 +334,56 @@ function logToConsole(text: string) {
 	 * the whole table. Renumbering after an add or a delete is what keeps the
 	 * next edit from landing on the wrong entry.
 	 */
-	function renderEntries() {
+	/*
+	 * Built in chunks with a yield between them, so the first rows paint while the
+	 * rest follow; laid out at once, 5,000 rows kept the webview blank for ~2s. Every
+	 * row is still built without waiting for a scroll, because search hides rendered
+	 * rows and a row never built could never match. The first chunk is small, to
+	 * paint soon; later ones larger, since each yield costs a frame. `throughIndex`
+	 * is built before the first yield, for a caller about to focus it. A newer render
+	 * abandons this one.
+	 */
+	function renderEntries(throughIndex: number = -1) {
+		const generation = ++renderGeneration;
+		const renderStarted = performance.now();
+		let next = 0;
 		table.innerHTML = emptyString;
-		currentEntries.forEach((entry, index) => table.appendChild(createRow(entry, index)));
-		applyFilter();
-		restoreScrollPosition();
+
+		function buildChunk() {
+			const size = next === 0 ? firstRenderChunkSize : renderChunkSize;
+			const end = Math.min(currentEntries.length, Math.max(next + size, throughIndex + 1));
+			for (; next < end; next++) {
+				table.appendChild(createRow(currentEntries[next], next));
+			}
+		}
+
+		// A restored offset past the built rows would clamp, so build until it is reachable.
+		function isRestoredOffsetReachable(): boolean {
+			return pendingScrollTop === undefined
+				|| document.documentElement.scrollHeight >= pendingScrollTop + window.innerHeight;
+		}
+
+		function step() {
+			if (generation !== renderGeneration) {
+				return;
+			}
+
+			buildChunk();
+			while (next < currentEntries.length && isRestoredOffsetReachable() === false) {
+				buildChunk();
+			}
+
+			applyFilter();
+			restoreScrollPosition();
+			if (next < currentEntries.length) {
+				setTimeout(step, 0);
+				return;
+			}
+
+			logToConsole(`${nameof(renderEntries)}: all ${currentEntries.length} rows built ${Math.round(performance.now() - renderStarted)} ms after render began`);
+		}
+
+		step();
 	}
 
 	function entryMatches(entry: ResxEntry, query: string): boolean {
@@ -411,7 +460,7 @@ function logToConsole(text: string) {
 		logToConsole(`${nameof(duplicateRow)}: row ${index} copied as ${copy.key}`);
 		currentEntries.splice(index + 1, 0, copy);
 		revealedEntries.add(copy);
-		renderEntries();
+		renderEntries(index + 1);
 		flushDocumentUpdate();
 
 		const keyInput = getInput(`${index + 1}.${key}`);
@@ -422,6 +471,8 @@ function logToConsole(text: string) {
 	}
 
 	function updatePanelWebContent(entriesJson: string) {
+		// Any answer ends the loader, an invalid file included, or it would spin forever.
+		document.body.classList.remove(loadingClass);
 		let entries: ResxEntry[];
 		try {
 			entries = JSON.parse(entriesJson);
@@ -448,9 +499,8 @@ function logToConsole(text: string) {
 		showError(emptyString);
 		const renderStarted = performance.now();
 		renderEntries();
-		logToConsole(`${nameof(renderEntries)}: ${entries.length} rows built in ${Math.round(performance.now() - renderStarted)} ms`);
 		// Style and layout run after the script yields, so the frame after next is roughly the first paint.
-		requestAnimationFrame(() => setTimeout(() => logToConsole(`${nameof(renderEntries)}: painted ${Math.round(performance.now() - renderStarted)} ms after render began`)));
+		requestAnimationFrame(() => setTimeout(() => logToConsole(`${nameof(renderEntries)}: first rows painted ${Math.round(performance.now() - renderStarted)} ms after render began`)));
 	}
 
 	const changeNamespaceButtonElement = document.getElementById(changeNamespaceButton);
@@ -521,7 +571,7 @@ function logToConsole(text: string) {
 			const entry: ResxEntry = { key: emptyString, value: emptyString };
 			currentEntries.push(entry);
 			revealedEntries.add(entry);
-			renderEntries();
+			renderEntries(currentEntries.length - 1);
 
 			const keyInput = getInput(`${currentEntries.length - 1}.${key}`);
 			if (keyInput !== undefined) {

@@ -11,6 +11,7 @@ const allLanguagesTooltip = "Edit every language of this resource in one table";
 const sortByKeysLabel = "Sort by keys";
 const changeNamespaceLabel = "Change namespace";
 const resolvingNamespaceLabel = "Resolving namespace";
+const loadingLabel = "Loading resources…";
 
 export class ResxEditor {
     private readonly context: vscode.ExtensionContext;
@@ -59,7 +60,8 @@ export class ResxEditor {
     <link href="${styleUri}" rel="stylesheet" />
     <title>ResxFileName</title>
 </head>
-<body>
+<!-- webpanelScript drops "loading" with the first rows, so the table never shows empty. -->
+<body class="loading">
     <div class="sticky-div">
         <div class="toolbar-row">
             <div class="toolbar-actions">
@@ -94,6 +96,9 @@ export class ResxEditor {
         </div>
     </div>
 
+    <div class="loading-indicator" role="status">
+        <span class="spinner" aria-hidden="true"></span>${loadingLabel}
+    </div>
     <table id="tbl">
         <thead class="thead th">
             <th class="duplicate-column"> </th>
