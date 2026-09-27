@@ -1,5 +1,10 @@
 import { ResxFileName } from "./resxFileName";
 
+const designerSuffix = ".Designer.cs";
+
+// `[x]` is a literal x to both VS Code's and ripgrep's globs; `]` is already literal, and `[]]` breaks.
+const globSpecial = /[*?[{},]/g;
+
 /**
  * The names a resx's namespace is looked up under, most specific first.
  *
@@ -14,5 +19,21 @@ export class NamespaceLookup {
         }
 
         return [fileNameNoExt, neutralBaseName];
+    }
+
+    /** One glob for every candidate, so the workspace is walked once. */
+    public static designerFileGlob(candidates: string[]): string {
+        const names = candidates.map(candidate => candidate.replace(globSpecial, "[$&]"));
+        const name = names.length === 1 ? names[0] : `{${names.join(",")}}`;
+        return `**/${name}${designerSuffix}`;
+    }
+
+    /** Folded, since a case-insensitive filesystem may match either spelling. */
+    public static isDesignerFileOf(candidate: string, fileName: string): boolean {
+        if (fileName.toLowerCase().endsWith(designerSuffix.toLowerCase()) === false) {
+            return false;
+        }
+
+        return ResxFileName.sameBaseName(fileName.slice(0, -designerSuffix.length), candidate);
     }
 }

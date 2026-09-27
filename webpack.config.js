@@ -5,27 +5,12 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires, no-undef
 const path = require("path");
 
-/**@type {import('webpack').Configuration}*/
-const config = {
-    target: "node", // vscode extensions run in a Node.js-context 📖 -> https://webpack.js.org/configuration/node/
+// eslint-disable-next-line no-undef
+const outputPath = path.resolve(__dirname, "out");
 
-    entry: {
-        extension: "./src/extension.ts",
-        webpanelScript: "./src/webpanelScript.ts",
-        combinedPanelScript: "./src/combinedPanelScript.ts"
-    },// the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
-    output: {
-        // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/
-        // eslint-disable-next-line no-undef
-        path: path.resolve(__dirname, "out"),
-        filename: "[name].js",
-        libraryTarget: "commonjs2",
-        devtoolModuleFilenameTemplate: "../[resource-path]"
-    },
+/**@type {import('webpack').Configuration}*/
+const shared = {
     devtool: "source-map",
-    externals: {
-        vscode: "commonjs vscode" // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/
-    },
     resolve: {
         // support reading TypeScript and JavaScript files, 📖 -> https://github.com/TypeStrong/ts-loader
         extensions: [".ts", ".js"]
@@ -40,5 +25,42 @@ const config = {
         }]
     }
 };
+
+/**@type {import('webpack').Configuration}*/
+const extensionConfig = {
+    ...shared,
+    target: "node", // vscode extensions run in a Node.js-context 📖 -> https://webpack.js.org/configuration/node/
+    entry: {
+        extension: "./src/extension.ts"
+    },
+    output: {
+        path: outputPath,
+        filename: "[name].js",
+        libraryTarget: "commonjs2",
+        devtoolModuleFilenameTemplate: "../[resource-path]"
+    },
+    externals: {
+        vscode: "commonjs vscode" // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/
+    }
+};
+
+// A webview has no `module`, so these export nothing; the web target also rejects Node and vscode imports.
+// Maps are inline because the webview CSP blocks fetching a .map file.
+/**@type {import('webpack').Configuration}*/
+const webviewConfig = {
+    ...shared,
+    devtool: "inline-source-map",
+    target: "web",
+    entry: {
+        webpanelScript: "./src/webpanelScript.ts",
+        combinedPanelScript: "./src/combinedPanelScript.ts"
+    },
+    output: {
+        path: outputPath,
+        filename: "[name].js",
+        devtoolModuleFilenameTemplate: "../[resource-path]"
+    }
+};
+
 // eslint-disable-next-line no-undef
-module.exports = config;
+module.exports = [extensionConfig, webviewConfig];

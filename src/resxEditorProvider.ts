@@ -42,11 +42,16 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
         if (_token.isCancellationRequested) {
             return;
         }
-        const namespace = await FileHelper.tryGetNamespace(document);
+        const resolveStarted = Date.now();
+
+        // Not awaited: without a mapping entry the lookup walks the workspace, and the tab stayed blank.
+        let namespace = FileHelper.tryGetNamespace(document).then(resolved => {
+            Logger.instance.info(`Namespace resolved ${Date.now() - resolveStarted} ms after resolve`);
+            return resolved ?? emptyString;
+        });
+
         const hasCultureSiblings = await ResxEditorProvider.hasCultureSiblings(document.uri);
-        webviewPanel.webview.html = this.resxEditor.getHtmlForWebview(webviewPanel.webview,
-                                                                     namespace ?? emptyString,
-                                                                     hasCultureSiblings);
+        webviewPanel.webview.html = this.resxEditor.getHtmlForWebview(webviewPanel.webview, hasCultureSiblings);
 
         let isWritingWebviewEdit = false;
 
@@ -55,7 +60,9 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
             Logger.instance.info(`webviewPanel.webview.onDidReceiveMessage: ${JSON.stringify(e)}`);
             switch (e.type) {
                 case WebpanelPostMessageKind.Ready:
-                    updateWebview();
+                    Logger.instance.info(`Webview ready ${Date.now() - resolveStarted} ms after resolve`);
+                    updateWebview(true);
+                    postNamespace();
                     break;
                 case WebpanelPostMessageKind.TriggerTextDocumentUpdate: {
                     const entries = JSON.parse(e.text) as ResxEntry[];
@@ -74,6 +81,7 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
                 case WebpanelPostMessageKind.TriggerNamespaceUpdate:
                     let newNamespace = await setNewNamespace(document);
                     if (newNamespace !== undefined && newNamespace.length > 0) {
+                        namespace = Promise.resolve(newNamespace);
                         setNewNamespaceInWebview(newNamespace);
                     }
                     break;
@@ -106,15 +114,31 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
             webviewPanel.webview.postMessage(new WebpanelPostMessage(WebpanelPostMessageKind.NewNamespace, newNamespace));
         }
 
-        function updateWebview() {
+        // On every Ready, since a rebuilt webview comes back with the spinner. A superseded lookup is dropped.
+        function postNamespace() {
+            const pending = namespace;
+            pending.then(resolved => {
+                if (pending === namespace) {
+                    setNewNamespaceInWebview(resolved);
+                }
+            });
+        }
+
+        // Reported on Ready, or the loader spins forever. Later failures keep the last good table.
+        function updateWebview(reportInvalid: boolean = false) {
             try {
+                const parseStarted = Date.now();
                 const entries = ResxFile.parse(document.getText(), IndentPreference.resolve(document.uri)).entries;
                 webviewPanel.webview.postMessage(new WebpanelPostMessage(WebpanelPostMessageKind.UpdateWebPanel, JSON.stringify(entries)));
+                Logger.instance.info(`Parsed and posted ${entries.length} entries in ${Date.now() - parseStarted} ms`);
             }
             catch (error) {
                 // A resx being edited as text is invalid XML for as long as a tag is half typed.
                 if (error instanceof Error) {
                     Logger.instance.warning(`${WebpanelPostMessageKind.UpdateWebPanel} skipped: ${error.message}`);
+                }
+                if (reportInvalid) {
+                    webviewPanel.webview.postMessage(new WebpanelPostMessage(WebpanelPostMessageKind.UpdateWebPanel, JSON.stringify(null)));
                 }
             }
         }
@@ -124,8 +148,6 @@ export class ResxEditorProvider implements vscode.CustomTextEditorProvider {
             webviewListener.dispose();
             documentListener.dispose();
         });
-
-        updateWebview();
     }
 
     /* Whether this resource has more than the one file, and so anything to combine. */

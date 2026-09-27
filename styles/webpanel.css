@@ -166,8 +166,12 @@ p {
   position: relative;
 }
 
+/*
+ * No box at rest, since a hidden pseudo-element is still laid out. The delay is an
+ * animation: one created on hover has no earlier style to transition from.
+ */
 [data-tooltip]::after {
-  content: attr(data-tooltip);
+  content: none;
   position: absolute;
   z-index: 10;
   padding: 2px 8px;
@@ -177,23 +181,23 @@ p {
   border-radius: 4px;
   box-shadow: 0 2px 8px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.36));
   pointer-events: none;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 80ms ease, visibility 0s linear 80ms;
 }
 
 [data-tooltip]:hover::after,
 [data-tooltip]:focus-visible::after {
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 80ms ease 750ms, visibility 0s linear 750ms;
+  content: attr(data-tooltip);
+  animation: tooltip-appear 80ms ease 750ms both;
+}
+
+@keyframes tooltip-appear {
+  from {
+    opacity: 0;
+  }
 }
 
 /* Esc hides it until the pointer or focus leaves the button, as WCAG 1.4.13 asks. */
 .tooltip-dismissed [data-tooltip]::after {
-  opacity: 0;
-  visibility: hidden;
-  transition: none;
+  content: none;
 }
 
 /* Duplicate sits at the table's left edge and Delete at its right, so each opens toward the middle. */
@@ -470,6 +474,67 @@ body.vscode-high-contrast-light .btn.primary:hover {
 .namespace-section strong {
   font-weight: 600;
   color: var(--vscode-editor-foreground);
+}
+
+/* Transparent for 300ms, so a fast open never flashes a spinner. */
+.spinner {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  opacity: 0;
+  animation: appear 0s linear 300ms forwards;
+}
+
+.loading-indicator {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 1rem 0;
+  color: var(--vscode-descriptionForeground, var(--vscode-editor-foreground));
+}
+
+body.loading .loading-indicator {
+  display: flex;
+  opacity: 0;
+  animation: appear 0s linear 300ms forwards;
+}
+
+body.loading #tbl {
+  display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .spinner {
+    animation: appear 0s linear 300ms forwards, spin 0.8s linear infinite;
+  }
+
+  /* Plays when the loader ends and the table is shown. */
+  #tbl {
+    animation: fade-in 150ms ease-out;
+  }
+}
+
+@keyframes appear {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /*
