@@ -1,5 +1,34 @@
 # Change Log
 
+## 8.2.0 - 27-Sep-2026
+
+### New
+
+- **Duplicate a resource.** A button left of each key copies the row directly below it as
+  `<key>Copy`, with the `Copy` suffix selected so you can type the new name straight away. In
+  Edit All Languages it copies every language's value and comment, and the copy goes below its
+  source in each file.
+
+### Changed
+
+- **Large files open much faster.** The first rows appear at once and the rest follow, behind a
+  *Loading resources…* indicator, in the resx editor and in Edit All Languages. A 5,000-key file
+  now shows its first rows in about a tenth of a second instead of more than two.
+- The resx editor no longer waits for the namespace before showing the table. The namespace box
+  shows a spinner until it resolves, and looking it up without a
+  `.resxpress/namespace-mapping.json` entry is faster.
+- **Tooltips on the toolbar buttons and the row actions appear sooner**, after 750ms instead of
+  the browser's own longer delay. `Esc` dismisses them.
+- **Add New Resource keeps your search filter**, and the new row stays visible under it until
+  the search changes.
+- In Edit All Languages, a key new to a language file, such as a first translation, is now
+  written beside its neighbour in the table instead of at the end of the file.
+
+### Fixed
+
+- A resx that did not parse left the editor on an empty table with no explanation. It now says
+  *Document is not valid resx*, and Edit All Languages says *Could not read the language files*.
+
 ## 8.1.0 - 24-Sep-2026
 
 ### Changed
