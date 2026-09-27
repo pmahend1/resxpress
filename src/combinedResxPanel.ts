@@ -24,6 +24,7 @@ const unparseableFile = (fileName: string) => `${fileName} is not valid resx, so
 const skippedWrite = (fileName: string) => `${fileName} is not valid resx, so it was left alone`;
 const saveAllLabel = "Save every language file this table has changed";
 const sortByKeysLabel = "Sort every language file by key";
+const loadingLabel = "Loading resources…";
 
 /**
  * An editable table of every culture of one resource, one column per culture.
@@ -70,7 +71,7 @@ export class CombinedResxPanel {
             switch (message.type) {
                 case WebpanelPostMessageKind.Ready:
                     this.postIdentity();
-                    this.enqueue(() => this.pushToWebview());
+                    this.enqueue(() => this.pushToWebview(true));
                     break;
                 case WebpanelPostMessageKind.TriggerCombinedUpdate:
                     this.enqueue(() => this.writeEntries(JSON.parse(message.text) as CombinedEntry[]));
@@ -302,14 +303,15 @@ export class CombinedResxPanel {
                                                                JSON.stringify(anchor.toString())));
     }
 
-    private async pushToWebview(): Promise<void> {
+    // Reported on Ready, or the loader spins forever. Later failures keep the last good table.
+    private async pushToWebview(reportInvalid: boolean = false): Promise<void> {
         const payload = await this.buildPayload();
-        if (payload === undefined) {
+        if (payload === undefined && reportInvalid === false) {
             return;
         }
 
         this.panel.webview.postMessage(new WebpanelPostMessage(WebpanelPostMessageKind.UpdateCombinedPanel,
-                                                               JSON.stringify(payload)));
+                                                               JSON.stringify(payload ?? null)));
     }
 
     private async buildPayload(): Promise<CombinedPayload | undefined> {
@@ -410,7 +412,7 @@ export class CombinedResxPanel {
     <link href="${styleUri}" rel="stylesheet" />
     <title>All Languages</title>
 </head>
-<body>
+<body class="loading">
     <div class="toolbar">
         <div class="toolbar-actions">
             <button id="addButton" class="btn primary">
@@ -436,6 +438,9 @@ export class CombinedResxPanel {
         </div>
     </div>
 
+    <div class="loading-indicator" role="status">
+        <span class="spinner" aria-hidden="true"></span>${loadingLabel}
+    </div>
     <div id="tableScroll" class="table-scroll">
         <table id="tbl">
             <thead id="tableHead">
